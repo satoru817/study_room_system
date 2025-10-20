@@ -48,4 +48,23 @@ CREATE TABLE IF NOT EXISTS study_room_schedule_exceptions (
 --     UNIQUE KEY (date, study_room_id) the same as above. maybe i could add this line...
 );
 
+CREATE TABLE IF NOT EXISTS student_login_infos (
+    student_login_info_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    login_name VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    student_id INT NOT NULL UNIQUE,
+    FOREIGN KEY student_id REFERENCES students(student_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS student_tokens (
+    student_token_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    student_id INT NOT NULL,
+    user_id INT NOT NULL,  -- 発行者（教師）を記録
+    valid_until DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE KEY(student_id)
+);
 
