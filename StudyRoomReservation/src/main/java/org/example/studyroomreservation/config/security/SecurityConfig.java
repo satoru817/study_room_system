@@ -14,6 +14,16 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.function.Supplier;
 
+/**
+ * Security configuration for the application.
+ * <p>
+ * This configuration enables:
+ * <ul>
+ *     <li>CORS for development environment only</li>
+ *     <li>CSRF protection using cookies suitable for SPA (Single Page Application)</li>
+ *     <li>Access rules for public endpoints</li>
+ * </ul>
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -21,38 +31,27 @@ public class SecurityConfig {
     @Autowired
     private CorsConfigurationSource corsConfigurationSource;
 
+    /**
+     * Defines the security filter chain.
+     *
+     * @param http HttpSecurity object to configure
+     * @return SecurityFilterChain object
+     * @throws Exception if any error occurs during configuration
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Publicly accessible endpoints
                         .requestMatchers("/", "/register", "/login", "/api/csrf-token").permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll()
+                        // All other requests needs authentication
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
-    }
-}
-
-final class SpaCsrfTokenRequestHandler extends CsrfTokenRequestAttributeHandler {
-    private final CsrfTokenRequestHandler delegate = new XorCsrfTokenRequestAttributeHandler();
-
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response,
-                       Supplier<CsrfToken> csrfToken) {
-        this.delegate.handle(request, response, csrfToken);
-    }
-
-    @Override
-    public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
-        if (StringUtils.hasText(request.getHeader(csrfToken.getHeaderName()))) {
-            return super.resolveCsrfTokenValue(request, csrfToken);
-        }
-        return this.delegate.resolveCsrfTokenValue(request, csrfToken);
     }
 }
