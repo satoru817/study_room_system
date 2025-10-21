@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { Navbar, Nav, Container } from 'react-bootstrap';
+import StudentRegisterPage from './pages/StudentRegisterPage';
+import './App.scss'
 function App() {
-  const [count, setCount] = useState(0)
+
+    useEffect(() => {
+        const initCsrf = async () => {
+          try {
+            // csrf token will be stored in cookie
+            await fetch('/api/csrf-token', {
+              credentials: 'same-origin'
+            });
+            console.log('CSRF token initialized');
+          } catch (error) {
+            console.error('Failed to initialize CSRF:', error);
+          }
+        };
+
+        initCsrf();
+      }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <Navbar bg="light" expand="lg">
+        <Container>
+          <Navbar.Brand as={Link} to="/">自習室予約</Navbar.Brand>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="me-auto">
+              <Nav.Link as={Link} to="/register">新規登録</Nav.Link>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+
+      <Container className="mt-4">
+        <Routes>
+          <Route path="/register" element={<StudentRegisterPage />} />
+        </Routes>
+      </Container>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
