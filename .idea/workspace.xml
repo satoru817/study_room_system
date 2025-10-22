@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b12206c-24ae-41f7-ae4b-3426e1c708e6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/user/UserDetailsImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/user/UserDetailsServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/dto/StudentLoginDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/spa/SpaConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/spa/SpaConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/repository/StudentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/repository/StudentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/index.css" beforeDir="false" />
-    </list>
+    <list default="true" id="9b12206c-24ae-41f7-ae4b-3426e1c708e6" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

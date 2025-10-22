@@ -7,20 +7,21 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface StudentRepository extends JpaRepository<Student, Integer> {
     @Query("""
-            SELECT NEW org.example.studyroomreservation.dto.StudentLoginDTO (
+            SELECT NEW org.example.studyroomreservation.dto.StudentLoginDTO(
                 s.studentId,
                 s.el1,
                 s.name,
                 s.furigana,
                 c.name,
                 s.cardId,
+                s.mail,
                 sli.loginName,
                 sli.password
             )
-            FROM
-                StudentLoginInfo sli
-                JOIN Student sli.student s
-                JOIN s.cramSchool c
+            FROM StudentLoginInfo sli
+            JOIN sli.student s
+            JOIN s.cramSchool c
+            WHERE sli.loginName = :loginName
             """)
     public StudentLoginDTO getStudentLoginDTOByLoginName(String loginName);
 }

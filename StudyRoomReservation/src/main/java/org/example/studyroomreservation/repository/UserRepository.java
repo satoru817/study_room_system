@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("""
-            SELECT User u
-            WHERE u.email = email
+            SELECT u
+            FROM User u
+            WHERE u.email = :email
             """)
     User getByEmail(String email);
 }

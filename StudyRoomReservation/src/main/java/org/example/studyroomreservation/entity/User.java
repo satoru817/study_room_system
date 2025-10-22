@@ -19,8 +19,8 @@ public class User {
     @Column
     private String password;
 
-    @Column
     // THIS IS UNIQUE!!!
+    @Column
     private String email;
 
     //=========================

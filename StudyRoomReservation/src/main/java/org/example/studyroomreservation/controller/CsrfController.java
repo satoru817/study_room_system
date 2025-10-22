@@ -1,5 +1,7 @@
 package org.example.studyroomreservation.controller;
 
+import jakarta.persistence.GeneratedValue;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,10 +29,13 @@ public class CsrfController {
      * @return a map containing a message confirming that the CSRF token has been initialized
      */
     @GetMapping("/csrf-token")
-    public Map<String, String> getCsrfToken() {
-        // Spring Security automatically generates and sets CSRF token in cookie
-        // This endpoint just triggers that process
-        return Map.of("message", "CSRF token initialized");
+    public Map<String, String> getCsrfToken(CsrfToken token) {
+        System.out.println("CsrfToken = " + token);
+        return Map.of(
+                "headerName", token.getHeaderName(),
+                "parameterName", token.getParameterName(),
+                "token", token.getToken()
+        );
     }
 
 }

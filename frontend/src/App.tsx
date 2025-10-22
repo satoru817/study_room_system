@@ -2,14 +2,15 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import StudentRegisterPage from './pages/StudentRegisterPage';
 import './App.scss'
+import { useEffect } from 'react'
 function App() {
 
     useEffect(() => {
         const initCsrf = async () => {
           try {
             // csrf token will be stored in cookie
-            await fetch('/api/csrf-token', {
-              credentials: 'same-origin'
+            await fetch(`/api/csrf-token`, {
+              credentials: 'include'
             });
             console.log('CSRF token initialized');
           } catch (error) {
