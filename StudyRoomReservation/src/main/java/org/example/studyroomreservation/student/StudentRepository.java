@@ -1,7 +1,6 @@
-package org.example.studyroomreservation.repository;
+package org.example.studyroomreservation.student;
 
 import org.example.studyroomreservation.dto.StudentLoginDTO;
-import org.example.studyroomreservation.entity.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

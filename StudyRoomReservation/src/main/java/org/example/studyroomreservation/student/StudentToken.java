@@ -1,7 +1,8 @@
-package org.example.studyroomreservation.entity;
+package org.example.studyroomreservation.student;
 
 import jakarta.persistence.*;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public class StudentToken {
     public Student getStudent() { return student; }
     public User getUser() { return user; }
     public LocalDateTime getValidUntil() { return validUntil; }
-    public boolean isExpired() { return TokyoTimeElf.getTokyoLocalDateTime().isAfter(validUntil); }
+    public boolean isValid() { return TokyoTimeElf.getTokyoLocalDateTime().isBefore(validUntil); }
 
     public static class Builder {
         private Student student;

@@ -1,7 +1,8 @@
-package org.example.studyroomreservation.entity;
+package org.example.studyroomreservation.student;
 
 import jakarta.persistence.*;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.entity.CramSchool;
 
 import java.time.LocalDate;
 

@@ -1,4 +1,4 @@
-package org.example.studyroomreservation.entity;
+package org.example.studyroomreservation.student;
 
 import jakarta.persistence.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -6,9 +6,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Entity
 @Table(name = "student_login_infos")
 public class StudentLoginInfo {
-
-    @Transient
-    private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,13 +24,13 @@ public class StudentLoginInfo {
     // JUST FOR JPA
     protected StudentLoginInfo() {}
 
-    public StudentLoginInfo(String loginName, String rawPassword, Student student) {
+    public StudentLoginInfo(String loginName, String hashedPassword, Student student) {
         if(loginName == null || loginName.isBlank()) throw new IllegalArgumentException("loginName must not be blank");
-        if(rawPassword == null || rawPassword.isBlank()) throw new IllegalArgumentException("password must not be blank");
+        if(hashedPassword == null || hashedPassword.isBlank()) throw new IllegalArgumentException("password must not be blank");
         if(student == null) throw new IllegalArgumentException("student must not be null");
 
         this.loginName = loginName;
-        this.password = encoder.encode(rawPassword);
+        this.password = hashedPassword;
         this.student = student;
     }
 
