@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b12206c-24ae-41f7-ae4b-3426e1c708e6" name="Changes" comment="" />
+    <list default="true" id="9b12206c-24ae-41f7-ae4b-3426e1c708e6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/pages/LoginPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.tsx" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

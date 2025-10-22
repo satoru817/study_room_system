@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import StudentRegisterPage from './pages/StudentRegisterPage';
+import LoginPage from './pages/LoginPage';
 import './App.scss'
 import { useEffect } from 'react'
 function App() {
@@ -30,6 +31,7 @@ function App() {
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
               <Nav.Link as={Link} to="/register">新規登録</Nav.Link>
+              <Nav.Ling as={Link} to="/login">ログイン</Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -38,6 +40,7 @@ function App() {
       <Container className="mt-4">
         <Routes>
           <Route path="/register" element={<StudentRegisterPage />} />
+          <Route path="/login" element={<LoginPage/>} />
         </Routes>
       </Container>
     </BrowserRouter>
