@@ -1,24 +1,22 @@
 import { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { doPost } from '../elfs/WebElf';
+import { useNavigate } from 'react-router-dom';
+import { doLogin } from '../elfs/WebElf';  // ← doPostではなくdoLoginをimport
+import { setRole, STUDENT, TEACHER } from '../constant/role';
+import { initCsrf } from '../elfs/CookieElf';
 
 function LoginPage() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get('token');
 
-  const [loginName, setLoginName] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [errors, setErrors] = useState({
-    loginName: '',
-    password: '',
-    confirmPassword: ''
+    username: '',
+    password: ''
   });
 
-  const validateLoginName = (value: string) => {
+  const validateUsername = (value: string) => {
     if (!value.trim()) {
       return '有効なユーザー名を入力してください';
     }
@@ -35,43 +33,24 @@ function LoginPage() {
     return '';
   };
 
-  const validateConfirmPassword = (value: string) => {
-    if (value !== password) {
-      return 'パスワードが一致しません';
-    }
-    return '';
-  };
-
-  const handleLoginNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setLoginName(value);
-    setErrors(prev => ({ ...prev, loginName: validateLoginName(value) }));
+    setUsername(value);
+    setErrors(prev => ({ ...prev, username: validateUsername(value) }));
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPassword(value);
     setErrors(prev => ({ ...prev, password: validatePassword(value) }));
-
-    // パスワード変更時、確認パスワードも再検証
-    if (confirmPassword) {
-      setErrors(prev => ({ ...prev, confirmPassword: validateConfirmPassword(confirmPassword) }));
-    }
-  };
-
-  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
-    setErrors(prev => ({ ...prev, confirmPassword: validateConfirmPassword(value) }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors = {
-      loginName: validateLoginName(loginName),
+      username: validateUsername(username),
       password: validatePassword(password),
-      confirmPassword: validateConfirmPassword(confirmPassword)
     };
 
     setErrors(newErrors);
@@ -82,60 +61,49 @@ function LoginPage() {
 
     if (isSubmitting) return;
 
-    try {
-      setIsSubmitting(true);
-      const response = await doPost('/api/student/register', {
-        token,
-        loginName,
-        password
-      });
+    setIsSubmitting(true);
 
-      if (response.success) {
-        alert('登録が完了しました！');
-        navigate('/login');
-      } else {
-        alert(response.message || '登録に失敗しました');
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      alert('登録中にエラーが発生しました。もう一度お試しください。');
-    } finally {
-      setIsSubmitting(false);
+    const response = await doLogin(username, password);
+
+    if (response.success) {
+        // TODO: change where to navigate based on ROLE
+        alert('ログインが完了しました！');
+        const role = response.roles[0];
+        setRole(role);
+        // since the csrf is changed after successful login, take that from server again
+        await initCsrf();
+        //const navigate_to = role === STUDENT ? '/student' : '/teacher';
+        navigate("/register");
     }
-  };
+    else {
+        alert(response.error || 'ログインに失敗しました');
+    }
 
-  if (!token) {
-    return (
-      <div className="alert alert-danger">
-        無効なリンクです。登録用のリンクをメールで確認してください。
-      </div>
-    );
-  }
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="card mx-auto" style={{ maxWidth: '400px' }}>
       <div className="card-body">
-        <h2 className="card-title">生徒登録</h2>
+        <h2 className="card-title">ログイン</h2>
         <form onSubmit={handleSubmit}>
-          {/* ログイン名 */}
           <div className="mb-3">
-            <label className="form-label">ログイン名</label>
+            <label className="form-label">ログイン名またはメールアドレス</label>
             <input
               type="text"
-              className={`form-control ${errors.loginName ? 'is-invalid' : ''}`}
-              value={loginName}
-              onChange={handleLoginNameChange}
+              className={`form-control ${errors.username ? 'is-invalid' : ''}`}
+              value={username}
+              onChange={handleUsernameChange}
               disabled={isSubmitting}
               required
             />
-            {errors.loginName && (
+            {errors.username && (
               <div className="invalid-feedback">
-                {errors.loginName}
+                {errors.username}
               </div>
             )}
           </div>
 
-          {/* パスワード */}
           <div className="mb-3">
             <label className="form-label">パスワード</label>
             <input
@@ -153,30 +121,12 @@ function LoginPage() {
             )}
           </div>
 
-          {/* パスワード確認 */}
-          <div className="mb-3">
-            <label className="form-label">パスワード確認</label>
-            <input
-              type="password"
-              className={`form-control ${errors.confirmPassword ? 'is-invalid' : ''}`}
-              value={confirmPassword}
-              onChange={handleConfirmPasswordChange}
-              disabled={isSubmitting}
-              required
-            />
-            {errors.confirmPassword && (
-              <div className="invalid-feedback">
-                {errors.confirmPassword}
-              </div>
-            )}
-          </div>
-
           <button
             type="submit"
             className="btn btn-primary w-100"
             disabled={isSubmitting}
           >
-            {isSubmitting ? '登録中...' : '登録'}
+            {isSubmitting ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
       </div>
@@ -184,4 +134,4 @@ function LoginPage() {
   );
 }
 
-export default StudentRegisterPage;
+export default LoginPage;

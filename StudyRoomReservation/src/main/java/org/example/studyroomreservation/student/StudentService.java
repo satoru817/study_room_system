@@ -13,12 +13,11 @@ public class StudentService {
 
     public StudentService(
             StudentTokenRepository studentTokenRepository,
-            StudentLoginInfoRepository studentLoginInfoRepository,
-            BCryptPasswordEncoder passwordEncoder
+            StudentLoginInfoRepository studentLoginInfoRepository
     ) {
         this.studentTokenRepository = studentTokenRepository;
         this.studentLoginInfoRepository = studentLoginInfoRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     @Transactional

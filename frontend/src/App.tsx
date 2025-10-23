@@ -1,24 +1,14 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import StudentRegisterPage from './pages/StudentRegisterPage';
 import LoginPage from './pages/LoginPage';
 import './App.scss'
 import { useEffect } from 'react'
+import { initCsrf } from './elfs/CookieElf';
+import { doLogout } from './elfs/WebElf';
 function App() {
 
     useEffect(() => {
-        const initCsrf = async () => {
-          try {
-            // csrf token will be stored in cookie
-            await fetch(`/api/csrf-token`, {
-              credentials: 'include'
-            });
-            console.log('CSRF token initialized');
-          } catch (error) {
-            console.error('Failed to initialize CSRF:', error);
-          }
-        };
-
         initCsrf();
       }, []);
 
@@ -30,8 +20,9 @@ function App() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              <Nav.Link as={Link} to="/register">新規登録</Nav.Link>
-              <Nav.Ling as={Link} to="/login">ログイン</Nav.Link>
+              <Button variant='outline-info' as={Link} to="/register">新規登録</Button>
+              <Button as={Link} to="/login" variant='outline-success'>ログイン</Button>
+              <Button variant="outline-danger" onClick={doLogout}>ログアウト</Button>
             </Nav>
           </Navbar.Collapse>
         </Container>

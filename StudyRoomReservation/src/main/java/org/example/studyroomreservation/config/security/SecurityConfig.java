@@ -2,13 +2,18 @@ package org.example.studyroomreservation.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.*;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,13 +44,17 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        // TODO: find out how to use default XorCsrfTokenRequestAttributeHandler in SPA
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Publicly accessible endpoints
-                        .requestMatchers("","/", "/register", "/login", "/api/csrf-token").permitAll()
+                        .requestMatchers("/index").permitAll()
+                        .requestMatchers("/", "/register", "/api/csrf-token", "/api/login").permitAll()
                         // All other requests needs authentication
                         .anyRequest().authenticated()
                 )
@@ -65,9 +74,11 @@ public class SecurityConfig {
                             result.put("roles", authentication.getAuthorities().stream()
                                     .map(GrantedAuthority::getAuthority)
                                     .collect(Collectors.toList()));
+                            result.put("principal", authentication.getPrincipal());
 
                             ObjectMapper mapper = new ObjectMapper();
                             response.getWriter().write(mapper.writeValueAsString(result));
+                            response.getWriter().flush();
                         })
                         // Failure handler - returns error JSON with 401 status
                         .failureHandler((request, response, exception) -> {
@@ -98,5 +109,10 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

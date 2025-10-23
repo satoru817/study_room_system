@@ -1,14 +1,12 @@
 // =================================================================================
 //           Helper Functions
 // =================================================================================
-
+import { getFromCookie } from './CookieElf.js';
 /**
  * Get CSRF token from cookie
  */
 const getCsrfTokenFromCookie = (): string | null => {
-  const name = 'XSRF-TOKEN';
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? match[2] : null;
+    return getFromCookie('XSRF-TOKEN');
 };
 
 /**
@@ -152,3 +150,70 @@ export async function fetchRelatedSchools(cramSchoolId: number): Promise<any> {
 
   return await response.json();
 }
+
+/**
+ * Login request (form-urlencoded format for Spring Security)
+ */
+export async function doLogin(username: string, password: string): Promise<any> {
+  const csrfToken = getCsrfTokenFromCookie();
+
+  // Create form data
+  const formData = new URLSearchParams();
+  formData.append('username', username);
+  formData.append('password', password);
+  formData.append('_csrf', csrfToken);
+
+  console.log(`Login initialized with username = ${username}`);
+
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
+      },
+      body: formData.toString()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Response Status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log(`Login finished, result = ${JSON.stringify(result)}`);
+
+    return result;
+  } catch (error) {
+    console.error(`Login Error: ${error}`);
+    throw error;
+  }
+};
+
+/**
+ * Logout request
+ */
+export async function doLogout(): Promise<void> {
+  const csrfToken = getCsrfTokenFromCookie();
+
+  try {
+    const response = await fetch('/api/logout', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken })
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Logout failed with status: ${response.status}`);
+    }
+
+    console.log('Logout successful');
+  }
+  catch (error) {
+    console.error('Logout Error:', error);
+    throw error;
+  }
+};
