@@ -1,4 +1,4 @@
-
+import { doGet } from './WebElf';
 // Function to get a cookie value by name
 // - name: the name of the cookie to retrieve
 // - Returns: the value of the cookie as a string, or null if not found
@@ -27,9 +27,10 @@ export const setCookie = (name, value, maxAge = 3600) => {
 export const initCsrf = async() => {
     try {
         // csrf token will be stored in cookie
-        await fetch(`/api/csrf-token`, {
-         credentials: 'include'
-        });
+//        await fetch('/api/csrf-token', {
+//            credentials: 'include'
+//        });
+        await doGet('/api/csrf-token');
         console.log('CSRF token initialized');
     }
     catch (error) {

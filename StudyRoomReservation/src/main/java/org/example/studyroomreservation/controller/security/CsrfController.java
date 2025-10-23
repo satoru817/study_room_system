@@ -1,4 +1,4 @@
-package org.example.studyroomreservation.controller;
+package org.example.studyroomreservation.controller.security;
 
 import jakarta.persistence.GeneratedValue;
 import org.springframework.security.web.csrf.CsrfToken;

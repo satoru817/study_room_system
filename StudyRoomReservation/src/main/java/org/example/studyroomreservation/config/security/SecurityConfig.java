@@ -54,7 +54,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Publicly accessible endpoints
                         .requestMatchers("/index").permitAll()
-                        .requestMatchers("/", "/register", "/api/csrf-token", "/api/login").permitAll()
+                        .requestMatchers("/", "/register", "/api/csrf-token", "/api/login", "/api/me").permitAll()
                         // All other requests needs authentication
                         .anyRequest().authenticated()
                 )
@@ -71,10 +71,10 @@ public class SecurityConfig {
                             Map<String, Object> result = new HashMap<>();
                             result.put("success", true);
                             result.put("username", authentication.getName());
+                            // maybe just adding one role is enough... list seems ridiculous
                             result.put("roles", authentication.getAuthorities().stream()
                                     .map(GrantedAuthority::getAuthority)
                                     .collect(Collectors.toList()));
-                            result.put("principal", authentication.getPrincipal());
 
                             ObjectMapper mapper = new ObjectMapper();
                             response.getWriter().write(mapper.writeValueAsString(result));

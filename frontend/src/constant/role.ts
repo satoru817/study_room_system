@@ -4,7 +4,7 @@ export const ROLE = 'role';
 import { getFromCookie, setCookie } from '../elfs/CookieElf';
 
 export const getRole = (name) => {
-  return getFromCookie(ROLE);
+    return getFromCookie(ROLE);
 };
 
 export const setRole = (roleName) => {
