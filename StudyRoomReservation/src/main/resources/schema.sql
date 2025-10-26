@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS study_rooms (
     study_room_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     cram_school_id INT NOT NULL,
     name VARCHAR(255) UNIQUE,
+    room_limit INT NOT NULL,
     FOREIGN KEY (cram_school_id) REFERENCES cram_schools(cram_school_id) ON DELETE CASCADE
 );
 
@@ -68,3 +69,10 @@ CREATE TABLE IF NOT EXISTS student_tokens (
     UNIQUE KEY(student_id)
 );
 
+CREATE TABLE IF NOT EXISTS study_room_attendances (
+    study_room_attendance_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    start_hour TIME,
+    end_hour TIME,
+    study_room_reservation_id INT NOT NULL,
+    FOREIGN KEY (study_room_reservation_id) REFERENCES study_room_reservations(study_room_reservation_id) ON DELETE CASCADE
+);

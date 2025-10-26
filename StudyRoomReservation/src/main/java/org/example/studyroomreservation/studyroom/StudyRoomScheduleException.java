@@ -1,6 +1,7 @@
-package org.example.studyroomreservation.entity;
+package org.example.studyroomreservation.studyroom;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 

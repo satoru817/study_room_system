@@ -1,8 +1,14 @@
 package org.example.studyroomreservation.student;
 
+import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 public class StudentService {
@@ -10,14 +16,17 @@ public class StudentService {
     private final StudentTokenRepository studentTokenRepository;
     private final StudentLoginInfoRepository studentLoginInfoRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final StudentRepository studentRepository;
 
     public StudentService(
             StudentTokenRepository studentTokenRepository,
-            StudentLoginInfoRepository studentLoginInfoRepository
+            StudentLoginInfoRepository studentLoginInfoRepository,
+            StudentRepository studentRepository
     ) {
         this.studentTokenRepository = studentTokenRepository;
         this.studentLoginInfoRepository = studentLoginInfoRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.studentRepository = studentRepository;
     }
 
     @Transactional
@@ -46,5 +55,11 @@ public class StudentService {
 
         // 6. Delete token when used
         studentTokenRepository.delete(studentToken);
+    }
+
+    public Page<StudentStatus> getStatuses(int cramSchoolId, Pageable pageable) {
+        LocalDateTime now = TokyoTimeElf.getTokyoLocalDateTime();
+
+        return studentRepository.getStatuses(cramSchoolId, now.toLocalDate(), now.toLocalTime(), pageable);
     }
 }

@@ -24,4 +24,8 @@ public class CramSchoolService {
             return Collections.emptyList();
         }
     }
+
+    public CramSchool getById(int cramSchoolId) {
+        return cramSchoolRepository.getReferenceById(cramSchoolId);
+    }
 }

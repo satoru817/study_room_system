@@ -3,6 +3,7 @@ package org.example.studyroomreservation.entity;
 import jakarta.persistence.*;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.student.Student;
+import org.example.studyroomreservation.studyroom.StudyRoom;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

@@ -27,14 +27,13 @@ const _fetch = async (
 
     const requestBody: RequestInit = {
         method: method,
-        credentials: 'include', // Required to send/receive cookies
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
-            ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken }), // Add token if available
+            ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken }),
         },
     };
 
-    // GET method shouldn't have a body field.
     if (method !== 'GET' && stringBody) {
         requestBody.body = stringBody;
     }
@@ -42,13 +41,25 @@ const _fetch = async (
     try {
         const response = await fetch(url, requestBody);
 
+        if (response.status === 401) {
+            console.error('Authentication required - redirecting to login');
+            alert('ログインが必要です。ログインページにリダイレクトします。');
+            window.location.href = '/login';
+            throw new Error('Authentication required');
+        }
+
+        if (response.status === 403) {
+            console.error('Access forbidden - insufficient permissions');
+            alert('アクセス権限がありません。');
+            throw new Error('Access forbidden');
+        }
+
         if (!response.ok) {
             throw new Error(`Response Status: ${response.status}`);
         }
 
         const contentType = response.headers.get('Content-Type') || '';
 
-        // Handle empty response
         if (response.status === 204 || contentType === '') {
             console.log(`Fetch finished with url = ${url}, method = ${method} (No Content)`);
             return null;
@@ -60,7 +71,6 @@ const _fetch = async (
         } else if (contentType.includes('application/json')) {
             fetchedData = await response.json();
         } else {
-            // For other content types
             fetchedData = await response.text();
         }
 
@@ -71,11 +81,19 @@ const _fetch = async (
         return fetchedData;
     } catch (error) {
         console.error(`Error: ${error}`);
-        alert(`エラー発生：必要であれば管理者に連絡してください。${error}`);
+
+        if (
+            error instanceof Error &&
+            !error.message.includes('Authentication') &&
+            !error.message.includes('forbidden')
+        ) {
+            alert(`エラー発生：必要であれば管理者に連絡してください。${error}`);
+        }
+
         if (callIfFailed) {
             callIfFailed();
         }
-        throw error; // Re-throw to allow caller to handle
+        throw error;
     }
 };
 

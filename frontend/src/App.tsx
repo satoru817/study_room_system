@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Badge } from 'react-bootstrap';
 import StudentRegisterPage from './pages/StudentRegisterPage';
 import SelectCramSchool from './pages/teacher/SelectCramSchool';
@@ -7,13 +7,17 @@ import './App.scss';
 import { useEffect, useState } from 'react';
 import { initCsrf } from './elfs/CookieElf';
 import { doLogout, checkMe } from './elfs/WebElf';
-import type { User, Principal, CramSchool } from './constant/types';
+import type { User, Principal, CramSchool, StudyRoom } from './constant/types';
 import { STUDENT, TEACHER } from './constant/role';
+import StudyRooms from './pages/teacher/StudyRooms';
+import Students from './pages/teacher/Students';
 
 function App() {
-    const [user, setUser] = useState<User>(null);
+    const [user, setUser] = useState<User | null>(null);
     // cramSchoolの有無で表示を切り替える
-    const [cramSchool, setCramSchool] = useState<CramSchool>(null);
+    const [cramSchool, setCramSchool] = useState<CramSchool | null>(null);
+    const [studyRoom, setStudyRoom] = useState<StudyRoom | null>(null);
+    // const navigate = useNavigate();
 
     useEffect(() => {
         const init = async () => {
@@ -111,6 +115,35 @@ function App() {
                                     </Button>
                                 </>
                             )}
+
+                            {/*if user has selected cramSchool then they should be able to see other links like students or study_rooms*/}
+                            {cramSchool && user && user.role === TEACHER && (
+                                <>
+                                    {/*teacher should be able to send sign_up url to any student from the page below*/}
+                                    <Button
+                                        variant="outline-primary"
+                                        as={Link}
+                                        to="/students"
+                                        className="me-2"
+                                    >
+                                        生徒一覧
+                                    </Button>
+                                    {/*teacher should be able to do CRUD on every study_room of the cramschool they selected*/}
+                                    <Button
+                                        variant="link"
+                                        to="/studyRooms"
+                                        as={Link}
+                                        className="me-2"
+                                    >
+                                        自習室一覧
+                                    </Button>
+                                    {studyRoom && (
+                                        <>
+                                            {/* make components for setting up a certain studyRoom or checking who's using the studyRoom right now*/}
+                                        </>
+                                    )}
+                                </>
+                            )}
                         </Nav>
                     </Navbar.Collapse>
                 </Container>
@@ -127,6 +160,12 @@ function App() {
                         path="/selectCramSchool"
                         element={<SelectCramSchool user={user} setCramSchool={setCramSchool} />}
                     />
+                    <Route
+                        path="/studyRooms"
+                        element={<StudyRooms cramSchool={cramSchool} setStudyRoom={setStudyRoom} />}
+                    />
+                    {/*in the component students teacher should be able to send sign up links*/}
+                    <Route path="/students" element={<Students cramSchool={cramSchool} />} />
 
                     <Route path="/" element={<h2>自習室予約アプリへようこそ！</h2>} />
                 </Routes>

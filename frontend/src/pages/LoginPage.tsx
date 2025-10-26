@@ -27,7 +27,7 @@ const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
 
         if (response.success) {
             const role = response.role;
-            setRole(role);
+            setRole(role || '');
             await initCsrf();
             onLoginSuccess({
                 loggedIn: true,

@@ -1,6 +1,6 @@
 package org.example.studyroomreservation.config.security.user;
 
-import org.example.studyroomreservation.dto.StudentLoginDTO;
+import org.example.studyroomreservation.student.StudentLoginDTO;
 
 public class StudentUser extends AbstractLoginClient{
     private StudentLoginDTO studentLoginDTO;

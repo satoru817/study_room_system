@@ -1,4 +1,4 @@
-package org.example.studyroomreservation.dto;
+package org.example.studyroomreservation.student;
 
 public class StudentLoginDTO {
     private final int studentId;

@@ -1,6 +1,6 @@
 package org.example.studyroomreservation.config.security.user;
 
-import org.example.studyroomreservation.dto.StudentLoginDTO;
+import org.example.studyroomreservation.student.StudentLoginDTO;
 import org.example.studyroomreservation.entity.User;
 import org.example.studyroomreservation.student.StudentRepository;
 import org.example.studyroomreservation.repository.UserRepository;
