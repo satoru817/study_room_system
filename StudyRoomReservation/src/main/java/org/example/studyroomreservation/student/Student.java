@@ -1,5 +1,6 @@
 package org.example.studyroomreservation.student;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.entity.CramSchool;
@@ -9,6 +10,8 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "students")
 public class Student {
+    @JsonIgnore
+    public static final int GRADE_CHANGE_MONTH = 3;
     //============================================================================
     //                FIELDS
     //============================================================================
@@ -79,7 +82,7 @@ public class Student {
     public int getAbsoluteGrade() {
         LocalDate now = TokyoTimeElf.getTokyoLocalDate();
         int grade;
-        if (now.getMonthValue() >= 3) {
+        if (now.getMonthValue() >= GRADE_CHANGE_MONTH) {
             grade = now.getYear() - el1 + 1;
         } else {
             grade = now.getYear() - el1;
@@ -88,16 +91,21 @@ public class Student {
     }
 
     public String getGradeStr() {
-        int grade = this.getAbsoluteGrade();
-
-        if (grade <= 6) {
-            return "小学" + grade + "年";
-        } else if (grade <= 9) {
-            return "中学" + (grade - 6) + "年";
-        } else if (grade <= 12) {
-            return "高校" + (grade - 9) + "年";
-        } else {
-            return "卒業";
-        }
+        return getAbsoluteGrade(this.el1);
     }
+
+    @JsonIgnore
+    public static String getAbsoluteGrade(int el1) {
+        LocalDate now = TokyoTimeElf.getTokyoLocalDate();
+
+        int grade= (now.getMonthValue() >= GRADE_CHANGE_MONTH) ? now.getYear() - el1 + 1 : now.getYear();
+
+        return switch (grade) {
+            case 1, 2, 3, 4, 5, 6 -> "小学" + grade + "年";
+            case 7, 8, 9 -> "中学" + (grade - 6) + "年";
+            case 10, 11, 12 -> "高校" + (grade - 9) + "年";
+            default -> "卒業";
+        };
+    }
+
 }
