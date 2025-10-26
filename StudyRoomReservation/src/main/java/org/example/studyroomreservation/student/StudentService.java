@@ -3,6 +3,7 @@ package org.example.studyroomreservation.student;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,16 +18,19 @@ public class StudentService {
     private final StudentLoginInfoRepository studentLoginInfoRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StudentRepository studentRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public StudentService(
             StudentTokenRepository studentTokenRepository,
             StudentLoginInfoRepository studentLoginInfoRepository,
-            StudentRepository studentRepository
+            StudentRepository studentRepository,
+            JdbcTemplate jdbcTemplate
     ) {
         this.studentTokenRepository = studentTokenRepository;
         this.studentLoginInfoRepository = studentLoginInfoRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.studentRepository = studentRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Transactional
@@ -61,5 +65,21 @@ public class StudentService {
         LocalDateTime now = TokyoTimeElf.getTokyoLocalDateTime();
 
         return studentRepository.getStatuses(cramSchoolId, now.toLocalDate(), now.toLocalTime(), pageable);
+    }
+
+    @Transactional
+    public void updateEmail(EmailRegisterRequest request) {
+
+        int rowsAffected = jdbcTemplate.update(
+                "UPDATE students SET mail = ? WHERE student_id = ?",
+                request.email(),
+                request.studentId()
+        );
+
+        if (rowsAffected == 0) {
+            throw new IllegalArgumentException(
+                    "Student not found with ID: " + request.studentId()
+            );
+        }
     }
 }

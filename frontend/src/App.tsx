@@ -45,6 +45,8 @@ function App() {
 
     const onLogout = async () => {
         setUser(null);
+        setCramSchool(null);
+        setStudyRoom(null);
         await doLogout();
         await initCsrf();
     };

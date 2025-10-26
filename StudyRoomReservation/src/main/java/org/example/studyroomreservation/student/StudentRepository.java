@@ -30,6 +30,7 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
 
     @Query("""
             SELECT NEW org.example.studyroomreservation.student.StudentStatus(
+                s.studentId,
                 s.name,
                 s.el1,
                 s.mail,

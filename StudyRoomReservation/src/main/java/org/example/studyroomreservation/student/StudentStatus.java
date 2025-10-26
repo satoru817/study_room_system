@@ -6,6 +6,7 @@ import org.example.studyroomreservation.elf.TokyoTimeElf;
 import java.time.LocalDate;
 
 public record StudentStatus(
+        int studentId,
         String name,
         @JsonIgnore int el1,
         String mail,

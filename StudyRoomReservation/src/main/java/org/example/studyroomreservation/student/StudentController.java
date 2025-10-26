@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -52,5 +53,12 @@ public class StudentController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         Page<StudentStatus> studentStatuses = studentService.getStatuses(cramSchoolId, pageable);
         return ResponseEntity.ok(studentStatuses);
+    }
+
+    @PostMapping("/register-email")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> updateMail(@RequestBody EmailRegisterRequest request) {
+        studentService.updateEmail(request);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 }
