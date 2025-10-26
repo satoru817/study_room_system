@@ -3,10 +3,10 @@ export const TEACHER = 'ROLE_TEACHER';
 export const ROLE = 'role';
 import { getFromCookie, setCookie } from '../elfs/CookieElf';
 
-export const getRole = (name) => {
+export const getRole = () => {
     return getFromCookie(ROLE);
 };
 
-export const setRole = (roleName) => {
+export const setRole = (roleName: string) => {
     setCookie(ROLE, roleName);
 };

@@ -72,9 +72,11 @@ public class SecurityConfig {
                             result.put("success", true);
                             result.put("username", authentication.getName());
                             // maybe just adding one role is enough... list seems ridiculous
-                            result.put("roles", authentication.getAuthorities().stream()
+                            result.put("role", authentication.getAuthorities().stream()
                                     .map(GrantedAuthority::getAuthority)
-                                    .collect(Collectors.toList()));
+                                    .findFirst()
+                                    .orElse(null));
+
 
                             ObjectMapper mapper = new ObjectMapper();
                             response.getWriter().write(mapper.writeValueAsString(result));

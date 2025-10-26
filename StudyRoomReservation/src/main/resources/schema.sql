@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS student_tokens (
     student_token_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     token VARCHAR(255) NOT NULL UNIQUE,
     student_id INT NOT NULL,
-    user_id INT NOT NULL,  -- 発行者（教師）を記録
+    user_id INT NOT NULL,  -- 発行者（教師）を記録?
     valid_until DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(student_id) REFERENCES students(student_id) ON DELETE CASCADE,

@@ -1,12 +1,13 @@
 // =================================================================================
 //           Helper Functions
 // =================================================================================
-import { getFromCookie } from './CookieElf.js';
-import { useNavigate } from 'react-router-dom';
+import type { LoginInfo, Principal } from '../constant/types';
+import { getFromCookie } from './CookieElf';
+
 /**
  * Get CSRF token from cookie
  */
-const getCsrfTokenFromCookie = (): string | null => {
+const getCsrfTokenFromCookie = () => {
     return getFromCookie('XSRF-TOKEN');
 };
 
@@ -16,7 +17,7 @@ const getCsrfTokenFromCookie = (): string | null => {
 const _fetch = async (
     url: string,
     method: string,
-    data?: any,
+    data?: object | null,
     callIfFailed?: () => void
 ): Promise<any> => {
     const csrfToken = getCsrfTokenFromCookie();
@@ -126,38 +127,9 @@ export async function doGet(url: string): Promise<any> {
 }
 
 /**
- * Fetch related schools by cram school ID
- */
-export async function fetchRelatedSchools(cramSchoolId: number): Promise<any> {
-    const csrfToken = getCsrfTokenFromCookie();
-
-    const response = await fetch(
-        `/api/school-by-cramSchoolId?cramSchoolId=${encodeURIComponent(cramSchoolId)}`,
-        {
-            credentials: 'include', // Required to send/receive cookies
-            headers: {
-                ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken }), // Add token if available
-            },
-        }
-    );
-
-    if (!response.ok) {
-        if (response.status === 404) {
-            throw new Error('Schools not found');
-        } else if (response.status === 400) {
-            throw new Error('Invalid request');
-        } else {
-            throw new Error('Server error occurred');
-        }
-    }
-
-    return await response.json();
-}
-
-/**
  * Login request (form-urlencoded format for Spring Security)
  */
-export async function doLogin(username: string, password: string): Promise<any> {
+export async function doLogin(username: string, password: string): Promise<LoginInfo> {
     const csrfToken = getCsrfTokenFromCookie();
 
     // Create form data
@@ -183,7 +155,7 @@ export async function doLogin(username: string, password: string): Promise<any> 
             throw new Error(`Response Status: ${response.status}`);
         }
 
-        const result = await response.json();
+        const result: LoginInfo = await response.json();
         console.log(`Login finished, result = ${JSON.stringify(result)}`);
 
         return result;
@@ -196,15 +168,14 @@ export async function doLogin(username: string, password: string): Promise<any> 
 /**
  * Logout request
  */
-export async function doLogout(setUser: () => any): Promise<void> {
+export async function doLogout(): Promise<void> {
     await doPost('/api/logout', undefined);
-    setUser(null);
 }
 
 /**
  * check if the user is already logged in
  */
-export async function checkMe(): Promise<any> {
+export async function checkMe(): Promise<Principal> {
     const principal = await doGet('/api/me');
     return principal;
 }

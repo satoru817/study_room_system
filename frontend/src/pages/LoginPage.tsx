@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doLogin } from '../elfs/WebElf';
-import { setRole } from '../constant/role';
+import { setRole, STUDENT } from '../constant/role';
 import { initCsrf } from '../elfs/CookieElf';
-import { Eye, EyeOff } from 'lucide-react'; // パスワード表示アイコン
+import { Eye, EyeOff } from 'lucide-react';
+import type { User, LoginInfo } from '../constant/types';
 
-function LoginPage({ onLoginSuccess }) {
+type Props = {
+    onLoginSuccess: (user: User) => Promise<void>;
+};
+
+const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
     const navigate = useNavigate();
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false); // パスワード表示トグル
+    const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -18,10 +23,10 @@ function LoginPage({ onLoginSuccess }) {
         if (isSubmitting) return;
         setIsSubmitting(true);
 
-        const response = await doLogin(username, password);
+        const response: LoginInfo = await doLogin(username, password);
 
         if (response.success) {
-            const role = response.roles[0];
+            const role = response.role;
             setRole(role);
             await initCsrf();
             onLoginSuccess({
@@ -29,8 +34,9 @@ function LoginPage({ onLoginSuccess }) {
                 username,
                 role,
             });
-            alert('ログイン完了！');
-            navigate('/'); // TODO: 役割ごとにリダイレクト先を変更可能
+
+            const navigateTo = role === STUDENT ? '/student' : '/teacher/selectCramSchool';
+            navigate(navigateTo);
         } else {
             alert(response.error || 'ログインに失敗しました');
         }
@@ -83,6 +89,6 @@ function LoginPage({ onLoginSuccess }) {
             </div>
         </div>
     );
-}
+};
 
 export default LoginPage;

@@ -22,5 +22,5 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
             JOIN s.cramSchool c
             WHERE sli.loginName = :loginName
             """)
-    public StudentLoginDTO getStudentLoginDTOByLoginName(String loginName);
+    StudentLoginDTO getStudentLoginDTOByLoginName(String loginName);
 }
