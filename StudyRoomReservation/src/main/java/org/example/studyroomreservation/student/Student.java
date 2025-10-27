@@ -79,23 +79,13 @@ public class Student {
     //===========================================================================
     //           INSTANCE METHODS
     //===========================================================================
-    public int getAbsoluteGrade() {
-        LocalDate now = TokyoTimeElf.getTokyoLocalDate();
-        int grade;
-        if (now.getMonthValue() >= GRADE_CHANGE_MONTH) {
-            grade = now.getYear() - el1 + 1;
-        } else {
-            grade = now.getYear() - el1;
-        }
-        return grade;
-    }
 
     public String getGradeStr() {
-        return getAbsoluteGrade(this.el1);
+        return getGradeStr(this.el1);
     }
 
     @JsonIgnore
-    public static String getAbsoluteGrade(int el1) {
+    public static String getGradeStr(int el1) {
         LocalDate now = TokyoTimeElf.getTokyoLocalDate();
 
         int grade= (now.getMonthValue() >= GRADE_CHANGE_MONTH) ? now.getYear() - el1 + 1 : now.getYear();

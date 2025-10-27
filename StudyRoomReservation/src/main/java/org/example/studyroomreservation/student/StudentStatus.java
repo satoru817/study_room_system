@@ -16,7 +16,7 @@ public record StudentStatus(
 ) {
 
     public String getGradeStr() {
-        return Student.getAbsoluteGrade(this.el1);
+        return Student.getGradeStr(this.el1);
     }
 
     public boolean isValid() {
