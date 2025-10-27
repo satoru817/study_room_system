@@ -54,7 +54,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Publicly accessible endpoints
                         .requestMatchers("/index").permitAll()
-                        .requestMatchers("/", "/register", "/api/csrf-token", "/api/login", "/api/me").permitAll()
+                        // allows unauthenticated access to register and login and front pages 
+                        .requestMatchers("/", "/api/student/register", "/api/csrf-token", "/api/login", "/api/me").permitAll()
                         // All other requests needs authentication
                         .anyRequest().authenticated()
                 )

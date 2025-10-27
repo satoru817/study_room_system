@@ -1,5 +1,6 @@
 package org.example.studyroomreservation.commonService;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.slf4j.Logger;
@@ -11,7 +12,10 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sendinblue.ApiClient;
 import sendinblue.ApiException;
+import sendinblue.Configuration;
+import sendinblue.auth.ApiKeyAuth;
 import sibApi.TransactionalEmailsApi;
 import sibModel.CreateSmtpEmail;
 import sibModel.SendSmtpEmail;
@@ -32,12 +36,19 @@ public class EmailService {
     private JdbcTemplate jdbcTemplate;
     @Value("${sendinblue.api-key}")
     private String apiKey;
-    @Value("${server.base.url}")
-    private String baseUrl;
     @Value("${spring.profiles.active:}")
     private String activeProfile;
-    @Autowired
+
     private TransactionalEmailsApi apiInstance;
+
+    @PostConstruct
+    public void init() {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKeyAuth.setApiKey(apiKey);
+        this.apiInstance = new TransactionalEmailsApi();
+        System.out.println("APIキー設定済み: " + (apiKey != null && !apiKey.isEmpty()));
+    }
 
     private static final int REGISTRATION_LINK_VALID_PERIOD = 7 * 2;
 
@@ -91,30 +102,35 @@ public class EmailService {
                     String url = getString(baseUrl, token);
 
                     String htmlContent = """
-                            <html>
-                                <body>
-                                    <h1>翔栄学院入退室システム登録のお願い</h1>
-                                    <p>以下のリンクをクリックしてシステムに登録してください。</p>
-                                    <p><a href=""" + url + " >登録リンク</a></p> " + """
-                                    <p>このリンクは""" + REGISTRATION_LINK_VALID_PERIOD + "日有効です。</p> " + """
-                                    <hr>
-                                    <p>このメールはシステムにより自動送信されています。</br>
-                                    ご質問等は翔栄学院までお問い合わせください。</p>
-                                </body>
-                            </html>""";
+                        <html>
+                            <body>
+                                <h1>翔栄学院入退室システム登録のお願い</h1>
+                                <p>""" + emailSet.studentName + """
+                                様</p>
+                                <p>以下のリンクをクリックしてシステムに登録してください。</p>
+                                <p><a href=""" + url + " >登録リンク</a></p> " + """
+                                <p>このリンクは""" + REGISTRATION_LINK_VALID_PERIOD + "日有効です。</p> " + """
+                                <hr>
+                                <p>このメールはシステムにより自動送信されています。</br>
+                                ご質問等は翔栄学院までお問い合わせください。</p>
+                            </body>
+                        </html>""";
 
                     String textContent = """
-                            翔栄学院入退室システム登録のお願い
-                           \n
-                            以下のリンクをクリックしてシステムに登録してください。
-                           \n
-                            登録リンク:\s""" + url +  """ 
-                            
-                            このリンクは""" + REGISTRATION_LINK_VALID_PERIOD + "日有効です。" + """
-                            ────────────────────────────
-                            このメールはシステムにより自動送信されています。
-                            ご質問等は翔栄学院までお問い合わせください。
-                            """;
+                        翔栄学院入退室システム登録のお願い
+                        
+                        """ + emailSet.studentName + """
+                        様
+                       \n
+                        以下のリンクをクリックしてシステムに登録してください。
+                       \n
+                        登録リンク:\s""" + url +  """ 
+                        
+                        このリンクは""" + REGISTRATION_LINK_VALID_PERIOD + "日有効です。" + """
+                        ────────────────────────────
+                        このメールはシステムにより自動送信されています。
+                        ご質問等は翔栄学院までお問い合わせください。
+                        """;
 
                     return new EmailContent(htmlContent, textContent);
                 });
@@ -139,8 +155,8 @@ public class EmailService {
 
     public List<StudentEmailSet> getAllEmailSet(List<Integer> studentIds) {
         String sql = """
-            SELECT student_id, name, mail AS mailTo, cs.email AS mailFrom
-            FROM students
+            SELECT s.student_id, s.name, s.mail AS mailTo, cs.email AS mailFrom
+            FROM students s
             JOIN cram_schools cs ON cs.cram_school_id = s.cram_school_id
             WHERE student_id IN (:ids)
                 AND mail IS NOT NULL
