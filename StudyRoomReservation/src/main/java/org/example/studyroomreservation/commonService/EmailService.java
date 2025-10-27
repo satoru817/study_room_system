@@ -40,7 +40,7 @@ public class EmailService {
     private String activeProfile;
 
     private TransactionalEmailsApi apiInstance;
-
+    // the following post construct is necessary for the brevo api to function properly
     @PostConstruct
     public void init() {
         ApiClient defaultClient = Configuration.getDefaultApiClient();

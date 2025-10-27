@@ -40,4 +40,11 @@ public class StudyRoomController {
         }
     }
 
+    @PreAuthorize("hasRole('TEACHER')")
+    @DeleteMapping("/{studyRoomId}")
+    public ResponseEntity<?> deleteStudyRoom(@PathVariable int studyRoomId) {
+        studyRoomService.deleteById(studyRoomId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

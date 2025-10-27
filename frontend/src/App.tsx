@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { Navbar, Nav, Container, Button, Badge } from 'react-bootstrap';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { Navbar, Nav, Container, Badge, Button } from 'react-bootstrap';
 import StudentRegisterPage from './pages/StudentRegisterPage';
 import SelectCramSchool from './pages/teacher/SelectCramSchool';
 import LoginPage from './pages/LoginPage';
@@ -11,6 +11,7 @@ import type { User, Principal, CramSchool, StudyRoom } from './constant/types';
 import { STUDENT, TEACHER } from './constant/role';
 import StudyRooms from './pages/teacher/StudyRooms';
 import Students from './pages/teacher/Students';
+import { LinkButton } from './smallComponents/LinkButton';
 
 function App() {
     const [user, setUser] = useState<User | null>(null);
@@ -76,25 +77,23 @@ function App() {
                         <Nav className="me-auto">
                             {/* ロールによるリンク制御 */}
                             {user && user.role === STUDENT && (
-                                <Button
+                                <LinkButton
                                     variant="outline-primary"
-                                    as={Link}
                                     to="/student-dashboard"
                                     className="me-2"
                                 >
                                     生徒ページ
-                                </Button>
+                                </LinkButton>
                             )}
 
                             {user && user.role === TEACHER && (
-                                <Button
+                                <LinkButton
                                     variant="outline-secondary"
-                                    as={Link}
                                     to="/selectCramSchool"
                                     className="me-2"
                                 >
                                     教室選択
-                                </Button>
+                                </LinkButton>
                             )}
 
                             {/* ログイン状態による制御 */}
@@ -104,17 +103,16 @@ function App() {
                                 </Button>
                             ) : (
                                 <>
-                                    <Button
+                                    <LinkButton
                                         variant="outline-info"
-                                        as={Link}
                                         to="/register"
                                         className="me-2"
                                     >
                                         新規登録
-                                    </Button>
-                                    <Button variant="outline-success" as={Link} to="/login">
+                                    </LinkButton>
+                                    <LinkButton variant="outline-success" to="/login">
                                         ログイン
-                                    </Button>
+                                    </LinkButton>
                                 </>
                             )}
 
@@ -122,26 +120,29 @@ function App() {
                             {cramSchool && user && user.role === TEACHER && (
                                 <>
                                     {/*teacher should be able to send sign_up url to any student from the page below*/}
-                                    <Button
+                                    <LinkButton
                                         variant="outline-primary"
-                                        as={Link}
                                         to="/students"
                                         className="me-2"
                                     >
                                         生徒一覧
-                                    </Button>
+                                    </LinkButton>
                                     {/*teacher should be able to do CRUD on every study_room of the cramschool they selected*/}
-                                    <Button
-                                        variant="link"
-                                        to="/studyRooms"
-                                        as={Link}
-                                        className="me-2"
-                                    >
+                                    <LinkButton variant="link" to="/studyRooms" className="me-2">
                                         自習室一覧
-                                    </Button>
+                                    </LinkButton>
                                     {studyRoom && (
                                         <>
                                             {/* make components for setting up a certain studyRoom or checking who's using the studyRoom right now*/}
+                                            <LinkButton variant="info" to="/study_room_setting">
+                                                {studyRoom.name}:設定
+                                            </LinkButton>
+                                            <LinkButton
+                                                variant="outline-info"
+                                                to="/students_of_study_room"
+                                            >
+                                                {studyRoom.name}:生徒
+                                            </LinkButton>
                                         </>
                                     )}
                                 </>
@@ -168,6 +169,8 @@ function App() {
                     />
                     {/*in the component students teacher should be able to send sign up links*/}
                     <Route path="/students" element={<Students cramSchool={cramSchool} />} />
+                    <Route path="/study_room_setting" element={<h2>自習室設定</h2>} />
+                    <Route path="/students_of_study_room" element={<h2>生徒出席状況</h2>} />
 
                     <Route path="/" element={<h2>自習室予約アプリへようこそ！</h2>} />
                 </Routes>

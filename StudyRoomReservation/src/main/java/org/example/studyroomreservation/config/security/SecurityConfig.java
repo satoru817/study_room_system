@@ -52,9 +52,9 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Publicly accessible endpoints
-                        .requestMatchers("/index").permitAll()
-                        // allows unauthenticated access to register and login and front pages 
+                        // allow access to static resources
+                        .requestMatchers("/", "/index.html", "/*.js", "/*.css", "/assets/**").permitAll()
+                        // allows unauthenticated access to register and login
                         .requestMatchers("/", "/api/student/register", "/api/csrf-token", "/api/login", "/api/me").permitAll()
                         // All other requests needs authentication
                         .anyRequest().authenticated()

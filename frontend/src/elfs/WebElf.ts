@@ -34,7 +34,7 @@ const _fetch = async (
         },
     };
 
-    if (method !== 'GET' && stringBody) {
+    if (method === 'POST' && stringBody) {
         requestBody.body = stringBody;
     }
 
@@ -196,4 +196,11 @@ export async function doLogout(): Promise<void> {
 export async function checkMe(): Promise<Principal> {
     const principal = await doGet('/api/me');
     return principal;
+}
+
+/**
+ * DELETE request
+ */
+export async function doDelete(url: string): Promise<any> {
+    return await _fetch(url, 'DELETE');
 }
