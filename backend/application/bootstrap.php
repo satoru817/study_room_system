@@ -5,6 +5,9 @@
 // Load the core Kohana class
 require SYSPATH.'classes/Kohana/Core'.EXT;
 
+require_once APPPATH . '../vendor/autoload.php';
+
+
 if (is_file(APPPATH.'classes/Kohana'.EXT))
 {
 	// Application extends the core
@@ -22,7 +25,7 @@ else
  * @link http://kohanaframework.org/guide/using.configuration
  * @link http://www.php.net/manual/timezones
  */
-date_default_timezone_set('America/Chicago');
+date_default_timezone_set('Asia/Tokyo');
 
 /**
  * Set the default locale.
@@ -144,8 +147,17 @@ Cookie::$salt = '9331f77fa28a895f03f809a4aa485912cb4a2e6883a0a777985a326c4858077
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
+
+Route::set('login', 'api/auth/login')
+	-> defaults(array(
+		'controller' => 'Api_Auth',
+		'action' => 'login',
+	));
+
 Route::set('default', '(<controller>(/<action>(/<id>)))')
 	->defaults(array(
 		'controller' => 'welcome',
 		'action'     => 'index',
 	));
+
+

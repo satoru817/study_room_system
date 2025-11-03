@@ -5,72 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9b12206c-24ae-41f7-ae4b-3426e1c708e6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.gitattributes" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.idea/compiler.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.idea/jarRepositories.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.idea/material_theme_project_new.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/mvnw" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/mvnw.cmd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/pom.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/StudyRoomReservationApplication.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/commonService/EmailService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/dialect/CustomMySQLDialect.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/AuthController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/SecurityConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/user/AbstractLoginClient.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/user/StudentUser.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/user/TeacherUser.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/user/UserDetailsImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/user/UserDetailsServiceImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/spa/SpaConfiguration.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/controller/security/CsrfController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/cramschool/CramSchoolRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/cramschool/CramSchoolService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/elf/TokyoTimeElf.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/entity/CramSchool.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/entity/CramSchoolUser.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/entity/StudyRoomReservation.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/entity/User.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/repository/StudyRoomReservationRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/repository/StudyRoomScheduleRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/repository/UserRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/DuplicateLoginNameException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/EmailRegisterRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/InvalidTokenException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/Student.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentLoginDTO.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentLoginInfo.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentLoginInfoRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentRegistrationRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentStatus.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentToken.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/student/StudentTokenRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/studyroom/StudyRoom.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/studyroom/StudyRoomAttendance.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/studyroom/StudyRoomController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/studyroom/StudyRoomCreateRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/studyroom/StudyRoomRegularSchedule.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/studyroom/StudyRoomRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/studyroom/StudyRoomScheduleException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/studyroom/StudyRoomService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/teacher/CramSchoolController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/websocket/WebSocketConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/resources/application-dev.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/resources/application-prod.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/resources/application.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/resources/schema.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/resources/static/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/test/java/org/example/studyroomreservation/StudyRoomReservationApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/constant/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/constant/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/constant/urls.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/constant/urls.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/elfs/CookieElf.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/elfs/CookieElf.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,12 +22,16 @@
         <entry key="$PROJECT_DIR$" value="master" />
       </map>
     </option>
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/backend/system" />
+    <option name="ROOT_SYNC" value="SYNC" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
   <component name="ProjectId" id="34Km4RDNj0OAaaEjxm3b7jZIks8" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -99,9 +42,9 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "kohana",
+    "git-widget-placeholder": "3.3/master",
     "last_opened_file_path": "/home/misha/study_room_system/study_room_system",
-    "settings.editor.selected.configurable": "preferences.sourceCode"
+    "settings.editor.selected.configurable": "preferences.lookFeel"
   }
 }]]></component>
   <component name="TaskManager">
