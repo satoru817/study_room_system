@@ -2,7 +2,7 @@
 
 abstract class Controller_Api_Base extends Controller {
 
-    protected $current_user = null;  // Entity_User
+    protected ?Entity_User $current_user = null;  // nullable ? 
 
     public function before() {
         parent::before();
@@ -46,6 +46,17 @@ abstract class Controller_Api_Base extends Controller {
 
         if (!$this->current_user->isStudent()) {
             $this->error('Students only', 403);
+            exit;
+        }
+    }
+
+    protected function require_teacher()
+    {
+        $this->require_auth();
+
+        if (!$this->current_user->isTeacher()) 
+        {
+            $this -> error('Teacher only', 403);
             exit;
         }
     }

@@ -2,10 +2,10 @@
 
 final class Entity_Student extends Entity_User {
     private int $el1;
-    private string $cramSchoolName;
-    private string $cramSchoolEmail;
+    private string $CramschoolName;
+    private string $CramschoolEmail;
     private string $studentEmail;
-    private string $cramSchoolLineChannelToken;
+    private string $CramschoolLineChannelToken;
     private string $lineUserId;
 
 
@@ -20,10 +20,10 @@ final class Entity_Student extends Entity_User {
         $entity->id = $data['id'];
         $entity->name = $data['name'];
         $entity -> el1 = $data['el1'];
-        $entity -> cramSchoolName = $data['cramSchoolName'];
-        $entity -> cramSchoolEmail = $data['cramSchoolEmail'];
+        $entity -> CramschoolName = $data['CramschoolName'];
+        $entity -> CramschoolEmail = $data['CramschoolEmail'];
         $entity -> studentEmail = $data['studentEmail'];
-        $entity -> cramSchoolLineChannelToken = $data['lineChannelToken'];
+        $entity -> CramschoolLineChannelToken = $data['lineChannelToken'];
         $entity -> lineUserId = $data['lineUserId'];
         return $entity;
     }
@@ -35,10 +35,10 @@ final class Entity_Student extends Entity_User {
             'role' => 'student',
             'name' => $this -> name,
             'el1' => $this -> el1,
-            'cramSchoolName' => $this -> cramSchoolName,
-            'cramSchoolEmail' => $this -> cramSchoolEmail,
+            'CramschoolName' => $this -> CramschoolName,
+            'CramschoolEmail' => $this -> CramschoolEmail,
             'studentEmail' => $this -> studentEmail,
-            'cramSchoolLineChannelToken' => $this -> cramSchoolLineChannelToken,
+            'CramschoolLineChannelToken' => $this -> CramschoolLineChannelToken,
             'lineUserId' => $this -> lineUserId,
         ];
     }
@@ -52,19 +52,19 @@ final class Entity_Student extends Entity_User {
         return $this->el1;
     }
 
-    public function getCramSchoolName(): string
+    public function getCramschoolName(): string
     {
-        return $this->cramSchoolName;
+        return $this->CramschoolName;
     }
 
-    public function getCramSchoolEmail(): string
+    public function getCramschoolEmail(): string
     {
-        return $this->cramSchoolEmail;
+        return $this->CramschoolEmail;
     }
 
-    public function getCramSchoolLineChannelToken(): string
+    public function getCramschoolLineChannelToken(): string
     {
-        return $this->cramSchoolLineChannelToken;
+        return $this->CramschoolLineChannelToken;
     }
 
     public function getLineUserId(): string

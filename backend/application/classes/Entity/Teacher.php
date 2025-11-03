@@ -1,34 +1,32 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 final class Entity_Teacher extends Entity_User {
-    private array $cramSchoolIds;// cramSchools that this user has access to
+    private array $cramschoolIds;// Cramschools that this user has access to
 
     public function __construct()
     {
         $this->role = 'teacher';
     }
 
-public static function fromArray($data): Entity_Teacher
-{
-    error_log("🟦 Entity_Teacher::fromArray 呼び出し: " . json_encode($data, JSON_UNESCAPED_UNICODE));
+    public static function fromArray($data):Entity_Teacher
+    {
+        error_log("from array is called");
+        $entity = new self();
+        $entity->id = $data['id'];
+        $entity->name = $data['name'];
+        $entity->cramschoolIds = explode(",", $data['cramschoolIds']);
+        return $entity;
+    }
 
-    $entity = new self();
-    $entity->id = $data['id'] ?? null;
-    $entity->name = $data['name'] ?? null;
-    $entity->cramSchoolIds = isset($data['cramSchoolIds'])
-        ? explode(",", $data['cramSchoolIds'])
-        : [];
-
-    // 完成したエンティティをログ出力
-    error_log("✅ Entity_Teacher 作成完了: " . json_encode([
-        'id' => $entity->id,
-        'name' => $entity->name,
-        'cramSchoolIds' => $entity->cramSchoolIds,
-    ], JSON_UNESCAPED_UNICODE));
-
-    return $entity;
-}
-
+    public static function fromArrayOfArray($data):Entity_Teacher
+    {
+        error_log("from array is called!");
+        $entity = new self();
+        $entity->id = $data['id'];
+        $entity->name = $data['name'];
+        $entity->cramschoolIds = $data['cramschoolIds'];
+        return $entity;
+    }
 
     public function toArray() :array
     {
@@ -37,7 +35,7 @@ public static function fromArray($data): Entity_Teacher
             'id' => $this -> id,
             'role' => 'teacher',
             'name' => $this -> name,
-            'cramSchoolIds' => $this -> cramSchoolIds,    
+            'cramschoolIds' => $this -> cramschoolIds,    
         ];
     }
 
@@ -60,8 +58,8 @@ public static function fromArray($data): Entity_Teacher
         return $this->name;
     }
 
-    public function getCramSchoolIds(): array
+    public function getCramschoolIds(): array
     {
-        return $this->cramSchoolIds;
+        return $this->cramschoolIds;
     }
 }

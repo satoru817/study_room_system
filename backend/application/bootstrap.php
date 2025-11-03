@@ -148,16 +148,16 @@ Cookie::$salt = '9331f77fa28a895f03f809a4aa485912cb4a2e6883a0a777985a326c4858077
  * defaults for the URI.
  */
 
-Route::set('login', 'api/auth/login')
-	-> defaults(array(
-		'controller' => 'Api_Auth',
-		'action' => 'login',
-	));
+// デフォルトルートで十分な場合が多い
+Route::set('api', 'api(/<controller>(/<action>(/<id>)))')
+    ->defaults(array(
+        'directory'  => 'Api',
+        'controller' => 'Auth',
+        'action'     => 'index',
+    ));
 
-Route::set('default', '(<controller>(/<action>(/<id>)))')
-	->defaults(array(
-		'controller' => 'welcome',
-		'action'     => 'index',
-	));
+// これで以下のURLが自動的にマッピングされる：
+// /api/auth/login → Api_Auth::action_login()
+// /api/user/profile → Api_User::action_profile()
 
 
