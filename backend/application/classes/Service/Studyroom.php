@@ -10,4 +10,9 @@ final class Service_Studyroom {
     {
         return Repository_Studyroom::create($data['cramschool_id'], $data['name'], $data['room_limit']);
     }
+
+    public static function update($data)
+    {
+        return Repository_Studyroom::update($data['study_room_id'], $data['name'], $data['room_limit']);
+    }
 }

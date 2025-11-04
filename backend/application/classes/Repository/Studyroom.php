@@ -69,4 +69,31 @@ final class Repository_Studyroom {
         }
     }
 
+    /**
+     * update basic information of a study room
+     */
+    public static function update(int $study_room_id, string $name, int $room_limit) 
+    {
+        try {
+            DB::update('study_rooms')
+                    -> set(array(
+                        'name' => $name,
+                        'room_limit' => $room_limit
+                    ))
+                    -> where('study_room_id', '=', $study_room_id)
+                    -> execute();
+
+            $updatedStudyRoom = DB::select() -> from('study_rooms') -> where('study_room_id', '=', $study_room_id) -> execute() -> current();
+            
+            return $updatedStudyRoom;
+
+        }catch (Database_Exception $e) {
+            error_log("❌ Repository_Studyroom update DBエラー: " . $e->getMessage());
+            return null;
+        } catch (Exception $e) {
+            error_log("❌ Repository_Studyroom update 予期せぬエラー: " . $e->getMessage());
+            return null;
+        }
+    }
+
 }

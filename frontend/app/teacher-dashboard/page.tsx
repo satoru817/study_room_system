@@ -22,7 +22,6 @@ export default function TeacherDashboard() {
   }, []);
 
   // OKボタンで校舎ページに遷移
-  // teacher-dashboard/page.tsx
   const handleSubmit = () => {
     if (cramschoolId) {
       const selectedSchool = cramSchools.find(

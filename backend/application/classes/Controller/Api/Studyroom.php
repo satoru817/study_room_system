@@ -1,7 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access');
 //TODO: improve security (don't allow other cram_school's teacher to modify )
 final class Controller_Api_Studyroom extends Controller_Api_Base {
-    
     public function action_get()
     {
         $this -> require_teacher();
@@ -18,5 +17,11 @@ final class Controller_Api_Studyroom extends Controller_Api_Base {
         $this->json($studyRoom);
     }
 
-
+    public function action_edit()
+    {
+        $this -> require_teacher();
+        $data = $this -> get_json_body();
+        $updatedStudyRoom = Service_Studyroom::update($data);
+        $this -> json($updatedStudyRoom);
+    }
 }
