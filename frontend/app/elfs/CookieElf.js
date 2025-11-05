@@ -1,13 +1,15 @@
 import { getCsrfToken } from "./WebserviceElf";
-let CSRF_HEADER_NAME = "";
+let CSRF_HEADER_NAME = "XSRF-TOKEN";
+
 export const getFromCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
+  if (!document || !document.cookie) return null;
 
-  if (parts.length === 2) {
-    return decodeURIComponent(parts.pop().split(";").shift());
+  const cookies = document.cookie.split(";").map((c) => c.trim());
+  for (const cookie of cookies) {
+    if (cookie.startsWith(name + "=")) {
+      return decodeURIComponent(cookie.substring(name.length + 1));
+    }
   }
-
   return null;
 };
 
@@ -16,12 +18,4 @@ export const getFromCookie = (name) => {
  */
 export const getCsrfTokenFromCookie = () => {
   return getFromCookie(CSRF_HEADER_NAME);
-};
-
-export const initCsrf = async () => {
-  const token = await getCsrfToken();
-  const headerName = token.headerName;
-  const value = token.value;
-  CSRF_HEADER_NAME = headerName;
-  document.cookie = `${headerName}=${value}; path=/`;
 };

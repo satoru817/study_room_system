@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8080/api/:path*", // url of kohana backend
+        destination: "http://localhost:8080/api/:path*",
       },
     ];
   },

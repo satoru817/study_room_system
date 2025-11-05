@@ -3,7 +3,7 @@ package org.example.studyroomreservation.student;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
-import org.example.studyroomreservation.entity.CramSchool;
+import org.example.studyroomreservation.cramschool.CramSchool;
 
 import java.time.LocalDate;
 

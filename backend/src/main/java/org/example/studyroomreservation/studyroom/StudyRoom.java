@@ -3,7 +3,7 @@ package org.example.studyroomreservation.studyroom;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import org.example.studyroomreservation.entity.CramSchool;
+import org.example.studyroomreservation.cramschool.CramSchool;
 
 @Entity
 @Table(name = "study_rooms")

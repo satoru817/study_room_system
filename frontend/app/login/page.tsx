@@ -3,9 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LOGIN_URL } from "../constants/urls.js";
-import { checkMe, doLogin } from "../elfs/WebserviceElf";
+import { checkMe, doLogin, getCsrfToken } from "../elfs/WebserviceElf";
 import { Eye, EyeOff } from "lucide-react";
-import { initCsrf } from "../elfs/CookieElf.js";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -26,7 +25,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const init = async () => {
-      await initCsrf();
+      await getCsrfToken();
 
       const principal = await checkMe();
       if (principal.authenticated) {
@@ -46,7 +45,7 @@ export default function LoginPage() {
     if (response.success) {
       setIsSubmitting(false);
       const role = response.role;
-      await initCsrf();
+      await getCsrfToken();
       navigateBasedOnRole(role);
     } else {
       setIsSubmitting(false);

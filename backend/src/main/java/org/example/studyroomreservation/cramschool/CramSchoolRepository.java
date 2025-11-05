@@ -1,6 +1,5 @@
 package org.example.studyroomreservation.cramschool;
 
-import org.example.studyroomreservation.entity.CramSchool;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

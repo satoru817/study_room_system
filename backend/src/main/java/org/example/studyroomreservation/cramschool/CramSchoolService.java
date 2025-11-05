@@ -1,7 +1,6 @@
 package org.example.studyroomreservation.cramschool;
 
 import org.example.studyroomreservation.config.security.user.TeacherUser;
-import org.example.studyroomreservation.entity.CramSchool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

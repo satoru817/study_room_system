@@ -3,18 +3,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { doGet } from "../elfs/WebserviceElf";
-import { GET_CRAMSCHOOLS } from "../constants/urls";
 import { CramSchool } from "../constants/types";
 
 export default function TeacherDashboard() {
   const router = useRouter();
-  const [cramschoolId, setcramschoolId] = useState<number | null>(null);
-  const [cramSchools, setCramSchools] = useState<Array<CramSchool>>([]);
+  const [cramschoolId, setcramschoolId] = useState(null);
+  const [cramSchools, setCramSchools] = useState([]);
 
   // 所属校舎一覧を取得
   useEffect(() => {
     const fetchCramSchools = async () => {
-      const _cramSchools = await doGet(GET_CRAMSCHOOLS);
+      const _cramSchools = await doGet("/api/cramschool/get");
       setCramSchools(_cramSchools);
     };
 

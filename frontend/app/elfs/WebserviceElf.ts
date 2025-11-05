@@ -147,7 +147,7 @@ export async function doGet(url: string): Promise<any> {
  */
 export async function doLogin(username: string, password: string) {
   const csrfToken = getCsrfTokenFromCookie();
-
+  console.log(`CSRF = ${csrfToken}`);
   // Create form data
   const formData = new URLSearchParams();
   formData.append("username", username);
@@ -202,7 +202,10 @@ export async function checkMe() {
 export async function doDelete(url: string) {
   return await _fetch(url, "DELETE");
 }
-
+/**
+ * just calling this method will store xrf-token to the browser cookie!
+ * @returns void
+ */
 export const getCsrfToken = async () => {
   return await doGet("/api/csrf-token");
 };

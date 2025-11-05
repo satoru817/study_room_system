@@ -43,4 +43,22 @@ public record UserDetailsImpl(AbstractLoginClient loginClient) implements UserDe
     public boolean isEnabled() {
         return true;
     }
+
+    public TeacherUser convetToTeacher()
+    {
+        try {
+            return (TeacherUser) this.loginClient;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public StudentUser convertToStudent()
+    {
+        try {
+            return (StudentUser) loginClient;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -1,4 +1,4 @@
-package org.example.studyroomreservation.entity;
+package org.example.studyroomreservation.cramschool;
 
 import jakarta.persistence.*;
 

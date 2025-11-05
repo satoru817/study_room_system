@@ -1,6 +1,7 @@
 package org.example.studyroomreservation.entity;
 
 import jakarta.persistence.*;
+import org.example.studyroomreservation.cramschool.CramSchool;
 
 @Entity
 @Table(name = "cram_school_users")

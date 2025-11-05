@@ -1,8 +1,7 @@
 package org.example.studyroomreservation.studyroom;
 
 import org.example.studyroomreservation.cramschool.CramSchoolService;
-import org.example.studyroomreservation.entity.CramSchool;
-import org.example.studyroomreservation.entity.StudyRoomReservation;
+import org.example.studyroomreservation.cramschool.CramSchool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
