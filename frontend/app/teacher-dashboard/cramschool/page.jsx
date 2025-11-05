@@ -43,9 +43,9 @@ export default function CramSchoolDetailPage() {
       if (selectedRoom) {
         router.push(
           // TODO: change this!!!
-          `/teacher-dashboard/${cramSchoolId}/study-room/${studyRoomId}?name=${encodeURIComponent(
-            selectedRoom.name
-          )}`
+          `/teacher-dashboard/cramschool/study-room/?studyRoomId=${encodeURLComponent(
+            studyRoomId
+          )}&name=${encodeURIComponent(selectedRoom.name)}`
         );
       }
     } else {

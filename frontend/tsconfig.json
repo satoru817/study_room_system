@@ -33,7 +33,8 @@
     "app/elfs/CookieElf.js",
     "app/teacher-dashboard/cramschool/page.jsx",
     "app/teacher-dashboard/page.jsx",
-    "app/elfs/WebserviceElf.js"
+    "app/elfs/WebserviceElf.js",
+    "app/teacher-dashboard/cramschool/study-room/page.jsx"
   ],
   "exclude": ["node_modules"]
 }
