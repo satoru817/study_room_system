@@ -1,15 +1,7 @@
 // =================================================================================
 //           Helper Functions
 // =================================================================================
-import type { LoginInfo, Principal } from "../constant/types";
-import { getFromCookie } from "./CookieElf.js";
-
-/**
- * Get CSRF token from cookie
- */
-const getCsrfTokenFromCookie = () => {
-  return getFromCookie("XSRF-TOKEN");
-};
+import { getFromCookie, getCsrfTokenFromCookie } from "./CookieElf.js";
 
 /**
  * Generic fetch function
@@ -153,10 +145,7 @@ export async function doGet(url: string): Promise<any> {
 /**
  * Login request (form-urlencoded format for Spring Security)
  */
-export async function doLogin(
-  username: string,
-  password: string
-): Promise<LoginInfo> {
+export async function doLogin(username: string, password: string) {
   const csrfToken = getCsrfTokenFromCookie();
 
   // Create form data
@@ -182,7 +171,7 @@ export async function doLogin(
       throw new Error(`Response Status: ${response.status}`);
     }
 
-    const result: LoginInfo = await response.json();
+    const result = await response.json();
     console.log(`Login finished, result = ${JSON.stringify(result)}`);
 
     return result;
@@ -202,7 +191,7 @@ export async function doLogout(): Promise<void> {
 /**
  * check if the user is already logged in
  */
-export async function checkMe(): Promise<Principal> {
+export async function checkMe() {
   const principal = await doGet("/api/me");
   return principal;
 }
@@ -210,6 +199,10 @@ export async function checkMe(): Promise<Principal> {
 /**
  * DELETE request
  */
-export async function doDelete(url: string): Promise<any> {
+export async function doDelete(url: string) {
   return await _fetch(url, "DELETE");
 }
+
+export const getCsrfToken = async () => {
+  return await doGet("/api/csrf-token");
+};

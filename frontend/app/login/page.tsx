@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LOGIN_URL } from "../constants/urls.js";
-import { doLogin } from "../elfs/WebserviceElf.js";
+import { checkMe, doLogin } from "../elfs/WebserviceElf";
 import { Eye, EyeOff } from "lucide-react";
+import { initCsrf } from "../elfs/CookieElf.js";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -14,48 +15,43 @@ export default function LoginPage() {
 
   const router = useRouter();
 
+  const navigateBasedOnRole = useCallback(
+    async (role: string) => {
+      const navigateTo =
+        role === "student" ? "/student-dashboard" : "/teacher-dashboard";
+      router.push(navigateTo);
+    },
+    [router]
+  );
+
+  useEffect(() => {
+    const init = async () => {
+      await initCsrf();
+
+      const principal = await checkMe();
+      if (principal.authenticated) {
+        navigateBasedOnRole(principal.role);
+      }
+    };
+
+    init();
+  }, [navigateBasedOnRole]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsSubmitting(true);
     const response = await doLogin(username, password);
 
     if (response.success) {
+      setIsSubmitting(false);
       const role = response.role;
-      setRole(role || "");
       await initCsrf();
-      onLoginSuccess({
-        loggedIn: true,
-        username,
-        role,
-      });
-
-      const navigateTo =
-        role === STUDENT ? "/student" : "/teacher/selectCramSchool";
-      navigate(navigateTo);
+      navigateBasedOnRole(role);
     } else {
+      setIsSubmitting(false);
       alert(response.error || "ログインに失敗しました");
     }
-
-    // const response = await fetch(LOGIN_URL, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ login_name: name, password }),
-    // });
-
-    // if (response.ok) {
-    //   const data = await response.json();
-    //   const user = data.user;
-    //   // this token contains information about the user
-    //   // so use this
-    //   const token = data.token;
-    //   localStorage.setItem("jwt-token", token);
-
-    //   if (user.role === "teacher") {
-    //     router.push("/teacher-dashboard");
-    //   } else if (user.role === "student") {
-    //     router.push("/student-dashboard");
-    //   }
-    // }
   };
 
   return (

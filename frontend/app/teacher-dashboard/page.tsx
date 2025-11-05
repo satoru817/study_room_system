@@ -14,7 +14,7 @@ export default function TeacherDashboard() {
   // 所属校舎一覧を取得
   useEffect(() => {
     const fetchCramSchools = async () => {
-      const _cramSchools: Array<CramSchool> = await doGet(GET_CRAMSCHOOLS);
+      const _cramSchools = await doGet(GET_CRAMSCHOOLS);
       setCramSchools(_cramSchools);
     };
 
