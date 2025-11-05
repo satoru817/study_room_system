@@ -1,0 +1,65 @@
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"AutoImportSettings\">\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\n  </component>\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"9b12206c-24ae-41f7-ae4b-3426e1c708e6\" name=\"Changes\" comment=\"\">\n      <change beforePath=\"$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/commonService/EmailService.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/commonService/EmailService.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/SecurityConfig.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/SecurityConfig.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/StudyRoomReservation/src/main/resources/static/index.html\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/StudyRoomReservation/src/main/resources/static/index.html\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/frontend/dist/index.html\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/frontend/dist/index.html\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/frontend/node_modules/.tmp/tsconfig.app.tsbuildinfo\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/frontend/node_modules/.tmp/tsconfig.app.tsbuildinfo\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/frontend/src/App.tsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/frontend/src/App.tsx\" afterDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"ProjectColorInfo\">{\n  &quot;associatedIndex&quot;: 7\n}</component>\n  <component name=\"ProjectId\" id=\"34Km4RDNj0OAaaEjxm3b7jZIks8\" />\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\">{\n  &quot;keyToString&quot;: {\n    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\n    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,\n    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,\n    &quot;git-widget-placeholder&quot;: &quot;master&quot;,\n    &quot;last_opened_file_path&quot;: &quot;/home/misha/study_room_system/study_room_system&quot;,\n    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.sourceCode&quot;\n  }\n}</component>\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"9b12206c-24ae-41f7-ae4b-3426e1c708e6\" name=\"Changes\" comment=\"\" />\n      <created>1760970445244</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1760970445244</updated>\n    </task>\n    <servers />\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 2e25a3feb7d460725efbd615b5876d399ca63b4c)
++++ b/.idea/workspace.xml	(date 1762320551715)
+@@ -5,12 +5,7 @@
+   </component>
+   <component name="ChangeListManager">
+     <list default="true" id="9b12206c-24ae-41f7-ae4b-3426e1c708e6" name="Changes" comment="">
+-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/commonService/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/commonService/EmailService.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/java/org/example/studyroomreservation/config/security/SecurityConfig.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/StudyRoomReservation/src/main/resources/static/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/StudyRoomReservation/src/main/resources/static/index.html" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/frontend/dist/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/index.html" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.tmp/tsconfig.app.tsbuildinfo" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.tmp/tsconfig.app.tsbuildinfo" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/frontend/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.tsx" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -20,10 +15,19 @@
+   <component name="Git.Settings">
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+   </component>
++  <component name="GithubPullRequestsUISettings"><![CDATA[{
++  "selectedUrlAndAccountId": {
++    "url": "git@github.com:satoru817/study_room_system.git",
++    "accountId": "effd8261-38f2-483d-b86e-f6d1f887a1ca"
++  }
++}]]></component>
+   <component name="ProjectColorInfo">{
+   &quot;associatedIndex&quot;: 7
+ }</component>
+   <component name="ProjectId" id="34Km4RDNj0OAaaEjxm3b7jZIks8" />
++  <component name="ProjectLevelVcsManager">
++    <ConfirmationsSetting value="2" id="Add" />
++  </component>
+   <component name="ProjectViewState">
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+Index: .idea/material_theme_project_new.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"MaterialThemeProjectNewConfig\">\n    <option name=\"metadata\">\n      <MTProjectMetadataState>\n        <option name=\"userId\" value=\"-56a08098:19a22c7a600:-7c7d\" />\n      </MTProjectMetadataState>\n    </option>\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/material_theme_project_new.xml b/.idea/material_theme_project_new.xml
+--- a/.idea/material_theme_project_new.xml	(revision 2e25a3feb7d460725efbd615b5876d399ca63b4c)
++++ b/.idea/material_theme_project_new.xml	(date 1762320543858)
+@@ -3,7 +3,9 @@
+   <component name="MaterialThemeProjectNewConfig">
+     <option name="metadata">
+       <MTProjectMetadataState>
+-        <option name="userId" value="-56a08098:19a22c7a600:-7c7d" />
++        <option name="migrated" value="true" />
++        <option name="pristineConfig" value="false" />
++        <option name="userId" value="-65e28cf8:19a20538e91:-7ffd" />
+       </MTProjectMetadataState>
+     </option>
+   </component>

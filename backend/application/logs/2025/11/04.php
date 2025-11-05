@@ -1,0 +1,321 @@
+<?php defined('SYSPATH') OR die('No direct script access.'); ?>
+
+2025-11-04 13:41:54 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:41:54 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:41:54 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:41:54 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:47:59 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:47:59 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:48:03 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:48:03 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:48:32 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:48:32 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:48:53 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:48:53 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:48:53 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:48:53 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:49:02 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 13:49:02 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 14:07:17 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 14:07:17 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 14:07:17 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 14:07:17 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 15:48:11 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 15:48:11 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 15:48:11 --- EMERGENCY: TypeError [ 0 ]: Argument 1 passed to Service_RegularSchedule::getByRoomId() must be of the type int, string given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php on line 11 ~ APPPATH/classes/Service/RegularSchedule.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 15:48:11 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php(11): Service_RegularSchedule::getByRoomId()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomregularschedule->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomregularschedule.php:11
+2025-11-04 17:46:08 --- EMERGENCY: Error [ 0 ]: Class 'Service_StudyRoomScheduleException' not found ~ APPPATH/classes/Controller/Api/Studyroomscheduleexception.php [ 12 ] in /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php:84
+2025-11-04 17:46:08 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#1 [internal function]: Kohana_Controller->execute()
+#2 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#5 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#6 {main} in /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php:84
+2025-11-04 17:46:25 --- EMERGENCY: Error [ 0 ]: Class 'Service_StudyRoomScheduleException' not found ~ APPPATH/classes/Controller/Api/Studyroomscheduleexception.php [ 12 ] in /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php:84
+2025-11-04 17:46:25 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#1 [internal function]: Kohana_Controller->execute()
+#2 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#5 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#6 {main} in /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php:84
+2025-11-04 17:47:26 --- EMERGENCY: TypeError [ 0 ]: Argument 2 passed to Service_StudyRoomScheduleException::getAllByIdYearMonth() must be of the type int, null given, called in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php on line 12 ~ APPPATH/classes/Service/StudyRoomScheduleException.php [ 4 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php:12
+2025-11-04 17:47:26 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(12): Service_StudyRoomScheduleException::getAllByIdYearMonth()
+#1 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#2 [internal function]: Kohana_Controller->execute()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#7 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php:12
+2025-11-04 18:49:30 --- EMERGENCY: Database_Exception [ 1364 ]: Field 'open_time' doesn't have a default value [ 
+                INSERT INTO study_room_schedule_exceptions (study_room_id, date, is_open, reason)
+                VALUES (5, '2025-10-01', false, 'テストです。')
+             ] ~ MODPATH/database/classes/Kohana/Database/MySQLi.php [ 171 ] in /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php:251
+2025-11-04 18:49:30 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php(251): Kohana_Database_MySQLi->query()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(48): Kohana_Database_Query->execute()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(49): Repository_Base::withTransaction()
+#4 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(14): Repository_StudyRoomScheduleException::closeThisDayWithReason()
+#5 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(20): Service_StudyRoomScheduleException::saveAllOfOneDay()
+#6 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_save()
+#7 [internal function]: Kohana_Controller->execute()
+#8 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#9 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#10 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#11 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#12 {main} in /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php:251
+2025-11-04 18:50:36 --- EMERGENCY: TypeError [ 0 ]: Typed property Entity_StudyRoomScheduleException::$open_time must be string, null used ~ APPPATH/classes/Entity/StudyRoomScheduleException.php [ 19 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php:23
+2025-11-04 18:50:36 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(23): Entity_StudyRoomScheduleException::fromArray()
+#1 [internal function]: Repository_StudyRoomScheduleException::{closure}()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Stream.php(13): array_map()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(23): Elf_Stream->map()
+#4 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#5 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(25): Repository_Base::withTransaction()
+#6 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(6): Repository_StudyRoomScheduleException::getAllByIdYearMonth()
+#7 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(12): Service_StudyRoomScheduleException::getAllByIdYearMonth()
+#8 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#9 [internal function]: Kohana_Controller->execute()
+#10 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#11 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#12 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#13 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#14 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php:23
+2025-11-04 18:50:53 --- EMERGENCY: Exception [ 0 ]: DateTime::__construct(): Failed to parse time string (2025-13-01) at position 6 (3): Unexpected character ~ APPPATH/classes/Elf/Time.php [ 23 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Time.php:23
+2025-11-04 18:50:53 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Time.php(23): DateTime->__construct()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Time.php(17): Elf_Time::getDateTimeFromYearMonth()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(8): Elf_Time::firstDayOfTheYearNextMonth()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#4 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(25): Repository_Base::withTransaction()
+#5 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(6): Repository_StudyRoomScheduleException::getAllByIdYearMonth()
+#6 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(12): Service_StudyRoomScheduleException::getAllByIdYearMonth()
+#7 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#8 [internal function]: Kohana_Controller->execute()
+#9 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#10 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#11 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#12 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#13 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Time.php:23
+2025-11-04 18:51:04 --- EMERGENCY: TypeError [ 0 ]: Typed property Entity_StudyRoomScheduleException::$open_time must be string, null used ~ APPPATH/classes/Entity/StudyRoomScheduleException.php [ 19 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php:23
+2025-11-04 18:51:04 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(23): Entity_StudyRoomScheduleException::fromArray()
+#1 [internal function]: Repository_StudyRoomScheduleException::{closure}()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Stream.php(13): array_map()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(23): Elf_Stream->map()
+#4 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#5 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(25): Repository_Base::withTransaction()
+#6 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(6): Repository_StudyRoomScheduleException::getAllByIdYearMonth()
+#7 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(12): Service_StudyRoomScheduleException::getAllByIdYearMonth()
+#8 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#9 [internal function]: Kohana_Controller->execute()
+#10 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#11 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#12 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#13 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#14 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php:23
+2025-11-04 18:51:22 --- EMERGENCY: TypeError [ 0 ]: Typed property Entity_StudyRoomScheduleException::$open_time must be string, null used ~ APPPATH/classes/Entity/StudyRoomScheduleException.php [ 19 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php:23
+2025-11-04 18:51:22 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(23): Entity_StudyRoomScheduleException::fromArray()
+#1 [internal function]: Repository_StudyRoomScheduleException::{closure}()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Stream.php(13): array_map()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(23): Elf_Stream->map()
+#4 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#5 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(25): Repository_Base::withTransaction()
+#6 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(6): Repository_StudyRoomScheduleException::getAllByIdYearMonth()
+#7 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(12): Service_StudyRoomScheduleException::getAllByIdYearMonth()
+#8 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#9 [internal function]: Kohana_Controller->execute()
+#10 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#11 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#12 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#13 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#14 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php:23
+2025-11-04 18:54:32 --- EMERGENCY: Error [ 0 ]: Typed property Entity_StudyRoomScheduleException::$open_time must not be accessed before initialization ~ APPPATH/classes/Entity/StudyRoomScheduleException.php [ 34 ] in file:line
+2025-11-04 18:54:32 --- DEBUG: #0 [internal function]: Entity_StudyRoomScheduleException->jsonSerialize()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Base.php(121): json_encode()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(13): Controller_Api_Base->json()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#4 [internal function]: Kohana_Controller->execute()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#6 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#7 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#8 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#9 {main} in file:line
+2025-11-04 18:54:35 --- EMERGENCY: Error [ 0 ]: Typed property Entity_StudyRoomScheduleException::$open_time must not be accessed before initialization ~ APPPATH/classes/Entity/StudyRoomScheduleException.php [ 34 ] in file:line
+2025-11-04 18:54:35 --- DEBUG: #0 [internal function]: Entity_StudyRoomScheduleException->jsonSerialize()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Base.php(121): json_encode()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(13): Controller_Api_Base->json()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#4 [internal function]: Kohana_Controller->execute()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#6 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#7 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#8 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#9 {main} in file:line
+2025-11-04 18:54:51 --- EMERGENCY: Error [ 0 ]: Typed property Entity_StudyRoomScheduleException::$open_time must not be accessed before initialization ~ APPPATH/classes/Entity/StudyRoomScheduleException.php [ 34 ] in file:line
+2025-11-04 18:54:51 --- DEBUG: #0 [internal function]: Entity_StudyRoomScheduleException->jsonSerialize()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Base.php(121): json_encode()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(13): Controller_Api_Base->json()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#4 [internal function]: Kohana_Controller->execute()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#6 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#7 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#8 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#9 {main} in file:line
+2025-11-04 18:59:13 --- EMERGENCY: Exception [ 0 ]: DateTime::__construct(): Failed to parse time string (2025-13-01) at position 6 (3): Unexpected character ~ APPPATH/classes/Elf/Time.php [ 23 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Time.php:23
+2025-11-04 18:59:13 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Time.php(23): DateTime->__construct()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Time.php(17): Elf_Time::getDateTimeFromYearMonth()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(8): Elf_Time::firstDayOfTheYearNextMonth()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#4 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(25): Repository_Base::withTransaction()
+#5 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(6): Repository_StudyRoomScheduleException::getAllByIdYearMonth()
+#6 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(12): Service_StudyRoomScheduleException::getAllByIdYearMonth()
+#7 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#8 [internal function]: Kohana_Controller->execute()
+#9 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#10 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#11 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#12 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#13 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Elf/Time.php:23
+2025-11-04 18:59:38 --- EMERGENCY: TypeError [ 0 ]: Return value of Entity_StudyRoomScheduleException::jsonSerialize() must be an instance of mixed, array returned ~ APPPATH/classes/Entity/StudyRoomScheduleException.php [ 36 ] in file:line
+2025-11-04 18:59:38 --- DEBUG: #0 [internal function]: Entity_StudyRoomScheduleException->jsonSerialize()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Base.php(121): json_encode()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(13): Controller_Api_Base->json()
+#3 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#4 [internal function]: Kohana_Controller->execute()
+#5 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#6 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#7 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#8 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#9 {main} in file:line
+2025-11-04 19:03:58 --- EMERGENCY: Error [ 0 ]: Call to undefined method Elf_Time::firstDayOfTheYearNextMonth() ~ APPPATH/classes/Repository/StudyRoomScheduleException.php [ 8 ] in /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php:12
+2025-11-04 19:03:58 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(25): Repository_Base::withTransaction()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(6): Repository_StudyRoomScheduleException::getAllByIdYearMonth()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(12): Service_StudyRoomScheduleException::getAllByIdYearMonth()
+#4 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_get()
+#5 [internal function]: Kohana_Controller->execute()
+#6 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#7 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#8 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#9 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#10 {main} in /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php:12
+2025-11-04 19:05:11 --- EMERGENCY: Database_Exception [ 1364 ]: Field 'is_open' doesn't have a default value [ 
+                    INSERT INTO study_room_schedule_exceptions (study_room_id, date, open_time, close_time, reason)
+                    VALUES (5, '2025-10-02', '08:00', '12:00', 'テストです。'), (5, '2025-10-02', '19:00', '22:00', 'テストです。')
+                 ] ~ MODPATH/database/classes/Kohana/Database/MySQLi.php [ 171 ] in /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php:251
+2025-11-04 19:05:11 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php(251): Kohana_Database_MySQLi->query()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(87): Kohana_Database_Query->execute()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(89): Repository_Base::withTransaction()
+#4 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(17): Repository_StudyRoomScheduleException::openThisDayWithRanges()
+#5 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(20): Service_StudyRoomScheduleException::saveAllOfOneDay()
+#6 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_save()
+#7 [internal function]: Kohana_Controller->execute()
+#8 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#9 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#10 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#11 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#12 {main} in /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php:251
+2025-11-04 21:51:34 --- EMERGENCY: Database_Exception [ 1064 ]: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ':'2025-10-02'' at line 2 [ 
+            DELETE FROM study_room_schedule_exceptions
+            WHERE study_room_id = 5 AND '2025-10-02' = :'2025-10-02'
+         ] ~ MODPATH/database/classes/Kohana/Database/MySQLi.php [ 171 ] in /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php:251
+2025-11-04 21:51:34 --- DEBUG: #0 /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php(251): Kohana_Database_MySQLi->query()
+#1 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(36): Kohana_Database_Query->execute()
+#2 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(58): Repository_StudyRoomScheduleException::_delete()
+#3 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/Base.php(12): Repository_StudyRoomScheduleException::{closure}()
+#4 /home/misha/study_room_system/study_room_system/backend/application/classes/Repository/StudyRoomScheduleException.php(59): Repository_Base::withTransaction()
+#5 /home/misha/study_room_system/study_room_system/backend/application/classes/Service/StudyRoomScheduleException.php(27): Repository_StudyRoomScheduleException::deleteByIdAndDate()
+#6 /home/misha/study_room_system/study_room_system/backend/application/classes/Controller/Api/Studyroomscheduleexception.php(36): Service_StudyRoomScheduleException::deleteByIdAndDate()
+#7 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Controller.php(84): Controller_Api_Studyroomscheduleexception->action_delete()
+#8 [internal function]: Kohana_Controller->execute()
+#9 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client/Internal.php(97): ReflectionMethod->invoke()
+#10 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request/Client.php(114): Kohana_Request_Client_Internal->execute_request()
+#11 /home/misha/study_room_system/study_room_system/backend/system/classes/Kohana/Request.php(993): Kohana_Request_Client->execute()
+#12 /home/misha/study_room_system/study_room_system/backend/public/index.php(122): Kohana_Request->execute()
+#13 {main} in /home/misha/study_room_system/study_room_system/backend/modules/database/classes/Kohana/Database/Query.php:251
