@@ -2,6 +2,7 @@ export default function StudyRoomCreate({
   setShowCreateModal,
   newRoomName,
   setNewRoomName,
+  newRoomLimit,
   setNewRoomLimit,
   handleCreateRoom,
 }) {

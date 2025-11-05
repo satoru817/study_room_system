@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import StudyRoomCreate from "../../components/StudyRoomCreate";
 import StudyRoomEdit from "../../components/StudyRoomEdit";
+import { create } from "domain";
 
 export default function CramSchoolDetailPage() {
   const searchParams = useSearchParams();
@@ -117,7 +118,11 @@ export default function CramSchoolDetailPage() {
       setEditingRoom(null);
 
       //await fetchStudyRooms();
-      setStudyRooms([...studyRooms, createdStudyRoom]);
+      setStudyRooms([
+        createdStudyRoom,
+        ...studyRooms.filter((sr) => sr.studyRoomId !== studyRoomId),
+      ]);
+
       alert("自習室を更新しました");
     } catch (error) {
       console.error("自習室の更新に失敗:", error);
@@ -201,6 +206,7 @@ export default function CramSchoolDetailPage() {
         <StudyRoomCreate
           setShowCreateModal={setShowCreateModal}
           newRoomName={newRoomName}
+          newRoomLimit={newRoomLimit}
           setNewRoomLimit={setNewRoomLimit}
           setNewRoomName={setNewRoomName}
           handleCreateRoom={handleCreateRoom}

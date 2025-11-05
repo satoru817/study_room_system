@@ -48,11 +48,11 @@ export default function StudyRoomEdit({
                   type="number"
                   className="form-control"
                   id="editRoomLimit"
-                  value={editingRoom.room_limit}
+                  value={editingRoom.roomLimit}
                   onChange={(e) =>
                     setEditingRoom({
                       ...editingRoom,
-                      room_limit: Number(e.target.value),
+                      roomLimit: Number(e.target.value),
                     })
                   }
                   min="1"
