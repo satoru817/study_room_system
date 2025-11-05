@@ -1,19 +1,18 @@
 // =================================================================================
 //           Helper Functions
 // =================================================================================
+import type { LoginInfo, Principal } from "../constant/types";
+import { getFromCookie } from "./CookieElf.js";
 
 /**
- * Get JWT token from localStorage
+ * Get CSRF token from cookie
  */
-const getAuthToken = (): string | null => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("jwt-token");
-  }
-  return null;
+const getCsrfTokenFromCookie = () => {
+  return getFromCookie("XSRF-TOKEN");
 };
 
 /**
- * Generic fetch function with JWT support
+ * Generic fetch function
  */
 const _fetch = async (
   url: string,
@@ -21,21 +20,19 @@ const _fetch = async (
   data?: object | null,
   callIfFailed?: () => void
 ): Promise<any> => {
+  const csrfToken = getCsrfTokenFromCookie();
   const stringBody = data ? JSON.stringify(data) : null;
 
   console.log(
     `Fetch initialized with url = ${url}, data = ${stringBody}, method = ${method}`
   );
 
-  const token = getAuthToken();
-
   const requestBody: RequestInit = {
     method: method,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      // JWTトークンをAuthorizationヘッダーに追加
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(csrfToken && { "X-XSRF-TOKEN": csrfToken }),
     },
   };
 
@@ -48,8 +45,6 @@ const _fetch = async (
 
     if (response.status === 401) {
       console.error("Authentication required - redirecting to login");
-      // トークンが無効な場合は削除
-      localStorage.removeItem("jwt-token");
       alert("ログインが必要です。ログインページにリダイレクトします。");
       window.location.href = "/login";
       throw new Error("Authentication required");
@@ -156,14 +151,52 @@ export async function doGet(url: string): Promise<any> {
 }
 
 /**
+ * Login request (form-urlencoded format for Spring Security)
+ */
+export async function doLogin(
+  username: string,
+  password: string
+): Promise<LoginInfo> {
+  const csrfToken = getCsrfTokenFromCookie();
+
+  // Create form data
+  const formData = new URLSearchParams();
+  formData.append("username", username);
+  formData.append("password", password);
+  formData.append("_csrf", csrfToken);
+
+  console.log(`Login initialized with username = ${username}`);
+
+  try {
+    const response = await fetch("/api/login", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        ...(csrfToken && { "X-XSRF-TOKEN": csrfToken }),
+      },
+      body: formData.toString(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Response Status: ${response.status}`);
+    }
+
+    const result: LoginInfo = await response.json();
+    console.log(`Login finished, result = ${JSON.stringify(result)}`);
+
+    return result;
+  } catch (error) {
+    console.error(`Login Error: ${error}`);
+    throw error;
+  }
+}
+
+/**
  * Logout request
  */
 export async function doLogout(): Promise<void> {
-  // ログアウト時はトークンを削除
-  localStorage.removeItem("jwt-token");
-  await doPost("/api/auth/logout", undefined);
-  // ログインページにリダイレクト
-  window.location.href = "/login";
+  await doPost("/api/logout", undefined);
 }
 
 /**
@@ -179,11 +212,4 @@ export async function checkMe(): Promise<Principal> {
  */
 export async function doDelete(url: string): Promise<any> {
   return await _fetch(url, "DELETE");
-}
-
-/**
- * Check if user is authenticated (has valid token)
- */
-export function isAuthenticated(): boolean {
-  return getAuthToken() !== null;
 }

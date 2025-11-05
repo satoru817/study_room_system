@@ -29,7 +29,8 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "next.config.js"
+    "next.config.js",
+    "app/elfs/CookieElf.js"
   ],
   "exclude": ["node_modules"]
 }

@@ -3,73 +3,111 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LOGIN_URL } from "../constants/urls.js";
+import { doLogin } from "../elfs/WebserviceElf.js";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch(LOGIN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login_name: name, password }),
-    });
 
-    if (response.ok) {
-      const data = await response.json();
-      const user = data.user;
-      // this token contains information about the user
-      // so use this
-      const token = data.token;
-      localStorage.setItem("jwt-token", token);
+    const response = await doLogin(username, password);
 
-      if (user.role === "teacher") {
-        router.push("/teacher-dashboard");
-      } else if (user.role === "student") {
-        router.push("/student-dashboard");
-      }
+    if (response.success) {
+      const role = response.role;
+      setRole(role || "");
+      await initCsrf();
+      onLoginSuccess({
+        loggedIn: true,
+        username,
+        role,
+      });
+
+      const navigateTo =
+        role === STUDENT ? "/student" : "/teacher/selectCramSchool";
+      navigate(navigateTo);
+    } else {
+      alert(response.error || "ログインに失敗しました");
     }
+
+    // const response = await fetch(LOGIN_URL, {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ login_name: name, password }),
+    // });
+
+    // if (response.ok) {
+    //   const data = await response.json();
+    //   const user = data.user;
+    //   // this token contains information about the user
+    //   // so use this
+    //   const token = data.token;
+    //   localStorage.setItem("jwt-token", token);
+
+    //   if (user.role === "teacher") {
+    //     router.push("/teacher-dashboard");
+    //   } else if (user.role === "student") {
+    //     router.push("/student-dashboard");
+    //   }
+    // }
   };
 
   return (
     <div className="container d-flex justify-content-center align-items-center vh-100">
-      <div className="col-md-4">
-        <h2 className="text-center mb-4">ログイン</h2>
-        <form onSubmit={handleLogin}>
-          <div className="mb-3">
-            <label htmlFor="loginName" className="form-label">
-              ユーザー名
-            </label>
-            <input
-              id="loginName"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="ユーザー名"
-              className="form-control"
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              パスワード
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="パスワード"
-              className="form-control"
-              required
-            />
-          </div>
-          <button type="submit" className="btn btn-primary w-100">
-            ログイン
-          </button>
-        </form>
+      <div className="card mx-auto" style={{ maxWidth: "400px" }}>
+        <div className="card-body">
+          <h2 className="card-title">ログイン</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">
+                ログイン名またはメールアドレス
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={isSubmitting}
+                required
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">パスワード</label>
+              <div className="input-group">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="form-control"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+                <span
+                  className="input-group-text"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary w-100"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "ログイン中..." : "ログイン"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
