@@ -3,13 +3,6 @@ export type CramSchool = {
   name: string;
 };
 
-export type StudyRoom = {
-  study_room_id: number;
-  name: string;
-  room_limit: number;
-  current_students?: number;
-};
-
 export type StudyRoomRegularSchedule = {
   study_room_regular_schedule_id: number;
   study_room_id: number;

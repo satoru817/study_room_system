@@ -30,7 +30,10 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "next.config.js",
-    "app/elfs/CookieElf.js"
+    "app/elfs/CookieElf.js",
+    "app/teacher-dashboard/cramschool/page.jsx",
+    "app/teacher-dashboard/page.jsx",
+    "app/elfs/WebserviceElf.js"
   ],
   "exclude": ["node_modules"]
 }

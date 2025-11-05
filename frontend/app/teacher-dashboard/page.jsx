@@ -3,14 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { doGet } from "../elfs/WebserviceElf";
-import { CramSchool } from "../constants/types";
 
 export default function TeacherDashboard() {
   const router = useRouter();
-  const [cramschoolId, setcramschoolId] = useState(null);
+  const [cramSchoolId, setCramSchoolId] = useState(null);
   const [cramSchools, setCramSchools] = useState([]);
 
-  // 所属校舎一覧を取得
   useEffect(() => {
     const fetchCramSchools = async () => {
       const _cramSchools = await doGet("/api/cramschool/get");
@@ -20,18 +18,17 @@ export default function TeacherDashboard() {
     fetchCramSchools();
   }, []);
 
-  // OKボタンで校舎ページに遷移
   const handleSubmit = () => {
-    if (cramschoolId) {
+    if (cramSchoolId) {
       const selectedSchool = cramSchools.find(
-        (school) => school.cramschoolId === cramschoolId
+        (school) => school.cramSchoolId === cramSchoolId
       );
 
       if (selectedSchool) {
         router.push(
-          `/teacher-dashboard/${cramschoolId}?name=${encodeURIComponent(
-            selectedSchool.name
-          )}`
+          `/teacher-dashboard/cramschool/?cramSchoolId=${encodeURIComponent(
+            cramSchoolId
+          )}&name=${encodeURIComponent(selectedSchool.name)}`
         );
       }
     } else {
@@ -49,7 +46,7 @@ export default function TeacherDashboard() {
               <button
                 className="btn btn-primary"
                 onClick={handleSubmit}
-                disabled={!cramschoolId}
+                disabled={!cramSchoolId}
               >
                 Go
               </button>
@@ -58,12 +55,12 @@ export default function TeacherDashboard() {
               <div className="list-group">
                 {cramSchools.map((school) => (
                   <button
-                    key={school.cramschoolId}
+                    key={school.cramSchoolId}
                     type="button"
                     className={`list-group-item list-group-item-action ${
-                      cramschoolId === school.cramschoolId ? "active" : ""
+                      cramSchoolId === school.cramSchoolId ? "active" : ""
                     }`}
-                    onClick={() => setcramschoolId(school.cramschoolId)}
+                    onClick={() => setCramSchoolId(school.cramSchoolId)}
                   >
                     {school.name}
                   </button>

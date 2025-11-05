@@ -18,14 +18,13 @@ public class StudyRoomController {
     @Autowired
     private CramSchoolService cramSchoolService;
 
-    @GetMapping("/getAll/{cramSchoolId}")
+    @GetMapping("/get/{cramSchoolId}")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> getAllStudyRoom(@PathVariable(name = "cramSchoolId") int cramSchoolId){
-        List<StudyRoom> studyRooms = studyRoomService.findAllByCramSchoolId(cramSchoolId);
+        List<StudyRoomService.StudyRoomStatus> studyRooms = studyRoomService.findAllByCramSchoolId(cramSchoolId);
         return ResponseEntity.ok(studyRooms);
     }
 
-    @Transactional
     @PostMapping("/create/{cramSchoolId}")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> createStudyRoom(@PathVariable int cramSchoolId, @RequestBody StudyRoomCreateRequest request) {
@@ -39,6 +38,13 @@ public class StudyRoomController {
         }
     }
 
+    public record StudyRoomCreateRequest(String name, int roomLimit) {
+        public StudyRoom convert(CramSchool cramSchool) {
+            return new StudyRoom(name, roomLimit, cramSchool);
+        }
+    }
+
+    // TODO: implement UI
     @PreAuthorize("hasRole('TEACHER')")
     @DeleteMapping("/{studyRoomId}")
     public ResponseEntity<?> deleteStudyRoom(@PathVariable int studyRoomId) {
@@ -46,4 +52,17 @@ public class StudyRoomController {
         return ResponseEntity.noContent().build();
     }
 
+    public record StudyRoomEditRequest(int studyRoomId, String name, int roomLimit){}
+
+    @PreAuthorize("hasRole('TEACHER')")
+    @PostMapping("/edit")
+    public ResponseEntity<?> editStudyRoom(@RequestBody StudyRoomEditRequest request)
+    {
+        try {
+            studyRoomService.update(request);
+            return ResponseEntity.ok(new StudyRoomService.StudyRoomStatus(request.studyRoomId, request.name, request.roomLimit, 0));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
