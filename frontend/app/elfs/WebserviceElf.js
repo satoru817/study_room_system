@@ -6,12 +6,7 @@ import { getFromCookie, getCsrfTokenFromCookie } from "./CookieElf.js";
 /**
  * Generic fetch function
  */
-const _fetch = async (
-  url: string,
-  method: string,
-  data?: object | null,
-  callIfFailed?: () => void
-): Promise<any> => {
+const _fetch = async (url, method, data = null, callIfFailed = undefined) => {
   const csrfToken = getCsrfTokenFromCookie();
   const stringBody = data ? JSON.stringify(data) : null;
 
@@ -19,7 +14,7 @@ const _fetch = async (
     `Fetch initialized with url = ${url}, data = ${stringBody}, method = ${method}`
   );
 
-  const requestBody: RequestInit = {
+  const requestBody = {
     method: method,
     credentials: "include",
     headers: {
@@ -99,12 +94,12 @@ const _fetch = async (
  * Fetch with callback
  */
 const _fetchWithCallback = async (
-  url: string,
-  method: string,
-  data: any,
-  callback: (data: any) => void,
-  callIfFailed?: () => void
-): Promise<void> => {
+  url,
+  method,
+  data,
+  callback,
+  callIfFailed = undefined
+) => {
   const fetchedData = await _fetch(url, method, data, callIfFailed);
   if (callback) {
     callback(fetchedData);
@@ -119,33 +114,33 @@ const _fetchWithCallback = async (
  * Generic fetch with callback
  */
 export async function doFetch(
-  url: string,
-  method: string,
-  data: any,
-  callback: (data: any) => void,
-  callIfFailed?: () => void
-): Promise<void> {
+  url,
+  method,
+  data,
+  callback,
+  callIfFailed = undefined
+) {
   await _fetchWithCallback(url, method, data, callback, callIfFailed);
 }
 
 /**
  * POST request
  */
-export async function doPost(url: string, data: any): Promise<any> {
+export async function doPost(url, data) {
   return await _fetch(url, "POST", data);
 }
 
 /**
  * GET request
  */
-export async function doGet(url: string): Promise<any> {
+export async function doGet(url) {
   return await _fetch(url, "GET");
 }
 
 /**
  * Login request (form-urlencoded format for Spring Security)
  */
-export async function doLogin(username: string, password: string) {
+export async function doLogin(username, password) {
   const csrfToken = getCsrfTokenFromCookie();
   console.log(`CSRF = ${csrfToken}`);
   // Create form data
@@ -184,7 +179,7 @@ export async function doLogin(username: string, password: string) {
 /**
  * Logout request
  */
-export async function doLogout(): Promise<void> {
+export async function doLogout() {
   await doPost("/api/logout", undefined);
 }
 
@@ -199,12 +194,12 @@ export async function checkMe() {
 /**
  * DELETE request
  */
-export async function doDelete(url: string) {
+export async function doDelete(url) {
   return await _fetch(url, "DELETE");
 }
+
 /**
  * just calling this method will store xrf-token to the browser cookie!
- * @returns void
  */
 export const getCsrfToken = async () => {
   return await doGet("/api/csrf-token");

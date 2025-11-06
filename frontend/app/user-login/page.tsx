@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LOGIN_URL } from "../constants/urls.js";
-import { checkMe, doLogin, getCsrfToken } from "../elfs/WebserviceElf";
+import { checkMe, doLogin, getCsrfToken } from "../elfs/WebserviceElf.js";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {

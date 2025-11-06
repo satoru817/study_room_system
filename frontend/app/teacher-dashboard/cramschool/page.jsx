@@ -1,12 +1,12 @@
 "use client";
 import { doGet, doPost } from "@/app/elfs/WebserviceElf";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import StudyRoomCreate from "../../components/StudyRoomCreate";
 import StudyRoomEdit from "../../components/StudyRoomEdit";
 import { create } from "domain";
 
-export default function CramSchoolDetailPage() {
+function CramSchoolDetailContent() {
   const searchParams = useSearchParams();
   const cramSchoolId = searchParams.get("cramSchoolId");
   const cramSchoolName = searchParams.get("name");
@@ -223,5 +223,13 @@ export default function CramSchoolDetailPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function CramSchoolDetailPage() {
+  return (
+    <Suspense fallback={<div>読み込み中...</div>}>
+      <CramSchoolDetailContent />
+    </Suspense>
   );
 }

@@ -6,9 +6,9 @@ import {
 } from "@/app/constants/urls";
 import { doGet, doPost, doDelete } from "@/app/elfs/WebserviceElf";
 import { useSearchParams, useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { Suspense, use, useEffect, useState } from "react";
 
-export default function StudyRoomDetailPage() {
+function StudyRoomDetailContent() {
   const searchParams = useSearchParams();
   const studyRoomId = searchParams.get("studyRoomId");
   const studyRoomName = searchParams.get("name");
@@ -826,5 +826,13 @@ export default function StudyRoomDetailPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function StudyRoomDetailPage() {
+  return (
+    <Suspense fallback={<div>読み込み中</div>}>
+      <StudyRoomDetailContent></StudyRoomDetailContent>
+    </Suspense>
   );
 }

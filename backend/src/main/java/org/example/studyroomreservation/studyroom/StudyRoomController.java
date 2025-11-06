@@ -69,7 +69,7 @@ public class StudyRoomController {
         }
     }
     @PreAuthorize("hasRole('TEACHER')")
-    @GetMapping("/regularSchedule/get")
+    @GetMapping("/regularSchedule/get/")
     public ResponseEntity<?> getRegularScheduleOfOneStudyRoom(@RequestParam int studyRoomId)
     {
         List<StudyRoomRegularScheduleDTO> regularSchedules = studyRoomService.getRegularSchedulesOfOneStudyRoom(studyRoomId);
@@ -81,7 +81,7 @@ public class StudyRoomController {
     public record StudyRoomScheduleExceptionShowRequest(int studyRoomId, int year, int month){}
     public record StudyRoomScheduleExceptionShowResponse(int studyRoomId, LocalDate date, boolean isOpen, LocalTime openTime, LocalTime closeTime, String reason){}
     @PreAuthorize("hasRole('TEACHER')")
-    @GetMapping("/scheduleException/get")
+    @GetMapping("/scheduleException/get/")
     public ResponseEntity<?> getScheduleExceptionsOfOneStudyRoom(@ModelAttribute StudyRoomScheduleExceptionShowRequest request)
     {
         List<StudyRoomScheduleExceptionShowResponse> responses = studyRoomService.getScheduleExceptionsOfOneStudyRoom(request);

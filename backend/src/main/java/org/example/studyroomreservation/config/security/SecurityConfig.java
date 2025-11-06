@@ -52,11 +52,20 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // allow access to static resources
-                        .requestMatchers("/", "/index.html", "/*.js", "/*.css", "/assets/**").permitAll()
-                        // allows unauthenticated access to register and login
-                        .requestMatchers("/", "/api/student/register", "/api/csrf-token", "/api/login", "/api/me").permitAll()
-                        // All other requests needs authentication
+                        // APIエンドポイント以外のすべての静的リソースを許可
+                        .requestMatchers(
+                                request -> !request.getServletPath().startsWith("/api/")
+                        ).permitAll()
+
+                        // 認証不要なAPIエンドポイント
+                        .requestMatchers(
+                                "/api/student/register",
+                                "/api/csrf-token",
+                                "/api/login",
+                                "/api/me"
+                        ).permitAll()
+
+                        // その他のAPIは認証が必要
                         .anyRequest().authenticated()
                 )
                 // Configure form login for SPA
