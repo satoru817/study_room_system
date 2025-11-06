@@ -390,13 +390,16 @@ function StudyRoomDetailContent() {
     if (!confirm("この例外スケジュールを削除しますか？")) return;
 
     try {
-      await doPost(DELETE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL, {
-        studyRoomId: studyRoomId,
-        date: selectedDate,
-      });
+      const updatedExceptions = await doPost(
+        "/api/studyRoom/scheduleException/delete",
+        {
+          studyRoomId: studyRoomId,
+          date: selectedDate,
+        }
+      );
 
       setShowExceptionModal(false);
-      await fetchExceptions(currentYear, currentMonth);
+      setExceptions(updatedExceptions);
       alert("例外スケジュールを削除しました");
     } catch (error) {
       console.error("例外スケジュールの削除に失敗:", error);

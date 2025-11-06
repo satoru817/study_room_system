@@ -18,4 +18,6 @@ public class dto {
     }
 
     public record StudyRoomScheduleExceptionOfOneDate(int studyRoomId, LocalDate date, boolean isOpen, List<Range> schedules, String reason){}
+
+    public record StudyRoomScheduleExceptionDeleteRequest(int studyRoomId, LocalDate date){}
 }

@@ -104,5 +104,12 @@ public class StudyRoomController {
         List<StudyRoomScheduleExceptionShowResponse> responses = studyRoomService.saveException(request);
         return ResponseEntity.ok(responses);
     }
-    
+
+    @PostMapping("/scheduleException/delete")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> deleteStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionDeleteRequest deleteRequest)
+    {
+        List<StudyRoomScheduleExceptionShowResponse> response = studyRoomService.deleteExceptionOfOneDay(deleteRequest);
+        return ResponseEntity.ok(response);
+    }
 }

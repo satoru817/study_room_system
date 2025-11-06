@@ -141,6 +141,24 @@ public class StudyRoomService {
         return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
     }
 
+    @Transactional
+    public List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> deleteExceptionOfOneDay(dto.StudyRoomScheduleExceptionDeleteRequest deleteRequest) {
+        int studyRoomId = deleteRequest.studyRoomId();
+        LocalDate date = deleteRequest.date();
+        String deleteSql = """
+                DELETE FROM study_room_schedule_exceptions srse
+                WHERE srse.date = :date
+                AND srse.study_room_id = :studyRoomId
+                """;
+        Map<String, Object> map = new HashMap<>();
+        map.put("date", date);
+        map.put("studyRoomId", studyRoomId);
+
+        jdbcTemplate.update(deleteSql, map);
+
+        return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
+    }
+
 
     public record StudyRoomStatus(int studyRoomId, String name, int roomLimit, int currentStudents){}
 
