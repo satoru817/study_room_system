@@ -94,6 +94,14 @@ function CramSchoolDetailContent() {
     }
   };
 
+  const handleGoToStudentSetting = () => {
+    router.push(
+      `/teacher-dashboard/cramschool/students/?cramSchoolId=${encodeURIComponent(
+        cramSchoolId
+      )}&cramSchoolName=${encodeURIComponent(cramSchoolName)}`
+    );
+  };
+
   const handleEditRoom = async () => {
     if (!editingRoom) return;
 
@@ -146,6 +154,12 @@ function CramSchoolDetailContent() {
                 <h4 className="mb-0">{cramSchoolName} - 自習室管理</h4>
               </div>
               <div>
+                <button
+                  className="btn btn-outline-primary me-2"
+                  onClick={handleGoToStudentSetting}
+                >
+                  生徒管理
+                </button>
                 <button
                   className="btn btn-success me-2"
                   onClick={() => setShowCreateModal(true)}

@@ -1,8 +1,5 @@
 "use client";
-import {
-  SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
-  DELETE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
-} from "@/app/constants/urls";
+import { SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL } from "@/app/constants/urls";
 import { doGet, doPost, doDelete } from "@/app/elfs/WebserviceElf";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, use, useEffect, useState } from "react";
