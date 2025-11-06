@@ -43,7 +43,7 @@ export default function CramSchoolDetailPage() {
       if (selectedRoom) {
         router.push(
           // TODO: change this!!!
-          `/teacher-dashboard/cramschool/study-room/?studyRoomId=${encodeURLComponent(
+          `/teacher-dashboard/cramschool/study-room/?studyRoomId=${encodeURIComponent(
             studyRoomId
           )}&name=${encodeURIComponent(selectedRoom.name)}`
         );

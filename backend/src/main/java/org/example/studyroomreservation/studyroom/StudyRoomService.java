@@ -55,6 +55,18 @@ public class StudyRoomService {
         jdbcTemplate.update(sql, params);
     }
 
+    public List<StudyRoomController.StudyRoomRegularScheduleDTO> getRegularSchedulesOfOneStudyRoom(int studyRoomId) {
+        return studyRoomRepository.getRegularScheduleOfOneStudyRoom(studyRoomId);
+    }
+
+    public List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> getScheduleExceptionsOfOneStudyRoom(StudyRoomController.StudyRoomScheduleExceptionShowRequest request) {
+        try {
+            return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(request.studyRoomId(), request.year(), request.month());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public record StudyRoomStatus(int studyRoomId, String name, int roomLimit, int currentStudents){}
 

@@ -3,11 +3,14 @@ package org.example.studyroomreservation.studyroom;
 import org.example.studyroomreservation.cramschool.CramSchoolService;
 import org.example.studyroomreservation.cramschool.CramSchool;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -65,6 +68,24 @@ public class StudyRoomController {
             throw new RuntimeException(e);
         }
     }
+    @PreAuthorize("hasRole('TEACHER')")
+    @GetMapping("/regularSchedule/get")
+    public ResponseEntity<?> getRegularScheduleOfOneStudyRoom(@RequestParam int studyRoomId)
+    {
+        List<StudyRoomRegularScheduleDTO> regularSchedules = studyRoomService.getRegularSchedulesOfOneStudyRoom(studyRoomId);
+        return ResponseEntity.ok(regularSchedules);
+    }
 
+    public record StudyRoomRegularScheduleDTO(int studyRoomId, StudyRoomRegularSchedule.DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){}
+
+    public record StudyRoomScheduleExceptionShowRequest(int studyRoomId, int year, int month){}
+    public record StudyRoomScheduleExceptionShowResponse(int studyRoomId, LocalDate date, boolean isOpen, LocalTime openTime, LocalTime closeTime, String reason){}
+    @PreAuthorize("hasRole('TEACHER')")
+    @GetMapping("/scheduleException/get")
+    public ResponseEntity<?> getScheduleExceptionsOfOneStudyRoom(@ModelAttribute StudyRoomScheduleExceptionShowRequest request)
+    {
+        List<StudyRoomScheduleExceptionShowResponse> responses = studyRoomService.getScheduleExceptionsOfOneStudyRoom(request);
+        return ResponseEntity.ok(responses);
+    }
     
 }

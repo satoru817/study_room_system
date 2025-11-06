@@ -33,4 +33,30 @@ public interface StudyRoomRepository extends JpaRepository<StudyRoom, Integer> {
             GROUP BY sr.studyRoomId, sr.name, sr.roomLimit
             """)
     List<StudyRoomService.StudyRoomStatus> findAllStatusByCramSchoolId(int cramSchoolId, LocalDate today, LocalTime time);
+
+    @Query("""
+            SELECT NEW org.example.studyroomreservation.studyroom.StudyRoomController$StudyRoomRegularScheduleDTO(
+                srrs.studyRoom.studyRoomId,
+                srrs.dayOfWeek,
+                srrs.openTime,
+                srrs.closeTime
+            )
+            FROM StudyRoomRegularSchedule srrs
+            WHERE srrs.studyRoom.studyRoomId = :studyRoomId
+            """)
+    List<StudyRoomController.StudyRoomRegularScheduleDTO> getRegularScheduleOfOneStudyRoom(int studyRoomId);
+
+    @Query("""
+            SELECT NEW org.example.studyroomreservation.studyroom.StudyRoomController$StudyRoomScheduleExceptionShowResponse(
+                sr.studyRoomId,
+                srse.date,
+                srse.isOpen,
+                COALESCE(srse.openTime, '00:00:00'),
+                COALESCE(srse.closeTime, '00:00:00'),
+                srse.reason
+            )
+            FROM StudyRoomScheduleException srse
+            JOIN srse.studyRoom sr
+            """)
+    List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> getScheduleExceptionsOfOneStudyRoomOfYearMonth(int i, int year, int month);
 }

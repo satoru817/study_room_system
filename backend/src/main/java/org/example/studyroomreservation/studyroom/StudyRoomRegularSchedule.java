@@ -15,7 +15,8 @@ public class StudyRoomRegularSchedule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int studyRoomRegularScheduleId;
 
-    private int dayOfWeek;
+    @Enumerated(EnumType.STRING)
+    private DayOfWeek dayOfWeek;
 
     private LocalTime openTime;
 
@@ -30,7 +31,7 @@ public class StudyRoomRegularSchedule {
         return studyRoomRegularScheduleId;
     }
 
-    public int getDayOfWeek() {
+    public DayOfWeek getDayOfWeek() {
         return dayOfWeek;
     }
 
@@ -48,12 +49,12 @@ public class StudyRoomRegularSchedule {
 
     // ---- Builder ----
     public static class Builder {
-        private Integer dayOfWeek;
+        private DayOfWeek dayOfWeek;
         private LocalTime openTime;
         private LocalTime closeTime;
         private StudyRoom studyRoom;
 
-        public Builder dayOfWeek(int dayOfWeek) {
+        public Builder dayOfWeek(DayOfWeek dayOfWeek) {
             this.dayOfWeek = dayOfWeek;
             return this;
         }
@@ -87,7 +88,7 @@ public class StudyRoomRegularSchedule {
         }
     }
 
-    public void setDayOfWeek(int dayOfWeek) {
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
     }
 
@@ -101,5 +102,9 @@ public class StudyRoomRegularSchedule {
 
     public void setStudyRoom(StudyRoom studyRoom) {
         this.studyRoom = studyRoom;
+    }
+
+    public static enum DayOfWeek {
+        monday, tuesday, wednesday, thursday, friday, saturday, sunday
     }
 }
