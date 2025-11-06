@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true, // 静的エクスポート時は画像最適化を無効化
   },
-  trailingSlash: true, // オプション：末尾スラッシュを追加
   async rewrites() {
     return [
       {

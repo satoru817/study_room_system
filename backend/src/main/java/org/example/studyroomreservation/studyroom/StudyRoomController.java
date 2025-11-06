@@ -2,6 +2,7 @@ package org.example.studyroomreservation.studyroom;
 
 import org.example.studyroomreservation.cramschool.CramSchoolService;
 import org.example.studyroomreservation.cramschool.CramSchool;
+import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
@@ -69,22 +70,38 @@ public class StudyRoomController {
         }
     }
     @PreAuthorize("hasRole('TEACHER')")
-    @GetMapping("/regularSchedule/get/")
+    @GetMapping("/regularSchedule/get")
     public ResponseEntity<?> getRegularScheduleOfOneStudyRoom(@RequestParam int studyRoomId)
     {
         List<StudyRoomRegularScheduleDTO> regularSchedules = studyRoomService.getRegularSchedulesOfOneStudyRoom(studyRoomId);
         return ResponseEntity.ok(regularSchedules);
     }
 
-    public record StudyRoomRegularScheduleDTO(int studyRoomId, StudyRoomRegularSchedule.DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){}
+    public record StudyRoomRegularScheduleDTO(int studyRoomId, TokyoTimeElf.DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){}
 
     public record StudyRoomScheduleExceptionShowRequest(int studyRoomId, int year, int month){}
     public record StudyRoomScheduleExceptionShowResponse(int studyRoomId, LocalDate date, boolean isOpen, LocalTime openTime, LocalTime closeTime, String reason){}
     @PreAuthorize("hasRole('TEACHER')")
-    @GetMapping("/scheduleException/get/")
+    @GetMapping("/scheduleException/get")
     public ResponseEntity<?> getScheduleExceptionsOfOneStudyRoom(@ModelAttribute StudyRoomScheduleExceptionShowRequest request)
     {
         List<StudyRoomScheduleExceptionShowResponse> responses = studyRoomService.getScheduleExceptionsOfOneStudyRoom(request);
+        return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/regularSchedule/save")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> saveRegularScheduleOfOneStudyRoom(@RequestBody dto.RegularScheduleBulkSaveRequest request)
+    {
+        List<StudyRoomRegularScheduleDTO> dtos = studyRoomService.bulkUpdateRegularScheduleOfOneStudyRoom(request);
+        return ResponseEntity.ok(dtos);
+    }
+
+    @PostMapping("/scheduleException/save")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> saveStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request)
+    {
+        List<StudyRoomScheduleExceptionShowResponse> responses = studyRoomService.saveException(request);
         return ResponseEntity.ok(responses);
     }
     

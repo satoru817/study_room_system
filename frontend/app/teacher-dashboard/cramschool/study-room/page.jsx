@@ -1,6 +1,5 @@
 "use client";
 import {
-  SAVE_STUDY_ROOM_REGULAR_SCHEDULES_URL,
   SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
   DELETE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
 } from "@/app/constants/urls";
@@ -44,7 +43,7 @@ function StudyRoomDetailContent() {
 
   const fetchStudyRoomRegularSchedules = async () => {
     try {
-      const url = `/api/studyRoom/regularSchedule/get/?studyRoomId=${encodeURIComponent(
+      const url = `/api/studyRoom/regularSchedule/get?studyRoomId=${encodeURIComponent(
         studyRoomId
       )}`;
       const _regularSchedules = await doGet(url);
@@ -56,7 +55,7 @@ function StudyRoomDetailContent() {
 
   const fetchExceptions = async (year, month) => {
     try {
-      const url = `/api/studyRoom/scheduleException/get/?studyRoomId=${encodeURIComponent(
+      const url = `/api/studyRoom/scheduleException/get?studyRoomId=${encodeURIComponent(
         studyRoomId
       )}&year=${year}&month=${month}`;
       const _exceptions = await doGet(url);
@@ -186,10 +185,10 @@ function StudyRoomDetailContent() {
     try {
       const schedules = convertScheduleToRanges();
       const _updatedSchedules = await doPost(
-        SAVE_STUDY_ROOM_REGULAR_SCHEDULES_URL,
+        "/api/studyRoom/regularSchedule/save",
         {
-          study_room_id: studyRoomId,
-          schedules: schedules,
+          studyRoomId: studyRoomId,
+          regularSchedules: schedules,
         }
       );
       setHasChanges(false);
@@ -243,7 +242,7 @@ function StudyRoomDetailContent() {
     // その日の例外スケジュールを取得
     const dayExceptions = exceptions.filter((e) => e.date === dateStr);
 
-    if (dayExceptions.length > 0 && !dayExceptions[0].is_open) {
+    if (dayExceptions.length > 0 && !dayExceptions[0].isOpen) {
       // 閉鎖日
       setExceptionType("closed");
       setExceptionReason(dayExceptions[0].reason || "");
@@ -349,30 +348,37 @@ function StudyRoomDetailContent() {
       alert("理由を入力してください");
       return;
     }
-
+    let updatedExceptions;
     try {
       if (exceptionType === "closed") {
         // 閉鎖日として保存
-        await doPost(SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL, {
-          study_room_id: studyRoomId,
-          date: selectedDate,
-          is_open: false,
-          reason: exceptionReason,
-        });
+        updatedExceptions = await doPost(
+          SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
+          {
+            studyRoomId: studyRoomId,
+            date: selectedDate,
+            isOpen: false,
+            schedules: [],
+            reason: exceptionReason,
+          }
+        );
       } else {
         // カスタムスケジュールとして保存
         const ranges = convertExceptionSlotsToRanges();
-        await doPost(SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL, {
-          study_room_id: studyRoomId,
-          date: selectedDate,
-          is_open: true,
-          schedules: ranges,
-          reason: exceptionReason,
-        });
+        updatedExceptions = await doPost(
+          SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
+          {
+            studyRoomId: studyRoomId,
+            date: selectedDate,
+            isOpen: true,
+            schedules: ranges,
+            reason: exceptionReason,
+          }
+        );
       }
 
       setShowExceptionModal(false);
-      await fetchExceptions(currentYear, currentMonth);
+      setExceptions(updatedExceptions);
       alert("例外スケジュールを保存しました");
     } catch (error) {
       console.error("例外スケジュールの保存に失敗:", error);
@@ -385,7 +391,7 @@ function StudyRoomDetailContent() {
 
     try {
       await doPost(DELETE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL, {
-        study_room_id: studyRoomId,
+        studyRoomId: studyRoomId,
         date: selectedDate,
       });
 
@@ -410,7 +416,7 @@ function StudyRoomDetailContent() {
       .toString()
       .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
     const dayExceptions = exceptions.filter((e) => e.date === dateStr);
-    return dayExceptions.length > 0 && !dayExceptions[0].is_open;
+    return dayExceptions.length > 0 && !dayExceptions[0].isOpen;
   };
 
   const renderCalendar = () => {
@@ -728,7 +734,10 @@ function StudyRoomDetailContent() {
                       <div className="alert alert-info">
                         <small>📌 ドラッグして開室時間を設定してください</small>
                       </div>
-                      <div className="table-responsive">
+                      <div
+                        className="table-responsive"
+                        style={{ maxHeight: "400px", overflowY: "auto" }}
+                      >
                         <table
                           className="table table-bordered text-center"
                           style={{ userSelect: "none" }}
@@ -748,7 +757,12 @@ function StudyRoomDetailContent() {
                                     {hour.toString().padStart(2, "0")}:00
                                   </td>
                                   <td style={{ padding: 0 }}>
-                                    <div style={{ display: "flex" }}>
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                      }}
+                                    >
                                       {[0, 15, 30, 45].map((minute) => {
                                         const slotIndex =
                                           hour * 4 + minute / 15;
@@ -768,13 +782,12 @@ function StudyRoomDetailContent() {
                                               )
                                             }
                                             style={{
-                                              flex: 1,
-                                              height: "30px",
+                                              height: "10px",
                                               backgroundColor: slot?.isOpen
                                                 ? "#d4edda"
                                                 : "white",
-                                              borderLeft: isHourStart
-                                                ? "2px solid #dee2e6"
+                                              borderTop: isHourStart
+                                                ? "1px solid #dee2e6"
                                                 : "1px dashed #e0e0e0",
                                               cursor: "pointer",
                                               transition:

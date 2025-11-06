@@ -14,4 +14,9 @@ public class TokyoTimeElf {
     public static LocalDateTime getTokyoLocalDateTime(){
         return LocalDateTime.now(TOKYO_ZONE_ID);
     }
+
+
+    public static enum DayOfWeek {
+        monday, tuesday, wednesday, thursday, friday, saturday, sunday
+    }
 }
