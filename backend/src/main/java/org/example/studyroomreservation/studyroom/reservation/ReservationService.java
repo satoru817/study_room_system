@@ -86,7 +86,7 @@ public class ReservationService {
                     COUNT(srse.study_room_schedule_exception_id) > 0 AS is_irregular,
                     CASE
                         WHEN COUNT(srse.study_room_schedule_exception_id) > 0
-                        THEN COUNT(CASE WHEN srse.is_open THEN 1 END) = 1
+                        THEN COUNT(CASE WHEN srse.is_open THEN 1 END) > 0
                         ELSE COUNT(srrs.study_room_regular_schedule_id) > 0
                     END AS is_open
                 FROM days d
