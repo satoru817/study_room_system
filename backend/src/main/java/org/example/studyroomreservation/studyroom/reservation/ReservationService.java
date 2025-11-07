@@ -57,6 +57,7 @@ public class ReservationService {
         return new dto.WeeklyAvailabilityResponse(studyRoomId, monday, list);
     }
 
+    // TODO: mistake in logic of is_booked_by_this_student
     private List<dto.TimeSlotAvailability> getTimeSlotAvailability(int studyRoomId, LocalDate start, LocalDate end, int studentId) {
         String sql = """
                  WITH week_days AS (
@@ -96,7 +97,7 @@ public class ReservationService {
                          als.start_time,
                          als.end_time,
                          COUNT(srr.study_room_reservation_id) AS reserved_seats,
-                         COUNT(srr_mine.study_room_reservation_id) = 1 AS is_booked_by_this_student
+                         COUNT(srr_mine.study_room_reservation_id) > 0 AS is_booked_by_this_student
                      FROM all_slots als
                      LEFT JOIN study_room_reservations srr
                          ON srr.study_room_id = :studyRoomId
@@ -108,7 +109,7 @@ public class ReservationService {
                          AND srr_mine.student_id = :studentId
                          AND srr_mine.date = als.day
                          AND srr_mine.start_hour <= als.start_time
-                         AND srr_mine.end_hour  > als.start_time
+                         AND srr_mine.end_hour  >= als.end_time
                      GROUP BY als.day, als.start_time, als.end_time
                  ),
                  bookable_slots AS (
@@ -183,6 +184,8 @@ public class ReservationService {
         );
     }
 
+
+    // TODO: add logics to squash consecutive reservation!!
     @Transactional
     public dto.WeeklyAvailabilityResponse createReservationBulk(StudentUser student, dto.CreateReservationRequest request) {
         // 1. 重複予約チェック（オプション）
@@ -191,7 +194,8 @@ public class ReservationService {
             WHERE srr.study_room_id = :studyRoomId
                 AND srr.student_id = :studentId
                 AND srr.date = :date
-                AND NOT (srr.endHour <= :startHour OR srr.startHour >= :endHour)
+                AND NOT (srr.end_Hour <= :startHour OR :endHour <= srr.start_hour)
+            FOR UPDATE
             """;
 
         for (dto.ReservationSlot slot : request.reservations()) {
@@ -202,7 +206,7 @@ public class ReservationService {
                     .addValue("startHour", slot.startHour())
                     .addValue("endHour", slot.endHour());
 
-            Integer count = jdbcTemplate.queryForObject(checkDuplicateSql, checkParams, Integer.class);
+            Long count = jdbcTemplate.queryForObject(checkDuplicateSql, checkParams, Long.class);
             if (count != null && count > 0) {
                 throw new IllegalStateException("既に予約が存在します: " + slot.date() + " " + slot.startHour());
             }
