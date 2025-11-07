@@ -46,7 +46,7 @@ export default function LoginPage() {
       setIsSubmitting(false);
       const role = response.role;
       await getCsrfToken();
-      navigateBasedOnRole(role);
+      navigateBasedOnRole(role, username);
     } else {
       setIsSubmitting(false);
       alert(response.error || "ログインに失敗しました");

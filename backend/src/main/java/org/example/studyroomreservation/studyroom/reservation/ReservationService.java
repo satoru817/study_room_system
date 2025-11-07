@@ -185,28 +185,28 @@ public class ReservationService {
 
     @Transactional
     public dto.WeeklyAvailabilityResponse createReservationBulk(StudentUser student, dto.CreateReservationRequest request) {
-//        // 1. 重複予約チェック（オプション）
-//        String checkDuplicateSql = """
-//            SELECT COUNT(*) FROM study_room_reservations
-//            WHERE study_room_id = :studyRoomId
-//            AND student_id = :studentId
-//            AND date = :date
-//            AND NOT (endHour <= :startHour OR startHour >= :endHour)
-//            """;
-//
-//        for (dto.ReservationSlot slot : request.reservations()) {
-//            MapSqlParameterSource checkParams = new MapSqlParameterSource()
-//                    .addValue("studyRoomId", request.studyRoomId())
-//                    .addValue("studentId", student.getStudentId())
-//                    .addValue("date", slot.date())
-//                    .addValue("startHour", slot.startHour())
-//                    .addValue("endHour", slot.endHour());
-//
-//            Integer count = jdbcTemplate.queryForObject(checkDuplicateSql, checkParams, Integer.class);
-//            if (count != null && count > 0) {
-//                throw new IllegalStateException("既に予約が存在します: " + slot.date() + " " + slot.startHour());
-//            }
-//        }
+        // 1. 重複予約チェック（オプション）
+        String checkDuplicateSql = """
+            SELECT COUNT(srr.study_room_reservation_id) FROM study_room_reservations srr
+            WHERE srr.study_room_id = :studyRoomId
+                AND srr.student_id = :studentId
+                AND srr.date = :date
+                AND NOT (srr.endHour <= :startHour OR srr.startHour >= :endHour)
+            """;
+
+        for (dto.ReservationSlot slot : request.reservations()) {
+            MapSqlParameterSource checkParams = new MapSqlParameterSource()
+                    .addValue("studyRoomId", request.studyRoomId())
+                    .addValue("studentId", student.getStudentId())
+                    .addValue("date", slot.date())
+                    .addValue("startHour", slot.startHour())
+                    .addValue("endHour", slot.endHour());
+
+            Integer count = jdbcTemplate.queryForObject(checkDuplicateSql, checkParams, Integer.class);
+            if (count != null && count > 0) {
+                throw new IllegalStateException("既に予約が存在します: " + slot.date() + " " + slot.startHour());
+            }
+        }
 //
 //        // 2. 空き状況チェック（オプション）
 //        String checkAvailabilitySql = """
@@ -234,7 +234,6 @@ public class ReservationService {
 //            }
 //        }
 
-        // 3. バルク挿入
         String insertSql = """
             INSERT INTO study_room_reservations(date, start_hour, end_hour, study_room_id, student_id)
             VALUES (:date, :startHour, :endHour, :studyRoomId, :studentId)
