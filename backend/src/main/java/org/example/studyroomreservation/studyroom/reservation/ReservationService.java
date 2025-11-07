@@ -6,7 +6,9 @@ import org.example.studyroomreservation.studyroom.dto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -179,5 +181,81 @@ public class ReservationService {
                         rs.getBoolean("is_booked_by_this_student")
                 )
         );
+    }
+
+    @Transactional
+    public dto.WeeklyAvailabilityResponse createReservationBulk(StudentUser student, dto.CreateReservationRequest request) {
+        // 1. 重複予約チェック（オプション）
+        String checkDuplicateSql = """
+            SELECT COUNT(*) FROM study_room_reservations
+            WHERE study_room_id = :studyRoomId
+            AND student_id = :studentId
+            AND date = :date
+            AND ((start_hour <= :startHour AND end_hour > :startHour)
+                OR (start_hour < :endHour AND end_hour >= :endHour)
+                OR (start_hour >= :startHour AND end_hour <= :endHour))
+            """;
+
+        for (dto.ReservationSlot slot : request.reservations()) {
+            MapSqlParameterSource checkParams = new MapSqlParameterSource()
+                    .addValue("studyRoomId", request.studyRoomId())
+                    .addValue("studentId", student.getStudentId())
+                    .addValue("date", slot.date())
+                    .addValue("startHour", slot.startHour())
+                    .addValue("endHour", slot.endHour());
+
+            Integer count = jdbcTemplate.queryForObject(checkDuplicateSql, checkParams, Integer.class);
+            if (count != null && count > 0) {
+                throw new IllegalStateException("既に予約が存在します: " + slot.date() + " " + slot.startHour());
+            }
+        }
+
+        // 2. 空き状況チェック（オプション）
+        String checkAvailabilitySql = """
+            SELECT 
+                sr.room_limit - COUNT(srr.study_room_reservation_id) AS available_seats
+            FROM study_rooms sr
+            LEFT JOIN study_room_reservations srr
+                ON srr.study_room_id = sr.study_room_id
+                AND srr.date = :date
+                AND ((srr.start_hour <= :startHour AND srr.end_hour > :startHour)
+                    OR (srr.start_hour < :endHour AND srr.end_hour >= :endHour)
+                    OR (srr.start_hour >= :startHour AND srr.end_hour <= :endHour))
+            WHERE sr.study_room_id = :studyRoomId
+            GROUP BY sr.room_limit
+            """;
+
+        for (dto.ReservationSlot slot : request.reservations()) {
+            MapSqlParameterSource availParams = new MapSqlParameterSource()
+                    .addValue("studyRoomId", request.studyRoomId())
+                    .addValue("date", slot.date())
+                    .addValue("startHour", slot.startHour())
+                    .addValue("endHour", slot.endHour());
+
+            Integer availableSeats = jdbcTemplate.queryForObject(checkAvailabilitySql, availParams, Integer.class);
+            if (availableSeats == null || availableSeats <= 0) {
+                throw new IllegalStateException("空き席がありません: " + slot.date() + " " + slot.startHour());
+            }
+        }
+
+        // 3. バルク挿入
+        String insertSql = """
+            INSERT INTO study_room_reservations(date, start_hour, end_hour, study_room_id, student_id)
+            VALUES (:date, :startHour, :endHour, :studyRoomId, :studentId)
+            """;
+
+        SqlParameterSource[] batchParams = request.reservations().stream()
+                .map(slot -> new MapSqlParameterSource()
+                        .addValue("date", slot.date())
+                        .addValue("startHour", slot.startHour())
+                        .addValue("endHour", slot.endHour())
+                        .addValue("studyRoomId", request.studyRoomId())
+                        .addValue("studentId", student.getStudentId()))
+                .toArray(SqlParameterSource[]::new);
+
+        jdbcTemplate.batchUpdate(insertSql, batchParams);
+
+        // 4. 予約後の週次空き状況を返す
+        return getWeeklyAvailabilityResponse(request.studyRoomId(), request.offset(), student);
     }
 }

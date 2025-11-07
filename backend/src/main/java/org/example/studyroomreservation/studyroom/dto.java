@@ -54,6 +54,7 @@ public class dto {
 
     public record CreateReservationRequest(
             int studyRoomId,
+            int offset,
             List<ReservationSlot> reservations
     ) {}
 
