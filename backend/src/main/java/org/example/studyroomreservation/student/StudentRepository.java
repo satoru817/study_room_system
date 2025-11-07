@@ -39,10 +39,10 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
                 sli.studentLoginInfoId IS NOT NULL
             )
             FROM Student s
-            JOIN s.cramSchool cs ON cs.cramSchoolId = :cramSchoolId
+            JOIN s.cramSchool cs ON cs.cramSchoolId = :cramSchoolId AND s.el1 >= :minEl1
             LEFT JOIN StudyRoomReservation srr ON srr.student = s AND srr.date = :today AND srr.startHour <= :now AND srr.endHour >= :now
             LEFT JOIN StudyRoomAttendance sra ON sra.studyRoomReservation = srr
             LEFT JOIN StudentLoginInfo sli ON sli.student = s
             """)
-    Page<StudentStatus> getStatuses(int cramSchoolId, LocalDate today, LocalTime now, Pageable pageable);
+    Page<StudentStatus> getStatuses(int cramSchoolId, LocalDate today, LocalTime now, int minEl1, Pageable pageable);
 }

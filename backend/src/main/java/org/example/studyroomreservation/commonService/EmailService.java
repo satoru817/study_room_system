@@ -177,8 +177,9 @@ public class EmailService {
     }
 
     private String getBaseUrl(HttpServletRequest request) {
+        //TODO: when you deploy this app, the next 3 line should be commented out.
         if (activeProfile.equals("dev")) {
-            return "http://localhost:5173";
+            return "http://localhost:3000";
         }
 
         String scheme = request.getScheme();

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { doGet, doPost } from "../../../elfs/WebserviceElf.js";
 import { useSearchParams } from "next/navigation";
-
+// TODO: add name, grade filtering...
 const Students = () => {
   const searchParams = useSearchParams();
   const cramSchoolId = searchParams.get("cramSchoolId");
@@ -32,7 +32,7 @@ const Students = () => {
     setError(null);
 
     try {
-      const url = `/api/student/getStatuses/${cramSchoolId}?page=${currentPage}&size=${pageSize}&sort=name&direction=ASC`;
+      const url = `/api/student/getStatuses/${cramSchoolId}?page=${currentPage}&size=${pageSize}&sort=el1&direction=DESC`;
       const data = await doGet(url);
       setPageData(data);
     } catch (e) {

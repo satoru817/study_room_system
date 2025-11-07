@@ -54,8 +54,8 @@ public class StudentController {
     public ResponseEntity<?> getStatuses(@PathVariable int cramSchoolId,
                                          @RequestParam(defaultValue = "0", required = false) int page,
                                          @RequestParam(defaultValue = "10", required = false) int size,
-                                         @RequestParam(defaultValue = "name", required = false) String sort,
-                                         @RequestParam(defaultValue = "ASC", required = false) String direction){
+                                         @RequestParam(defaultValue = "el1", required = false) String sort,
+                                         @RequestParam(defaultValue = "DSC", required = false) String direction){
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         Page<StudentStatus> studentStatuses = studentService.getStatuses(cramSchoolId, pageable);

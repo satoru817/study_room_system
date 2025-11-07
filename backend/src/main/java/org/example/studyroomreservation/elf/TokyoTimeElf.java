@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 public class TokyoTimeElf {
+    private static final int UNIVERSITY_EXAM_FINISH_MONTH = 3;
     private static final ZoneId TOKYO_ZONE_ID = ZoneId.of("Asia/Tokyo");
 
     public static LocalDate getTokyoLocalDate(){
@@ -15,6 +16,17 @@ public class TokyoTimeElf {
         return LocalDateTime.now(TOKYO_ZONE_ID);
     }
 
+    /**
+     * Calculates the earliest possible EL1 year for a student who is still enrolled.
+     * Students remain enrolled through March (university entrance exams finish in March),
+     * and they are considered graduated starting in April.
+     */
+    public static int getMinEl1() {
+        LocalDate now = getTokyoLocalDate();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+        return month > UNIVERSITY_EXAM_FINISH_MONTH ? year - 11 : year - 12;
+    }
 
     public static enum DayOfWeek {
         monday, tuesday, wednesday, thursday, friday, saturday, sunday

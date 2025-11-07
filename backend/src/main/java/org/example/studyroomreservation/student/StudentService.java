@@ -63,8 +63,8 @@ public class StudentService {
 
     public Page<StudentStatus> getStatuses(int cramSchoolId, Pageable pageable) {
         LocalDateTime now = TokyoTimeElf.getTokyoLocalDateTime();
-
-        return studentRepository.getStatuses(cramSchoolId, now.toLocalDate(), now.toLocalTime(), pageable);
+        int minEl1 = TokyoTimeElf.getMinEl1();
+        return studentRepository.getStatuses(cramSchoolId, now.toLocalDate(), now.toLocalTime(), minEl1, pageable);
     }
 
     @Transactional
