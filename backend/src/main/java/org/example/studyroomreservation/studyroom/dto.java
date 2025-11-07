@@ -51,4 +51,15 @@ public class dto {
             boolean isOpen,       // この時間帯に開室してるか
             boolean isBookedByThisStudent
     ) {}
+
+    public record CreateReservationRequest(
+            int studyRoomId,
+            List<ReservationSlot> reservations
+    ) {}
+
+    public record ReservationSlot(
+            LocalDate date,
+            LocalTime startHour,
+            LocalTime endHour
+    ) {}
 }

@@ -41,4 +41,8 @@ public class ReservationController {
         dto.WeeklyAvailabilityResponse response = reservationService.getWeeklyAvailabilityResponse(studyRoomId, offset, student);
         return ResponseEntity.ok(response);
     }
+
+//    @PreAuthorize("hasRole('STUDENT')")
+//    @GetMapping("/create")
+//    public ResponseEntity<>
 }

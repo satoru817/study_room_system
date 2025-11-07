@@ -69,8 +69,13 @@ function StudyRoomDetailContent() {
       );
 
       const slots = [];
-      for (let hour = 0; hour < 24; hour++) {
+      // 7:00から23:30まで = 66スロット
+      // 7:00-7:15, 7:15-7:30, ..., 23:15-23:30, 23:30-23:45
+      for (let hour = 7; hour <= 23; hour++) {
         for (const minute of [0, 15, 30, 45]) {
+          // 23:45以降は作らない
+          if (hour === 23 && minute === 45) break;
+
           const currentMinutes = hour * 60 + minute;
           const isOpen = daySchedules.some((schedule) => {
             const [openHour, openMin] = schedule.openTime
@@ -93,6 +98,7 @@ function StudyRoomDetailContent() {
         dayOfWeek: day.key,
         dayLabel: day.label,
         slots,
+        schedules: daySchedules, // 元のスケジュール情報を保持
       };
     });
 
@@ -145,7 +151,7 @@ function StudyRoomDetailContent() {
 
     weekSchedule.forEach((day) => {
       let rangeStart = null;
-      day.slots.forEach((slot) => {
+      day.slots.forEach((slot, index) => {
         const slotMinutes = slot.hour * 60 + slot.minute;
         if (slot.isOpen && rangeStart === null) {
           rangeStart = slotMinutes;
@@ -157,14 +163,19 @@ function StudyRoomDetailContent() {
           });
           rangeStart = null;
         }
+        // 最後のスロット(23:30)で開いている場合は23:45で閉じる
+        if (
+          index === day.slots.length - 1 &&
+          slot.isOpen &&
+          rangeStart !== null
+        ) {
+          schedules.push({
+            dayOfWeek: day.dayOfWeek,
+            openTime: minutesToTime(rangeStart),
+            closeTime: "23:45",
+          });
+        }
       });
-      if (rangeStart !== null) {
-        schedules.push({
-          dayOfWeek: day.dayOfWeek,
-          openTime: minutesToTime(rangeStart),
-          closeTime: "24:00",
-        });
-      }
     });
 
     return schedules;
@@ -260,8 +271,10 @@ function StudyRoomDetailContent() {
 
   const initializeExceptionSlots = () => {
     const slots = [];
-    for (let hour = 0; hour < 24; hour++) {
+    // 7:00から23:30まで = 66スロット
+    for (let hour = 7; hour <= 23; hour++) {
       for (const minute of [0, 15, 30, 45]) {
+        if (hour === 23 && minute === 45) break;
         slots.push({ hour, minute, isOpen: false });
       }
     }
@@ -270,8 +283,11 @@ function StudyRoomDetailContent() {
 
   const buildExceptionSlots = (dayExceptions) => {
     const slots = [];
-    for (let hour = 0; hour < 24; hour++) {
+    // 7:00から23:30まで = 66スロット
+    for (let hour = 7; hour <= 23; hour++) {
       for (const minute of [0, 15, 30, 45]) {
+        if (hour === 23 && minute === 45) break;
+
         const currentMinutes = hour * 60 + minute;
         const isOpen = dayExceptions.some((exception) => {
           if (!exception.openTime || !exception.closeTime) return false;
@@ -317,7 +333,7 @@ function StudyRoomDetailContent() {
     const ranges = [];
     let rangeStart = null;
 
-    exceptionSlots.forEach((slot) => {
+    exceptionSlots.forEach((slot, index) => {
       const slotMinutes = slot.hour * 60 + slot.minute;
       if (slot.isOpen && rangeStart === null) {
         rangeStart = slotMinutes;
@@ -328,14 +344,18 @@ function StudyRoomDetailContent() {
         });
         rangeStart = null;
       }
+      // 最後のスロット(23:30)で開いている場合は23:45で閉じる
+      if (
+        index === exceptionSlots.length - 1 &&
+        slot.isOpen &&
+        rangeStart !== null
+      ) {
+        ranges.push({
+          openTime: minutesToTime(rangeStart),
+          closeTime: "23:45",
+        });
+      }
     });
-
-    if (rangeStart !== null) {
-      ranges.push({
-        openTime: minutesToTime(rangeStart),
-        closeTime: "24:00",
-      });
-    }
 
     return ranges;
   };
@@ -516,6 +536,7 @@ function StudyRoomDetailContent() {
               <div className="alert alert-info">
                 <small>📌 ドラッグして開室時間を設定</small>
               </div>
+
               <div className="table-responsive">
                 <table
                   className="table table-bordered text-center"
@@ -542,6 +563,7 @@ function StudyRoomDetailContent() {
                     </tr>
                   </thead>
                   <tbody>
+                    {/* 7:00から23:00まで = 17時間 (23:30までの最後のスロットを含む) */}
                     {Array.from({ length: 17 }, (_, index) => {
                       const hour = index + 7;
                       return (
@@ -564,7 +586,21 @@ function StudyRoomDetailContent() {
                                 }}
                               >
                                 {[0, 15, 30, 45].map((minute) => {
-                                  const slotIndex = hour * 4 + minute / 15;
+                                  // 23:45は表示しない
+                                  if (hour === 23 && minute === 45)
+                                    return (
+                                      <div
+                                        key={`${hour}-${minute}`}
+                                        style={{
+                                          height: "8px",
+                                          backgroundColor: "gray",
+                                          borderTop: "1px dashed #e0e0e0",
+                                        }}
+                                      />
+                                    );
+
+                                  const slotIndex =
+                                    (hour - 7) * 4 + minute / 15;
                                   const slot = day.slots[slotIndex];
                                   const isHourStart = minute === 0;
                                   return (
@@ -598,6 +634,26 @@ function StudyRoomDetailContent() {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* 開室時間の文字表示 */}
+              <div className="mb-3 p-3 bg-light rounded">
+                <h6 className="mb-2">現在の開室時間</h6>
+                {weekSchedule.map((day) => (
+                  <div key={day.dayOfWeek} className="mb-1">
+                    <strong>{day.dayLabel}曜日: </strong>
+                    {day.schedules && day.schedules.length > 0 ? (
+                      day.schedules.map((schedule, index) => (
+                        <span key={index}>
+                          {schedule.openTime} - {schedule.closeTime}
+                          {index < day.schedules.length - 1 && ", "}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-muted">休室</span>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -734,6 +790,40 @@ function StudyRoomDetailContent() {
                       <div className="alert alert-info">
                         <small>📌 ドラッグして開室時間を設定してください</small>
                       </div>
+
+                      {/* 開室時間の文字表示 */}
+                      <div className="mb-3 p-3 bg-light rounded">
+                        <h6 className="mb-2">設定されている開室時間</h6>
+                        {(() => {
+                          const dayExceptions = exceptions.filter(
+                            (e) => e.date === selectedDate
+                          );
+                          if (
+                            dayExceptions.length > 0 &&
+                            dayExceptions.some(
+                              (ex) => ex.openTime && ex.closeTime
+                            )
+                          ) {
+                            return dayExceptions.map(
+                              (exception, index) =>
+                                exception.openTime &&
+                                exception.closeTime && (
+                                  <div key={index}>
+                                    {exception.openTime} - {exception.closeTime}
+                                    {index < dayExceptions.length - 1 && ", "}
+                                  </div>
+                                )
+                            );
+                          } else {
+                            return (
+                              <span className="text-muted">
+                                開室時間が設定されていません
+                              </span>
+                            );
+                          }
+                        })()}
+                      </div>
+
                       <div
                         className="table-responsive"
                         style={{ maxHeight: "400px", overflowY: "auto" }}
@@ -743,6 +833,7 @@ function StudyRoomDetailContent() {
                           style={{ userSelect: "none" }}
                         >
                           <tbody>
+                            {/* 7:00から23:00まで = 17時間 (23:30までの最後のスロットを含む) */}
                             {Array.from({ length: 17 }, (_, index) => {
                               const hour = index + 7;
                               return (
@@ -764,8 +855,21 @@ function StudyRoomDetailContent() {
                                       }}
                                     >
                                       {[0, 15, 30, 45].map((minute) => {
+                                        // 23:45は表示しない
+                                        if (hour === 23 && minute === 45)
+                                          return (
+                                            <div
+                                              key={`${hour}-${minute}`}
+                                              style={{
+                                                height: "10px",
+                                                backgroundColor: "gray",
+                                                borderTop: "1px dashed #e0e0e0",
+                                              }}
+                                            />
+                                          );
+
                                         const slotIndex =
-                                          hour * 4 + minute / 15;
+                                          (hour - 7) * 4 + minute / 15;
                                         const slot = exceptionSlots[slotIndex];
                                         const isHourStart = minute === 0;
                                         return (
