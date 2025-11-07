@@ -1,6 +1,7 @@
 package org.example.studyroomreservation.studyroom;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
@@ -157,6 +158,10 @@ public class StudyRoomService {
         jdbcTemplate.update(deleteSql, map);
 
         return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
+    }
+
+    public List<dto.StudyRoomShowResponseForStudent> getStudyRoomsOfStudent(StudentUser student) {
+        return studyRoomRepository.getStudyRoomOfThisStudent(student.getStudentId());
     }
 
 

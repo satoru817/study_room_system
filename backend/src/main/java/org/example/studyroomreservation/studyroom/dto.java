@@ -20,4 +20,35 @@ public class dto {
     public record StudyRoomScheduleExceptionOfOneDate(int studyRoomId, LocalDate date, boolean isOpen, List<Range> schedules, String reason){}
 
     public record StudyRoomScheduleExceptionDeleteRequest(int studyRoomId, LocalDate date){}
+
+    public record StudyRoomShowResponseForStudent(int studyRoomId, String name){}
+
+    public record WeeklyAvailabilityResponse(
+            int studyRoomId,
+            LocalDate weekStartDate, // この週の開始日（月曜日とか）
+            List<DailyAvailability> dailyAvailabilities
+    ) {}
+
+    public record DailyAvailability(LocalDate date,
+                                    String dayOfWeek, // "月", "火", etc.
+                                    boolean isBookable, // 過去の日付ならfalse
+                                    List<TimeSlotAvailability> timeSlots) implements Comparable<DailyAvailability>
+
+    {
+
+        @Override
+        public int compareTo(DailyAvailability availability) {
+            return date.compareTo(availability.date);
+        }
+    }
+
+    public record TimeSlotAvailability(
+            LocalDate date,
+            LocalTime startTime, // 例: 07:00
+            LocalTime endTime,   // 例: 07:15
+            int availableSeats,  // 空き席数
+            int totalSeats,      // 定員
+            boolean isOpen,       // この時間帯に開室してるか
+            boolean isBookedByThisStudent
+    ) {}
 }

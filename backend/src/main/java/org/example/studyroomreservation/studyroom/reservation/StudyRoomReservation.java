@@ -1,4 +1,4 @@
-package org.example.studyroomreservation.entity;
+package org.example.studyroomreservation.studyroom.reservation;
 
 import jakarta.persistence.*;
 import org.example.studyroomreservation.elf.TokyoTimeElf;

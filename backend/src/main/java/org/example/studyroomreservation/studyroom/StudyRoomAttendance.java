@@ -1,7 +1,7 @@
 package org.example.studyroomreservation.studyroom;
 
 import jakarta.persistence.*;
-import org.example.studyroomreservation.entity.StudyRoomReservation;
+import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 
 import java.time.LocalTime;
 

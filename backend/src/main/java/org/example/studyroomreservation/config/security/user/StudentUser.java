@@ -9,4 +9,8 @@ public class StudentUser extends AbstractLoginClient{
         super(Authority.ROLE_STUDENT, studentLoginDTO.getPassword(), studentLoginDTO.getLoginName());
         this.studentLoginDTO = studentLoginDTO;
     }
+
+    public int getStudentId() {
+        return studentLoginDTO.getStudentId();
+    }
 }

@@ -1,5 +1,7 @@
 package org.example.studyroomreservation.studyroom;
 
+import org.example.studyroomreservation.config.security.user.StudentUser;
+import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
 import org.example.studyroomreservation.cramschool.CramSchoolService;
 import org.example.studyroomreservation.cramschool.CramSchool;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
@@ -7,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -111,5 +114,14 @@ public class StudyRoomController {
     {
         List<StudyRoomScheduleExceptionShowResponse> response = studyRoomService.deleteExceptionOfOneDay(deleteRequest);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/ofStudent")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<?> getStudyRoomOfThisStudent(@AuthenticationPrincipal UserDetailsImpl userDetails)
+    {
+        StudentUser student = userDetails.convertToStudent();
+        List<dto.StudyRoomShowResponseForStudent> studyRooms = studyRoomService.getStudyRoomsOfStudent(student);
+        return ResponseEntity.ok(studyRooms);
     }
 }

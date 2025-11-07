@@ -1,8 +1,10 @@
 package org.example.studyroomreservation.elf;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 
 public class TokyoTimeElf {
     private static final int UNIVERSITY_EXAM_FINISH_MONTH = 3;
@@ -16,6 +18,15 @@ public class TokyoTimeElf {
         return LocalDateTime.now(TOKYO_ZONE_ID);
     }
 
+    public static LocalDate getThisWeekMonday() {
+        LocalDate today = getTokyoLocalDate();
+       return today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+    }
+
+    public static LocalDate getThisWeekSunday() {
+        LocalDate today = getTokyoLocalDate();
+        return today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SUNDAY));
+    }
     /**
      * Calculates the earliest possible EL1 year for a student who is still enrolled.
      * Students remain enrolled through March (university entrance exams finish in March),

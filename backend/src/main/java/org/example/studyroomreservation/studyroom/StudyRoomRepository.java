@@ -59,4 +59,15 @@ public interface StudyRoomRepository extends JpaRepository<StudyRoom, Integer> {
             JOIN srse.studyRoom sr
             """)
     List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> getScheduleExceptionsOfOneStudyRoomOfYearMonth(int i, int year, int month);
+
+    @Query("""
+            SELECT NEW org.example.studyroomreservation.studyroom.dto$StudyRoomShowResponseForStudent(
+                sr.studyRoomId,
+                sr.name
+            )
+            FROM StudyRoom sr
+            JOIN sr.cramSchool cs
+            JOIN Student s ON s.cramSchool = cs AND s.studentId = :studentId
+            """)
+    List<dto.StudyRoomShowResponseForStudent> getStudyRoomOfThisStudent(int studentId);
 }

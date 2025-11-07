@@ -1,5 +1,4 @@
 "use client";
-
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkMe, doLogin, getCsrfToken } from "../elfs/WebserviceElf.js";
@@ -14,9 +13,11 @@ export default function LoginPage() {
   const router = useRouter();
 
   const navigateBasedOnRole = useCallback(
-    async (role: string) => {
+    async (role: string, username: string) => {
       const navigateTo =
-        role === "student" ? "/student-dashboard" : "/teacher-dashboard";
+        role === "ROLE_STUDENT"
+          ? `/student-dashboard?username=${encodeURIComponent(username)}`
+          : "/teacher-dashboard";
       router.push(navigateTo);
     },
     [router]
@@ -28,7 +29,7 @@ export default function LoginPage() {
 
       const principal = await checkMe();
       if (principal.authenticated) {
-        navigateBasedOnRole(principal.role);
+        navigateBasedOnRole(principal.role, principal.username);
       }
     };
 
