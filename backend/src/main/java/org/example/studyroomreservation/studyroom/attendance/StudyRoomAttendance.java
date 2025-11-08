@@ -1,4 +1,4 @@
-package org.example.studyroomreservation.studyroom;
+package org.example.studyroomreservation.studyroom.attendance;
 
 import jakarta.persistence.*;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;

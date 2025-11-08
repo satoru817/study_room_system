@@ -2,8 +2,9 @@
 
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { Suspense, useState, useEffect } from "react";
-import { doGet } from "../elfs/WebserviceElf";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { doGet, doPost } from "../elfs/WebserviceElf";
+import { Html5QrcodeScanner } from "html5-qrcode";
 
 /**
  * what should be done here?
@@ -18,6 +19,49 @@ function StudentContent() {
   const studentName = searchParams.get("username");
   const [todaysReservations, setTodaysReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [scannedData, setScannedData] = useState(null);
+  const [qrScannerActive, setQrScannerActive] = useState(false);
+  const scannerRef = useRef(null);
+  const qrScannerInstanceRef = useRef(null);
+
+  // 現在時刻が予約時間の有効範囲内かチェック
+  const isWithinValidTimeRange = () => {
+    if (!todaysReservations || todaysReservations.length === 0) {
+      return false;
+    }
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+    for (const reservation of todaysReservations) {
+      // startHourとendHourを時間に変換（例: "14:00" -> 14 * 60）
+      const startParts = reservation.startHour.split(":");
+      const endParts = reservation.endHour.split(":");
+
+      const startTimeInMinutes =
+        parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+      const endTimeInMinutes =
+        parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+      // 開始5分前から終了5分前まで
+      const validStartTime = startTimeInMinutes - 5;
+      const validEndTime = endTimeInMinutes - 5;
+
+      if (
+        currentTimeInMinutes >= validStartTime &&
+        currentTimeInMinutes <= validEndTime
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const [isValidTime, setIsValidTime] = useState(false);
 
   useEffect(() => {
     const fetchTodaysReservations = async () => {
@@ -36,8 +80,120 @@ function StudentContent() {
     fetchTodaysReservations();
   }, []);
 
+  // 時間の有効性を1分ごとにチェック
+  useEffect(() => {
+    const checkValidTime = () => {
+      setIsValidTime(isWithinValidTimeRange());
+    };
+
+    checkValidTime(); // 初回チェック
+    const interval = setInterval(checkValidTime, 60000); // 1分ごと
+
+    return () => clearInterval(interval);
+  }, [todaysReservations]);
+
+  // QRスキャナーのクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (qrScannerInstanceRef.current) {
+        qrScannerInstanceRef.current.clear().catch(console.error);
+      }
+    };
+  }, []);
+
   const handleBookReservation = () => {
     router.push("/student-dashboard/book");
+  };
+
+  const handleOpenQRScanner = () => {
+    if (!isValidTime) {
+      alert("QRコードスキャンは予約時間の5分前から終了5分前まで利用可能です");
+      return;
+    }
+    setShowQRScanner(true);
+    setScannedData(null);
+  };
+
+  const handleCloseQRScanner = () => {
+    if (qrScannerInstanceRef.current) {
+      qrScannerInstanceRef.current.clear().catch(console.error);
+      qrScannerInstanceRef.current = null;
+    }
+    setShowQRScanner(false);
+    setQrScannerActive(false);
+  };
+
+  const startScanner = () => {
+    if (qrScannerActive || !scannerRef.current) return;
+
+    const scanner = new Html5QrcodeScanner(
+      "qr-reader",
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+      },
+      false
+    );
+
+    scanner.render(
+      (decodedText, decodedResult) => {
+        try {
+          const qrData = JSON.parse(decodedText);
+          setScannedData(qrData);
+          scanner.clear();
+          setQrScannerActive(false);
+          qrScannerInstanceRef.current = null;
+        } catch (error) {
+          console.error("QRコードの解析に失敗:", error);
+          alert("無効なQRコードです");
+        }
+      },
+      (errorMessage) => {
+        // スキャン中のエラーは無視（カメラが読み取り中の場合に発生）
+      }
+    );
+
+    qrScannerInstanceRef.current = scanner;
+    setQrScannerActive(true);
+  };
+
+  useEffect(() => {
+    if (showQRScanner && !qrScannerActive) {
+      setTimeout(() => {
+        startScanner();
+      }, 100);
+    }
+  }, [showQRScanner]);
+
+  const handleSubmitAttendance = async () => {
+    if (!scannedData) {
+      alert("QRコードをスキャンしてください");
+      return;
+    }
+
+    try {
+      // 現在の予約を見つける
+      const currentReservation = todaysReservations.find((reservation) => {
+        return reservation.studyRoomId === scannedData.studyRoomId;
+      });
+
+      if (!currentReservation) {
+        alert("この自習室の予約が見つかりません");
+        return;
+      }
+
+      // バックエンドに送信（studyRoomIdのみ）
+      await doPost("/api/attendance/record", {
+        studyRoomId: scannedData.studyRoomId,
+      });
+
+      alert("出席を記録しました！");
+      handleCloseQRScanner();
+    } catch (error) {
+      console.error("出席記録に失敗:", error);
+      alert("出席記録に失敗しました");
+    }
   };
 
   if (loading) {
@@ -56,26 +212,56 @@ function StudentContent() {
             <p className="text-gray-600">今日の予約状況</p>
           </div>
 
-          {/* 予約ボタン */}
-          <button
-            onClick={handleBookReservation}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex gap-3">
+            {/* QRコードスキャンボタン */}
+            <button
+              onClick={handleOpenQRScanner}
+              disabled={!isValidTime}
+              className={`${
+                isValidTime
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-gray-400 cursor-not-allowed"
+              } text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition duration-200 ease-in-out transform ${
+                isValidTime ? "hover:scale-105" : ""
+              } flex items-center gap-2`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            新しい予約
-          </button>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                />
+              </svg>
+              QRスキャン
+            </button>
+
+            {/* 予約ボタン */}
+            <button
+              onClick={handleBookReservation}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              新しい予約
+            </button>
+          </div>
         </div>
       </div>
 
@@ -146,6 +332,90 @@ function StudentContent() {
           </div>
         )}
       </div>
+
+      {/* QRスキャナーモーダル */}
+      {showQRScanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">QRコードをスキャン</h2>
+              <button
+                onClick={handleCloseQRScanner}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* QRスキャナー */}
+            {!scannedData ? (
+              <div>
+                <div id="qr-reader" ref={scannerRef} className="mb-4"></div>
+                <p className="text-center text-gray-600">
+                  カメラでQRコードをスキャンしてください
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <svg
+                      className="w-6 h-6 text-green-600 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <h3 className="text-lg font-semibold text-green-800">
+                      スキャン成功！
+                    </h3>
+                  </div>
+                  <div className="text-gray-700">
+                    <p>自習室: {scannedData.roomName}</p>
+                    <p>座席番号: {scannedData.seatNumber}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleSubmitAttendance}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200"
+                  >
+                    出席を記録
+                  </button>
+                  <button
+                    onClick={() => {
+                      setScannedData(null);
+                      setTimeout(() => startScanner(), 100);
+                    }}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200"
+                  >
+                    再スキャン
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
