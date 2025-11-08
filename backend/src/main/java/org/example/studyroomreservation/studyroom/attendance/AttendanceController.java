@@ -55,8 +55,15 @@ public class AttendanceController {
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@RequestBody DTO.CheckoutRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails)
     {
-        StudentUser student = userDetails.convertToStudent();
-        Integer reservationId = request.validate(validator, student);
-        
+        try {
+            StudentUser student = userDetails.convertToStudent();
+            Integer reservationId = request.validate(validator, student);
+            attendanceService.checkout(reservationId);
+            return ResponseEntity.ok()
+                    .body(Map.of("message", "退出を記録しました"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

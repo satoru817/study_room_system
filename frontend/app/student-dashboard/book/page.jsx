@@ -184,11 +184,6 @@ export default function Booking() {
   };
 
   const handleReservation = async () => {
-    if (selectedSlots.size === 0) {
-      alert("予約する時間帯を選択してください");
-      return;
-    }
-
     // selectedSlotsから予約データを構築（既存予約も含む全て）
     const reservations = [];
     selectedSlots.forEach((key) => {
@@ -204,7 +199,9 @@ export default function Booking() {
 
     // 確認メッセージを表示
     const confirmMessage =
-      "この週の既存予約を一度削除して、選択した内容で再保存します。よろしいですか？";
+      selectedSlots.size === 0
+        ? "この週の予約を全て削除しますか？"
+        : "予約しますか？";
 
     if (!confirm(confirmMessage)) {
       return;
@@ -355,7 +352,10 @@ export default function Booking() {
     >
       <div className="max-w-full">
         {/* ヘッダー - スマホ最適化 */}
-        <div className="bg-white shadow-md p-3 mb-3 sticky top-0 z-10">
+        <div
+          className="bg-white shadow-md p-3 mb-3 sticky top-0 z-20"
+          id="main-header"
+        >
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => router.back()}
@@ -435,13 +435,18 @@ export default function Booking() {
           </div>
           <p className="text-xs text-gray-600 mt-2">
             📌 スライドで連続選択できます
+            <br />
+            💡 左の青い列で上下スクロール
           </p>
         </div>
 
         {/* スケジュール表 - スマホ最適化 */}
         {weeklyData && (
           <div className="bg-white shadow-md mx-2 mb-3 rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
+            <div
+              className="overflow-x-auto"
+              style={{ maxHeight: "calc(100vh - 280px)", overflowY: "auto" }}
+            >
               <table
                 className="w-full border-collapse"
                 style={{
@@ -450,10 +455,30 @@ export default function Booking() {
                   tableLayout: "fixed",
                 }}
               >
-                <thead>
+                <thead className="sticky top-0 z-10 bg-white">
                   <tr>
-                    <th className="border border-gray-300 bg-gray-100 p-1 text-xs w-12 sticky left-0 z-10">
-                      時間
+                    <th className="border border-gray-300 bg-blue-50 p-1 text-xs w-12 sticky left-0 z-20 relative">
+                      <div className="flex flex-col items-center justify-center">
+                        <svg
+                          className="w-3 h-3 text-blue-600 mb-0.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                          />
+                        </svg>
+                        <span
+                          className="text-blue-600 font-semibold"
+                          style={{ fontSize: "9px" }}
+                        >
+                          スクロール
+                        </span>
+                      </div>
                     </th>
                     {weeklyData.dailyAvailabilities.map((day) => (
                       <th
@@ -498,7 +523,8 @@ export default function Booking() {
                             {isHourStart && (
                               <td
                                 rowSpan={4}
-                                className="border border-gray-300 bg-gray-50 text-center text-[10px] font-semibold align-middle sticky left-0 z-10"
+                                className="border border-gray-300 bg-blue-50 text-center text-[10px] font-semibold align-middle sticky left-0 z-10"
+                                style={{ top: "auto" }}
                               >
                                 {hour.toString().padStart(2, "0")}:00
                               </td>
@@ -582,10 +608,11 @@ export default function Booking() {
           </button>
           <button
             onClick={handleReservation}
-            disabled={selectedSlots.size === 0}
-            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm"
+            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-sm"
           >
-            予約 ({selectedSlots.size}枠)
+            {selectedSlots.size === 0
+              ? "予約全削除"
+              : `予約 (${selectedSlots.size}枠)`}
           </button>
         </div>
       </div>

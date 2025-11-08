@@ -22,31 +22,36 @@ function StudentContent() {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [scannedData, setScannedData] = useState(null);
   const [qrScannerActive, setQrScannerActive] = useState(false);
+  const [actionType, setActionType] = useState(null); // "checkin" or "checkout"
+  const [isValidTime, setIsValidTime] = useState(false);
+  const [qrButtonState, setQrButtonState] = useState(null);
   const scannerRef = useRef(null);
   const qrScannerInstanceRef = useRef(null);
 
-  // 現在時刻が予約時間の有効範囲内かチェック
-  const isWithinValidTimeRange = () => {
-    if (!todaysReservations || todaysReservations.length === 0) {
-      return false;
-    }
-
+  // 入室・退室を判定する関数
+  const determineAction = (reservation) => {
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
-    for (const reservation of todaysReservations) {
-      // startHourとendHourを時間に変換（例: "14:00" -> 14 * 60）
-      const startParts = reservation.startHour.split(":");
-      const endParts = reservation.endHour.split(":");
+    const startParts = reservation.startHour.split(":");
+    const endParts = reservation.endHour.split(":");
 
-      const startTimeInMinutes =
-        parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-      const endTimeInMinutes =
-        parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+    const startTimeInMinutes =
+      parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+    const endTimeInMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
 
-      // 開始5分前から終了5分前まで
+    // 退室可能：入室済み & 予約終了時刻+30分以内
+    if (reservation.hasCheckedIn && !reservation.hasCheckedOut) {
+      const checkoutDeadline = endTimeInMinutes + 30;
+      if (currentTimeInMinutes <= checkoutDeadline) {
+        return "checkout";
+      }
+    }
+
+    // 入室可能：未入室 & 開始5分前〜終了5分前
+    if (!reservation.hasCheckedIn) {
       const validStartTime = startTimeInMinutes - 5;
       const validEndTime = endTimeInMinutes - 5;
 
@@ -54,6 +59,22 @@ function StudentContent() {
         currentTimeInMinutes >= validStartTime &&
         currentTimeInMinutes <= validEndTime
       ) {
+        return "checkin";
+      }
+    }
+
+    return null;
+  };
+
+  // 現在時刻が予約時間の有効範囲内かチェック（入室 or 退室可能か）
+  const isWithinValidTimeRange = () => {
+    if (!todaysReservations || todaysReservations.length === 0) {
+      return false;
+    }
+
+    for (const reservation of todaysReservations) {
+      const action = determineAction(reservation);
+      if (action !== null) {
         return true;
       }
     }
@@ -61,7 +82,24 @@ function StudentContent() {
     return false;
   };
 
-  const [isValidTime, setIsValidTime] = useState(false);
+  // QRボタンの状態を判定（入室 or 退室）
+  const getQRButtonState = () => {
+    if (!todaysReservations || todaysReservations.length === 0) {
+      return null;
+    }
+
+    for (const reservation of todaysReservations) {
+      const action = determineAction(reservation);
+      if (action === "checkout") {
+        return "checkout";
+      }
+      if (action === "checkin") {
+        return "checkin";
+      }
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     const fetchTodaysReservations = async () => {
@@ -83,7 +121,9 @@ function StudentContent() {
   // 時間の有効性を1分ごとにチェック
   useEffect(() => {
     const checkValidTime = () => {
-      setIsValidTime(isWithinValidTimeRange());
+      const buttonState = getQRButtonState();
+      setQrButtonState(buttonState);
+      setIsValidTime(buttonState !== null);
     };
 
     checkValidTime(); // 初回チェック
@@ -107,11 +147,12 @@ function StudentContent() {
 
   const handleOpenQRScanner = () => {
     if (!isValidTime) {
-      alert("QRコードスキャンは予約時間の5分前から終了5分前まで利用可能です");
+      alert("QRコードスキャンは予約時間内のみ利用可能です");
       return;
     }
     setShowQRScanner(true);
     setScannedData(null);
+    setActionType(null);
   };
 
   const handleCloseQRScanner = () => {
@@ -121,6 +162,7 @@ function StudentContent() {
     }
     setShowQRScanner(false);
     setQrScannerActive(false);
+    setActionType(null);
   };
 
   const startScanner = () => {
@@ -140,7 +182,26 @@ function StudentContent() {
       (decodedText, decodedResult) => {
         try {
           const qrData = JSON.parse(decodedText);
+
+          // 現在の予約を見つけて、アクションを判定
+          const currentReservation = todaysReservations.find((reservation) => {
+            return reservation.studyRoomId === qrData.studyRoomId;
+          });
+
+          if (!currentReservation) {
+            alert("この自習室の予約が見つかりません");
+            return;
+          }
+
+          const action = determineAction(currentReservation);
+
+          if (action === null) {
+            alert("現在、入室・退室できる時間ではありません");
+            return;
+          }
+
           setScannedData(qrData);
+          setActionType(action);
           scanner.clear();
           setQrScannerActive(false);
           qrScannerInstanceRef.current = null;
@@ -167,32 +228,34 @@ function StudentContent() {
   }, [showQRScanner]);
 
   const handleSubmitAttendance = async () => {
-    if (!scannedData) {
+    if (!scannedData || !actionType) {
       alert("QRコードをスキャンしてください");
       return;
     }
 
     try {
-      // 現在の予約を見つける
-      const currentReservation = todaysReservations.find((reservation) => {
-        return reservation.studyRoomId === scannedData.studyRoomId;
-      });
-
-      if (!currentReservation) {
-        alert("この自習室の予約が見つかりません");
-        return;
+      if (actionType === "checkin") {
+        // 入室処理
+        await doPost("/api/attendance/record", {
+          studyRoomId: scannedData.studyRoomId,
+        });
+        alert("入室を記録しました！");
+      } else if (actionType === "checkout") {
+        // 退室処理
+        await doPost("/api/attendance/checkout", {
+          studyRoomId: scannedData.studyRoomId,
+        });
+        alert("退室を記録しました！");
       }
 
-      // バックエンドに送信（studyRoomIdのみ）
-      await doPost("/api/attendance/record", {
-        studyRoomId: scannedData.studyRoomId,
-      });
-
-      alert("出席を記録しました！");
       handleCloseQRScanner();
+
+      // 予約情報を再取得
+      const updatedReservations = await doGet("/api/reservation/getTodays");
+      setTodaysReservations(updatedReservations);
     } catch (error) {
-      console.error("出席記録に失敗:", error);
-      alert("出席記録に失敗しました");
+      console.error("記録に失敗:", error);
+      alert("記録に失敗しました");
     }
   };
 
@@ -212,30 +275,53 @@ function StudentContent() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* QRコードスキャンボタン */}
+          {/* QRコードスキャンボタン - 入室・退室で色分け */}
           <button
             onClick={handleOpenQRScanner}
             disabled={!isValidTime}
             className={`${
-              isValidTime
-                ? "bg-green-600 active:bg-green-700"
-                : "bg-gray-400 cursor-not-allowed"
+              !isValidTime
+                ? "bg-gray-400 cursor-not-allowed"
+                : qrButtonState === "checkout"
+                ? "bg-blue-600 active:bg-blue-700"
+                : "bg-green-600 active:bg-green-700"
             } text-white font-semibold py-3 px-5 rounded-full transition duration-200 ease-in-out flex items-center justify-center gap-2 flex-1 sm:flex-initial`}
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-              />
-            </svg>
-            QRスキャン
+            {qrButtonState === "checkout" ? (
+              <>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                  />
+                </svg>
+                退室スキャン
+              </>
+            ) : (
+              <>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+                入室スキャン
+              </>
+            )}
           </button>
 
           {/* 予約ボタン */}
@@ -430,41 +516,77 @@ function StudentContent() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <div className="flex items-center mb-2">
-                    <svg
-                      className="w-6 h-6 text-green-600 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <h3 className="text-lg font-semibold text-green-800">
-                      スキャン成功！
-                    </h3>
+                {/* 入室の場合 */}
+                {actionType === "checkin" && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <svg
+                        className="w-6 h-6 text-green-600 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                      <h3 className="text-lg font-semibold text-green-800">
+                        入室確認
+                      </h3>
+                    </div>
+                    <div className="text-gray-700">
+                      <p>自習室: {scannedData.roomName}</p>
+                      <p>座席番号: {scannedData.seatNumber}</p>
+                    </div>
                   </div>
-                  <div className="text-gray-700">
-                    <p>自習室: {scannedData.roomName}</p>
-                    <p>座席番号: {scannedData.seatNumber}</p>
+                )}
+
+                {/* 退室の場合 */}
+                {actionType === "checkout" && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <svg
+                        className="w-6 h-6 text-blue-600 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                        />
+                      </svg>
+                      <h3 className="text-lg font-semibold text-blue-800">
+                        退室確認
+                      </h3>
+                    </div>
+                    <div className="text-gray-700">
+                      <p>自習室: {scannedData.roomName}</p>
+                      <p>座席番号: {scannedData.seatNumber}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleSubmitAttendance}
-                    className="flex-1 bg-blue-600 active:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition duration-200"
+                    className={`flex-1 ${
+                      actionType === "checkin"
+                        ? "bg-green-600 active:bg-green-700"
+                        : "bg-blue-600 active:bg-blue-700"
+                    } text-white font-semibold py-3 px-6 rounded-full transition duration-200`}
                   >
-                    出席を記録
+                    {actionType === "checkin" ? "入室を記録" : "退室を記録"}
                   </button>
                   <button
                     onClick={() => {
                       setScannedData(null);
+                      setActionType(null);
                       setTimeout(() => startScanner(), 100);
                     }}
                     className="flex-1 bg-gray-300 active:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-full transition duration-200"

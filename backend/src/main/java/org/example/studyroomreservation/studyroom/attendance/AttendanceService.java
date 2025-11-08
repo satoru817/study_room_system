@@ -15,7 +15,6 @@ public class AttendanceService {
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
-    @Transactional
     public void attend(int reservationId, StudentUser student, DTO.AttendanceRequest request) {
         String insertSql = """
                 INSERT INTO study_room_attendances (study_room_reservation_id, start_hour)
@@ -28,5 +27,18 @@ public class AttendanceService {
                 .addValue("startHour", now);
 
         jdbcTemplate.update(insertSql, params);
+    }
+
+    public void checkout(Integer reservationId) {
+        String updateSql = """
+                UPDATE study_room_attendances SET end_hour = :endHour
+                WHERE study_room_reservation_id = :reservationId
+                """;
+        LocalTime now = TokyoTimeElf.getTokyoLocalDateTime().toLocalTime();
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("endHour", now)
+                .addValue("reservationId", reservationId);
+
+        jdbcTemplate.update(updateSql, params);
     }
 }
