@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -185,58 +186,62 @@ public class ReservationService {
     }
 
 
-    // TODO: add logics to squash consecutive reservation!!
     @Transactional
     public dto.WeeklyAvailabilityResponse createReservationBulk(StudentUser student, dto.CreateReservationRequest request) {
-        // 1. 重複予約チェック（オプション）
-        String checkDuplicateSql = """
-            SELECT COUNT(srr.study_room_reservation_id) FROM study_room_reservations srr
-            WHERE srr.study_room_id = :studyRoomId
-                AND srr.student_id = :studentId
+        // get lock!
+        String lock = """
+                SELECT 1 FROM study_rooms WHERE study_room_id = :studyRoomId FOR UPDATE
+                """;
+        jdbcTemplate.queryForList(
+                lock,
+                Map.of("studyRoomId", request.studyRoomId())
+        );
+
+        LocalDate start = request.getWeekStart();
+        LocalDate end = request.getWeekEnd();
+        int studyRoomId = request.studyRoomId();
+        int studentId = student.getStudentId();
+
+        String deleteSql = """
+                DELETE FROM study_room_reservations
+                WHERE study_room_id = :studyRoomId
+                    AND student_id = :studentId
+                    AND (date BETWEEN :start AND :end)
+                """;
+
+        MapSqlParameterSource map = new MapSqlParameterSource()
+                .addValue("studyRoomId", studyRoomId)
+                .addValue("studentId", studentId)
+                .addValue("start", start)
+                .addValue("end", end);
+
+        // delete all reservation of the student in the range
+        jdbcTemplate.update(deleteSql, map);
+
+        String checkAvailabilitySql = """
+            SELECT
+                sr.room_limit - COUNT(srr.study_room_reservation_id) AS available_seats
+            FROM study_rooms sr
+            LEFT JOIN study_room_reservations srr
+                ON srr.study_room_id = sr.study_room_id
                 AND srr.date = :date
-                AND NOT (srr.end_Hour <= :startHour OR :endHour <= srr.start_hour)
-            FOR UPDATE
+                AND  NOT (end_hour <= :startHour OR start_hour >= :endHour)
+            WHERE sr.study_room_id = :studyRoomId
+            GROUP BY sr.room_limit
             """;
 
         for (dto.ReservationSlot slot : request.reservations()) {
-            MapSqlParameterSource checkParams = new MapSqlParameterSource()
+            MapSqlParameterSource availParams = new MapSqlParameterSource()
                     .addValue("studyRoomId", request.studyRoomId())
-                    .addValue("studentId", student.getStudentId())
                     .addValue("date", slot.date())
                     .addValue("startHour", slot.startHour())
                     .addValue("endHour", slot.endHour());
 
-            Long count = jdbcTemplate.queryForObject(checkDuplicateSql, checkParams, Long.class);
-            if (count != null && count > 0) {
-                throw new IllegalStateException("既に予約が存在します: " + slot.date() + " " + slot.startHour());
+            Integer availableSeats = jdbcTemplate.queryForObject(checkAvailabilitySql, availParams, Integer.class);
+            if (availableSeats == null || availableSeats <= 0) {
+                throw new IllegalStateException("空き席がありません: " + slot.date() + " " + slot.startHour());
             }
         }
-//
-//        // 2. 空き状況チェック（オプション）
-//        String checkAvailabilitySql = """
-//            SELECT
-//                sr.room_limit - COUNT(srr.study_room_reservation_id) AS available_seats
-//            FROM study_rooms sr
-//            LEFT JOIN study_room_reservations srr
-//                ON srr.study_room_id = sr.study_room_id
-//                AND srr.date = :date
-//                AND  NOT (endHour <= :startHour OR startHour >= :endHour)
-//            WHERE sr.study_room_id = :studyRoomId
-//            GROUP BY sr.room_limit
-//            """;
-//
-//        for (dto.ReservationSlot slot : request.reservations()) {
-//            MapSqlParameterSource availParams = new MapSqlParameterSource()
-//                    .addValue("studyRoomId", request.studyRoomId())
-//                    .addValue("date", slot.date())
-//                    .addValue("startHour", slot.startHour())
-//                    .addValue("endHour", slot.endHour());
-//
-//            Integer availableSeats = jdbcTemplate.queryForObject(checkAvailabilitySql, availParams, Integer.class);
-//            if (availableSeats == null || availableSeats <= 0) {
-//                throw new IllegalStateException("空き席がありません: " + slot.date() + " " + slot.startHour());
-//            }
-//        }
 
         String insertSql = """
             INSERT INTO study_room_reservations(date, start_hour, end_hour, study_room_id, student_id)
@@ -254,7 +259,6 @@ public class ReservationService {
 
         jdbcTemplate.batchUpdate(insertSql, batchParams);
 
-        // 4. 予約後の週次空き状況を返す
         return getWeeklyAvailabilityResponse(request.studyRoomId(), request.offset(), student);
     }
 }

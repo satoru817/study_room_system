@@ -56,7 +56,15 @@ public class dto {
             int studyRoomId,
             int offset,
             List<ReservationSlot> reservations
-    ) {}
+    ) {
+        public LocalDate getWeekStart() {
+            return TokyoTimeElf.getThisWeekMonday().plusWeeks((long)offset);
+        }
+
+        public LocalDate getWeekEnd() {
+            return TokyoTimeElf.getThisWeekSunday().plusWeeks((long) offset);
+        }
+    }
 
     public record ReservationSlot(
             LocalDate date,

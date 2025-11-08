@@ -25,7 +25,7 @@ public class TokyoTimeElf {
 
     public static LocalDate getThisWeekSunday() {
         LocalDate today = getTokyoLocalDate();
-        return today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SUNDAY));
+        return today.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
     }
     /**
      * Calculates the earliest possible EL1 year for a student who is still enrolled.
