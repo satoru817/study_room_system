@@ -41,7 +41,7 @@ export default function Booking() {
         const bookedSlots = new Set();
         data.dailyAvailabilities.forEach((day) => {
           day.timeSlots.forEach((slot) => {
-            if (slot.isBookedByThisStudent) {
+            if (slot.isBookedByThisStudentThisRoom) {
               const key = `${day.date}_${slot.startTime}`;
               bookedSlots.add(key);
             }
@@ -62,7 +62,6 @@ export default function Booking() {
 
   const handleRoomChange = (e) => {
     setSelectedRoomId(parseInt(e.target.value));
-    setWeekOffset(0);
     setSelectedSlots(new Set());
   };
 
@@ -82,7 +81,11 @@ export default function Booking() {
 
   const isSlotSelectable = (day, slot) => {
     if (!slot) return false;
-    if (slot.isBookedByThisStudent) return true;
+
+    if (slot.isBookedByThisStudentOtherRoom) return false;
+
+    if (slot.isBookedByThisStudentThisRoom) return true;
+
     return day.isBookable && slot.isOpen && slot.availableSeats > 0;
   };
 
@@ -160,12 +163,18 @@ export default function Booking() {
     if (!slot) return "#e9ecef";
 
     const key = getSlotKey(day.date, slot.startTime);
-    // 既に予約済み（この生徒の予約）だが選択されていない場合
-    if (slot.isBookedByThisStudent && selectedSlots.has(key)) {
+
+    // 別の部屋で予約済み（選択不可・オレンジ系）
+    if (slot.isBookedByThisStudentOtherRoom) {
+      return "#ffe0b2"; // オレンジ系
+    }
+
+    // この部屋で予約済み＋選択中
+    if (slot.isBookedByThisStudentThisRoom && selectedSlots.has(key)) {
       return "#c3e6cb"; // 薄い緑
     }
 
-    // 選択中（既存予約より優先）
+    // 選択中
     if (selectedSlots.has(key)) {
       return "#007bff"; // 青
     }
@@ -220,7 +229,7 @@ export default function Booking() {
       const bookedSlots = new Set();
       updatedWeeklyData.dailyAvailabilities.forEach((day) => {
         day.timeSlots.forEach((slot) => {
-          if (slot.isBookedByThisStudent) {
+          if (slot.isBookedByThisStudentThisRoom) {
             const key = `${day.date}_${slot.startTime}`;
             bookedSlots.add(key);
           }
@@ -228,11 +237,11 @@ export default function Booking() {
       });
       setSelectedSlots(bookedSlots);
     } catch (error) {
-      console.error("予約の再作成に失敗:", error);
+      console.error("予約の作成に失敗:", error);
 
       // エラーレスポンスから詳細なメッセージを取得
       const errorMessage =
-        error.response?.data?.message || "予約の再作成に失敗しました";
+        error.response?.data?.message || "予約の作成に失敗しました";
       const errorCode = error.response?.data?.error;
 
       // エラーコードに応じたメッセージ表示
@@ -422,7 +431,11 @@ export default function Booking() {
             </div>
             <div className="flex items-center gap-1">
               <div className="w-4 h-4 bg-green-200 border border-green-400 rounded flex-shrink-0"></div>
-              <span>既存予約</span>
+              <span>この部屋で予約済</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-orange-200 border border-orange-400 rounded flex-shrink-0"></div>
+              <span>別の部屋で予約済</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-4 h-4 bg-white border border-gray-300 rounded flex-shrink-0"></div>
@@ -431,6 +444,10 @@ export default function Booking() {
             <div className="flex items-center gap-1">
               <div className="w-4 h-4 bg-red-100 rounded flex-shrink-0"></div>
               <span>満席</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-gray-200 rounded flex-shrink-0"></div>
+              <span>予約不可</span>
             </div>
           </div>
           <p className="text-xs text-gray-600 mt-2">

@@ -58,7 +58,6 @@ public class ReservationService {
         return new dto.WeeklyAvailabilityResponse(studyRoomId, monday, list);
     }
 
-    // TODO: mistake in logic of is_booked_by_this_student
     private List<dto.TimeSlotAvailability> getTimeSlotAvailability(int studyRoomId, LocalDate start, LocalDate end, int studentId) {
         String sql = """
                  WITH week_days AS (
@@ -98,7 +97,8 @@ public class ReservationService {
                          als.start_time,
                          als.end_time,
                          COUNT(srr.study_room_reservation_id) AS reserved_seats,
-                         COUNT(srr_mine.study_room_reservation_id) > 0 AS is_booked_by_this_student
+                         COUNT(srr_mine.study_room_reservation_id) > 0 AS is_booked_by_this_student_this_room,
+                         COUNT(srr_mine_other.study_room_reservation_id) > 0 AS is_booked_by_this_student_other_room
                      FROM all_slots als
                      LEFT JOIN study_room_reservations srr
                          ON srr.study_room_id = :studyRoomId
@@ -111,6 +111,12 @@ public class ReservationService {
                          AND srr_mine.date = als.day
                          AND srr_mine.start_hour <= als.start_time
                          AND srr_mine.end_hour  >= als.end_time
+                     LEFT JOIN study_room_reservations srr_mine_other
+                        ON srr_mine_other.student_id = :studentId
+                        AND srr_mine_other.date = als.day
+                        AND srr_mine_other.start_hour <= als.start_time
+                        AND srr_mine_other.end_hour >= als.end_time
+                        AND srr_mine_other.study_room_id != :studyRoomId
                      GROUP BY als.day, als.start_time, als.end_time
                  ),
                  bookable_slots AS (
@@ -150,7 +156,8 @@ public class ReservationService {
                           ELSE 0
                      END AS total_seats,
                      bs.day IS NOT NULL AS is_open,
-                     COALESCE(bps.is_booked_by_this_student, FALSE) AS is_booked_by_this_student
+                     COALESCE(bps.is_booked_by_this_student_this_room, FALSE) AS is_booked_by_this_student_this_room,
+                     COALESCE(bps.is_booked_by_this_student_other_room, FALSE) AS is_booked_by_this_student_other_room
                  FROM all_slots als
                  CROSS JOIN (
                      SELECT room_limit FROM study_rooms WHERE study_room_id = :studyRoomId
@@ -180,7 +187,8 @@ public class ReservationService {
                         rs.getInt("available_seats"),
                         rs.getInt("total_seats"),
                         rs.getBoolean("is_open"),
-                        rs.getBoolean("is_booked_by_this_student")
+                        rs.getBoolean("is_booked_by_this_student_this_room"),
+                        rs.getBoolean("is_booked_by_this_student_other_room")
                 )
         );
     }

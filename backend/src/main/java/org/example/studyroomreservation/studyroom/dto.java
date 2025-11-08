@@ -49,7 +49,8 @@ public class dto {
             int availableSeats,  // 空き席数
             int totalSeats,      // 定員
             boolean isOpen,       // この時間帯に開室してるか
-            boolean isBookedByThisStudent
+            boolean isBookedByThisStudentThisRoom,
+            boolean isBookedByThisStudentOtherRoom
     ) {}
 
     public record CreateReservationRequest(
