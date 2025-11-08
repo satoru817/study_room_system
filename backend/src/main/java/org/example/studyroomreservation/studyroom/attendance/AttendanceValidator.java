@@ -14,8 +14,8 @@ import java.time.LocalTime;
 
 @Component
 public final class AttendanceValidator {
-    private static final long RESERVATION_LEAD_TIME_MINUTES = 5L;
-    private static final long CHECK_IN_CUT_OFF_MINUTES = 10L;
+    public static final long RESERVATION_LEAD_TIME_MINUTES = 5L;
+    public static final long CHECK_IN_CUT_OFF_MINUTES = 10L;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -24,7 +24,7 @@ public final class AttendanceValidator {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public boolean validate(StudentUser student, int studyRoomId) {
+    public Integer validate(StudentUser student, int studyRoomId) {
         LocalDateTime now = TokyoTimeElf.getTokyoLocalDateTime();
         LocalDate today = now.toLocalDate();
         LocalTime time = now.toLocalTime();
@@ -33,17 +33,13 @@ public final class AttendanceValidator {
         int studentId = student.getStudentId();
 
         String sql = """
-            SELECT CAST(
-                CASE WHEN EXISTS(
-                    SELECT study_room_reservation_id
-                    FROM study_room_reservations
-                    WHERE study_room_id = :studyRoomId
-                        AND student_id = :studentId
-                        AND date = :date
-                        AND start_hour <= :maxStartTime
-                        AND end_hour >= :minEndTime
-                ) THEN 1 ELSE 0 END
-            AS BIT)
+            SELECT study_room_reservation_id
+            FROM study_room_reservations
+            WHERE study_room_id = :studyRoomId
+                AND student_id = :studentId
+                AND date = :date
+                AND start_hour <= :maxStartTime
+                AND end_hour >= :minEndTime
             """;
 
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -53,8 +49,6 @@ public final class AttendanceValidator {
         params.addValue("maxStartTime", maxStartTime);
         params.addValue("minEndTime", minEndTime);
 
-        Boolean result = jdbcTemplate.queryForObject(sql, params, Boolean.class);
-
-        return result != null && result;
+        return jdbcTemplate.queryForObject(sql, params, Integer.class);
     }
 }
