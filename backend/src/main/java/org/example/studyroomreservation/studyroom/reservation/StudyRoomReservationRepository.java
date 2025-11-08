@@ -10,11 +10,15 @@ import java.util.List;
 public interface StudyRoomReservationRepository extends JpaRepository<StudyRoomReservation, Integer> {
     @Query("""
             SELECT NEW org.example.studyroomreservation.studyroom.reservation.DTO$ReservationShowResponse(
+                srr.studyRoom.studyRoomId,
                 srr.studyRoom.name,
                 srr.startHour,
-                srr.endHour
+                srr.endHour,
+                sra.startHour IS NOT NULL,
+                sra.endHour IS NOT NULL
             )
             FROM StudyRoomReservation srr
+            LEFT JOIN StudyRoomAttendance sra ON sra.studyRoomReservation = srr
             WHERE srr.student.studentId = :studentId
             AND srr.date = :today
             """)

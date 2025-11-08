@@ -22,8 +22,9 @@ public class AttendanceController {
     private AttendanceValidator validator;
     @Autowired
     private AttendanceService attendanceService;
+
     @PreAuthorize("hasRole('STUDENT')")
-    @PostMapping("/create")
+    @PostMapping("/record")
     public ResponseEntity<?> attend(@RequestBody DTO.AttendanceRequest request,
                                     @AuthenticationPrincipal UserDetailsImpl userDetails) {
         try {
@@ -48,5 +49,14 @@ public class AttendanceController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "出席記録に失敗しました。もう一度お試しください。"));
         }
+    }
+
+    @PreAuthorize("hasRole('STUDENT')")
+    @PostMapping("/checkout")
+    public ResponseEntity<?> checkout(@RequestBody DTO.CheckoutRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails)
+    {
+        StudentUser student = userDetails.convertToStudent();
+        Integer reservationId = request.validate(validator, student);
+        
     }
 }

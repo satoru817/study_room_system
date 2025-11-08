@@ -16,4 +16,10 @@ public class DTO {
             return validator.validate(student, studyRoomId);
         }
     }
+
+    public record CheckoutRequest(int studyRoomId) {
+        Integer validate(AttendanceValidator validator, StudentUser student) {
+            return validator.validateCheckout(student, studyRoomId);
+        }
+    }
 }

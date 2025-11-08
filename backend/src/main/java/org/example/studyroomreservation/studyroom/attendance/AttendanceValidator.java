@@ -17,6 +17,8 @@ public final class AttendanceValidator {
     public static final long RESERVATION_LEAD_TIME_MINUTES = 5L;
     public static final long CHECK_IN_CUT_OFF_MINUTES = 10L;
 
+    public static final long CHECKOUT_GRACE_MINUTES = 30L;
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -48,6 +50,31 @@ public final class AttendanceValidator {
         params.addValue("date", today);
         params.addValue("maxStartTime", maxStartTime);
         params.addValue("minEndTime", minEndTime);
+
+        return jdbcTemplate.queryForObject(sql, params, Integer.class);
+    }
+
+    public Integer validateCheckout(StudentUser student, int studyRoomId) {
+        LocalDateTime now = TokyoTimeElf.getTokyoLocalDateTime();
+        LocalDate today = now.toLocalDate();
+        LocalTime time = now.toLocalTime();
+        LocalTime minCheckoutTime = time.minusMinutes(CHECKOUT_GRACE_MINUTES);
+        int studentId = student.getStudentId();
+
+        String sql = """
+                SELECT study_room_reservation_id
+                FROM study_room_reservations
+                WHERE study_room_id = :studyRoomId
+                    AND student_id = :studentId
+                    AND date = :date
+                    AND end_hour >= :minCheckoutTime
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("studentId", studentId)
+                .addValue("studyRoomId", studyRoomId)
+                .addValue("minCheckoutTime", minCheckoutTime)
+                .addValue("date", today);
 
         return jdbcTemplate.queryForObject(sql, params, Integer.class);
     }

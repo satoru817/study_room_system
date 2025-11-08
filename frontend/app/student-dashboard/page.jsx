@@ -201,67 +201,63 @@ function StudentContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       {/* ヘッダー部分 */}
-      <div className="max-w-4xl mx-auto mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              ようこそ、{studentName}さん
-            </h1>
-            <p className="text-gray-600">今日の予約状況</p>
-          </div>
+      <div className="max-w-4xl mx-auto mb-6">
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+            ようこそ、{studentName}さん
+          </h1>
+          <p className="text-gray-600 text-sm sm:text-base">今日の予約状況</p>
+        </div>
 
-          <div className="flex gap-3">
-            {/* QRコードスキャンボタン */}
-            <button
-              onClick={handleOpenQRScanner}
-              disabled={!isValidTime}
-              className={`${
-                isValidTime
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-gray-400 cursor-not-allowed"
-              } text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition duration-200 ease-in-out transform ${
-                isValidTime ? "hover:scale-105" : ""
-              } flex items-center gap-2`}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* QRコードスキャンボタン */}
+          <button
+            onClick={handleOpenQRScanner}
+            disabled={!isValidTime}
+            className={`${
+              isValidTime
+                ? "bg-green-600 active:bg-green-700"
+                : "bg-gray-400 cursor-not-allowed"
+            } text-white font-semibold py-3 px-5 rounded-full transition duration-200 ease-in-out flex items-center justify-center gap-2 flex-1 sm:flex-initial`}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-                />
-              </svg>
-              QRスキャン
-            </button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+              />
+            </svg>
+            QRスキャン
+          </button>
 
-            {/* 予約ボタン */}
-            <button
-              onClick={handleBookReservation}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition duration-200 ease-in-out transform hover:scale-105 flex items-center gap-2"
+          {/* 予約ボタン */}
+          <button
+            onClick={handleBookReservation}
+            className="bg-blue-600 active:bg-blue-700 text-white font-semibold py-3 px-5 rounded-full transition duration-200 ease-in-out flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              新しい予約
-            </button>
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            新しい予約
+          </button>
         </div>
       </div>
 
@@ -269,43 +265,106 @@ function StudentContent() {
       <div className="max-w-4xl mx-auto">
         {todaysReservations && todaysReservations.length > 0 ? (
           <div className="space-y-4">
-            {todaysReservations.map((reservation, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      {reservation.studyRoomName}
-                    </h3>
-                    <div className="flex items-center text-gray-600">
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+            {todaysReservations.map((reservation, index) => {
+              // ステータスに応じた表示を決定
+              let statusColor = "border-blue-500";
+              let statusBadge = {
+                text: "予約済み",
+                bgColor: "bg-blue-100",
+                textColor: "text-blue-800",
+              };
+
+              if (reservation.hasCheckedOut) {
+                statusColor = "border-gray-400";
+                statusBadge = {
+                  text: "退室済み",
+                  bgColor: "bg-gray-100",
+                  textColor: "text-gray-800",
+                };
+              } else if (reservation.hasCheckedIn) {
+                statusColor = "border-green-500";
+                statusBadge = {
+                  text: "入室中",
+                  bgColor: "bg-green-100",
+                  textColor: "text-green-800",
+                };
+              }
+
+              return (
+                <div
+                  key={index}
+                  className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${statusColor}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                        {reservation.studyRoomName}
+                      </h3>
+                      <div className="flex items-center text-gray-600">
+                        <svg
+                          className="w-5 h-5 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span className="text-lg">
+                          {reservation.startHour} - {reservation.endHour}
+                        </span>
+                      </div>
+                      {/* チェックイン・チェックアウト情報 */}
+                      <div className="mt-2 flex gap-2 text-sm">
+                        {reservation.hasCheckedIn && (
+                          <div className="flex items-center text-green-600">
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            入室済み
+                          </div>
+                        )}
+                        {reservation.hasCheckedOut && (
+                          <div className="flex items-center text-gray-600">
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            退室済み
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span
+                        className={`inline-block px-3 py-1 ${statusBadge.bgColor} ${statusBadge.textColor} rounded-full text-sm font-medium`}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span className="text-lg">
-                        {reservation.startHour} - {reservation.endHour}
+                        {statusBadge.text}
                       </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                      予約済み
-                    </span>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
@@ -325,7 +384,7 @@ function StudentContent() {
             <p className="text-gray-600 text-lg mb-4">今日の予約はありません</p>
             <button
               onClick={handleBookReservation}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+              className="bg-blue-600 active:bg-blue-700 text-white font-semibold py-2 px-4 rounded-full transition duration-200"
             >
               予約を作成する
             </button>
@@ -335,13 +394,15 @@ function StudentContent() {
 
       {/* QRスキャナーモーダル */}
       {showQRScanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">QRコードをスキャン</h2>
+              <h2 className="text-xl sm:text-2xl font-bold">
+                QRコードをスキャン
+              </h2>
               <button
                 onClick={handleCloseQRScanner}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 p-1"
               >
                 <svg
                   className="w-6 h-6"
@@ -363,13 +424,13 @@ function StudentContent() {
             {!scannedData ? (
               <div>
                 <div id="qr-reader" ref={scannerRef} className="mb-4"></div>
-                <p className="text-center text-gray-600">
+                <p className="text-center text-gray-600 text-sm">
                   カメラでQRコードをスキャンしてください
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                   <div className="flex items-center mb-2">
                     <svg
                       className="w-6 h-6 text-green-600 mr-2"
@@ -394,10 +455,10 @@ function StudentContent() {
                   </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleSubmitAttendance}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200"
+                    className="flex-1 bg-blue-600 active:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition duration-200"
                   >
                     出席を記録
                   </button>
@@ -406,7 +467,7 @@ function StudentContent() {
                       setScannedData(null);
                       setTimeout(() => startScanner(), 100);
                     }}
-                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200"
+                    className="flex-1 bg-gray-300 active:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-full transition duration-200"
                   >
                     再スキャン
                   </button>

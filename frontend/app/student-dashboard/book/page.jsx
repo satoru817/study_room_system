@@ -107,6 +107,43 @@ export default function Booking() {
     setIsDragging(false);
   };
 
+  // タッチイベント用のハンドラ
+  const handleTouchStart = (e, day, slot) => {
+    if (!slot || !isSlotSelectable(day, slot)) return;
+
+    e.preventDefault();
+    setIsDragging(true);
+    const key = getSlotKey(day.date, slot.startTime);
+    const isCurrentlySelected = selectedSlots.has(key);
+    setDragMode(isCurrentlySelected ? "deselect" : "select");
+    toggleSlot(key, !isCurrentlySelected);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!element) return;
+
+    const cellData = element.closest("[data-slot]");
+    if (!cellData) return;
+
+    const [date, startTime] = cellData.dataset.slot.split("_");
+    const day = weeklyData.dailyAvailabilities.find((d) => d.date === date);
+    const slot = day?.timeSlots.find((s) => s.startTime === startTime);
+
+    if (day && slot && isSlotSelectable(day, slot)) {
+      const key = getSlotKey(date, startTime);
+      toggleSlot(key, dragMode === "select");
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   const toggleSlot = (key, shouldSelect) => {
     setSelectedSlots((prev) => {
       const newSet = new Set(prev);
@@ -306,21 +343,26 @@ export default function Booking() {
   };
 
   if (loading && !weeklyData) {
-    return <div className="p-6">読み込み中...</div>;
+    return <div className="p-4 text-center">読み込み中...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6" onMouseUp={handleMouseUp}>
-      <div className="max-w-7xl mx-auto">
-        {/* ヘッダー */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+    <div
+      className="min-h-screen bg-gray-50 pb-20"
+      onMouseUp={handleMouseUp}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
+    >
+      <div className="max-w-full">
+        {/* ヘッダー - スマホ最適化 */}
+        <div className="bg-white shadow-md p-3 mb-3 sticky top-0 z-10">
+          <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => router.back()}
-              className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+              className="text-gray-600 hover:text-gray-800 p-2 -ml-2"
             >
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -332,97 +374,91 @@ export default function Booking() {
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              戻る
             </button>
-            <h1 className="text-2xl font-bold text-gray-800">予約作成</h1>
-            <div style={{ width: "80px" }}></div>
+            <h1 className="text-lg font-bold text-gray-800">予約作成</h1>
+            <div style={{ width: "40px" }}></div>
           </div>
 
-          {/* 自習室選択 */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              自習室を選択
-            </label>
-            <select
-              value={selectedRoomId || ""}
-              onChange={handleRoomChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {studyRooms.map((room) => (
-                <option key={room.studyRoomId} value={room.studyRoomId}>
-                  {room.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* 自習室選択 - コンパクト */}
+          <select
+            value={selectedRoomId || ""}
+            onChange={handleRoomChange}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg mb-3"
+          >
+            {studyRooms.map((room) => (
+              <option key={room.studyRoomId} value={room.studyRoomId}>
+                {room.name}
+              </option>
+            ))}
+          </select>
 
-          {/* 週選択 */}
-          <div className="flex items-center justify-between">
+          {/* 週選択 - コンパクト */}
+          <div className="flex items-center justify-between gap-2">
             <button
               onClick={handlePrevWeek}
               disabled={weekOffset === 0}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg transition"
+              className="px-3 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg text-sm flex-shrink-0"
             >
-              ← 前の週
+              ← 前週
             </button>
-            <div className="text-lg font-semibold">
+            <div className="text-sm font-semibold text-center">
               {weeklyData && formatDate(weeklyData.weekStartDate)} の週
             </div>
             <button
               onClick={handleNextWeek}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition"
+              className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm flex-shrink-0"
             >
-              次の週 →
+              次週 →
             </button>
           </div>
         </div>
 
-        {/* 凡例 */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-          <div className="flex items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-blue-500 rounded"></div>
+        {/* 凡例 - コンパクト */}
+        <div className="bg-white shadow-md p-3 mx-2 mb-3 rounded-lg">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-blue-500 rounded flex-shrink-0"></div>
               <span>選択中</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-green-200 border border-green-400 rounded"></div>
-              <span>既存の予約</span>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-green-200 border border-green-400 rounded flex-shrink-0"></div>
+              <span>既存予約</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-white border border-gray-300 rounded"></div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-white border border-gray-300 rounded flex-shrink-0"></div>
               <span>予約可能</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-red-100 rounded"></div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-red-100 rounded flex-shrink-0"></div>
               <span>満席</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gray-200 rounded"></div>
-              <span>予約不可</span>
-            </div>
           </div>
-          <p className="text-sm text-gray-600 mt-2">
-            📌 ドラッグして予約したい時間帯を選択してください
+          <p className="text-xs text-gray-600 mt-2">
+            📌 スライドで連続選択できます
           </p>
         </div>
 
-        {/* スケジュール表 */}
+        {/* スケジュール表 - スマホ最適化 */}
         {weeklyData && (
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white shadow-md mx-2 mb-3 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table
                 className="w-full border-collapse"
-                style={{ userSelect: "none" }}
+                style={{
+                  userSelect: "none",
+                  minWidth: "100%",
+                  tableLayout: "fixed",
+                }}
               >
                 <thead>
                   <tr>
-                    <th className="border border-gray-300 bg-gray-100 p-2 w-20">
+                    <th className="border border-gray-300 bg-gray-100 p-1 text-xs w-12 sticky left-0 z-10">
                       時間
                     </th>
                     {weeklyData.dailyAvailabilities.map((day) => (
                       <th
                         key={day.date}
-                        className="border border-gray-300 bg-gray-100 p-2"
+                        className="border border-gray-300 bg-gray-100 p-1 text-xs"
                         style={{
                           backgroundColor:
                             getDayLabel(day.dayOfWeek) === "土"
@@ -430,10 +466,13 @@ export default function Booking() {
                               : getDayLabel(day.dayOfWeek) === "日"
                               ? "#ffe0e0"
                               : "#f8f9fa",
+                          width: `${100 / 7}%`,
                         }}
                       >
-                        <div>{getDayLabel(day.dayOfWeek)}</div>
-                        <div className="text-xs font-normal">
+                        <div className="font-bold">
+                          {getDayLabel(day.dayOfWeek)}
+                        </div>
+                        <div className="text-[10px] font-normal">
                           {formatDate(day.date)}
                         </div>
                       </th>
@@ -459,7 +498,7 @@ export default function Booking() {
                             {isHourStart && (
                               <td
                                 rowSpan={4}
-                                className="border border-gray-300 bg-gray-50 text-center font-semibold align-middle"
+                                className="border border-gray-300 bg-gray-50 text-center text-[10px] font-semibold align-middle sticky left-0 z-10"
                               >
                                 {hour.toString().padStart(2, "0")}:00
                               </td>
@@ -474,7 +513,7 @@ export default function Booking() {
                                     className="border border-gray-300 p-0"
                                     style={{
                                       backgroundColor: "#e9ecef",
-                                      height: "30px",
+                                      height: "24px",
                                     }}
                                   />
                                 );
@@ -487,19 +526,24 @@ export default function Booking() {
                                 <td
                                   key={day.date}
                                   className="border border-gray-300 p-0"
+                                  data-slot={key}
                                   onMouseDown={() => handleMouseDown(day, slot)}
                                   onMouseEnter={() =>
                                     handleMouseEnter(day, slot)
+                                  }
+                                  onTouchStart={(e) =>
+                                    handleTouchStart(e, day, slot)
                                   }
                                   style={{
                                     backgroundColor: getSlotColor(day, slot),
                                     cursor: selectable
                                       ? "pointer"
                                       : "not-allowed",
-                                    height: "30px",
+                                    height: "24px",
+                                    touchAction: "none",
                                   }}
                                 >
-                                  <div className="flex items-center justify-center h-full text-xs">
+                                  <div className="flex items-center justify-center h-full text-[10px]">
                                     {slot.isOpen && (
                                       <span
                                         className={
@@ -525,25 +569,25 @@ export default function Booking() {
                 </tbody>
               </table>
             </div>
-
-            {/* 予約ボタン */}
-            <div className="mt-6 flex justify-end gap-4">
-              <button
-                onClick={() => setSelectedSlots(new Set())}
-                className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition"
-              >
-                選択をクリア
-              </button>
-              <button
-                onClick={handleReservation}
-                disabled={selectedSlots.size === 0}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition"
-              >
-                予約する ({selectedSlots.size}枠)
-              </button>
-            </div>
           </div>
         )}
+
+        {/* 予約ボタン - 固定フッター */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 p-3 flex gap-2">
+          <button
+            onClick={() => setSelectedSlots(new Set())}
+            className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg text-sm"
+          >
+            クリア
+          </button>
+          <button
+            onClick={handleReservation}
+            disabled={selectedSlots.size === 0}
+            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm"
+          >
+            予約 ({selectedSlots.size}枠)
+          </button>
+        </div>
       </div>
     </div>
   );
