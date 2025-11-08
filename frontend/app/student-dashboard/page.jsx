@@ -3,15 +3,10 @@
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { Suspense, useState, useEffect, useRef } from "react";
-import { doGet, doPost } from "../elfs/WebserviceElf";
+import { doGet, doPost, doLogout } from "../elfs/WebserviceElf";
 import { Html5QrcodeScanner } from "html5-qrcode";
-
-/**
- * what should be done here?
- * student should be able to book study-room reservation(maybe we should make limit)
- * student should be able to scan qr code and send notification to their parents
- * student should be able to see how long he had studied in total
- */
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 
 function StudentContent() {
   const router = useRouter();
@@ -22,11 +17,21 @@ function StudentContent() {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [scannedData, setScannedData] = useState(null);
   const [qrScannerActive, setQrScannerActive] = useState(false);
-  const [actionType, setActionType] = useState(null); // "checkin" or "checkout"
+  const [actionType, setActionType] = useState(null);
   const [isValidTime, setIsValidTime] = useState(false);
   const [qrButtonState, setQrButtonState] = useState(null);
   const scannerRef = useRef(null);
   const qrScannerInstanceRef = useRef(null);
+
+  const handleLogout = async () => {
+    try {
+      await doLogout();
+      router.push("/login");
+    } catch (error) {
+      console.error("ログアウトに失敗:", error);
+      alert("ログアウトに失敗しました");
+    }
+  };
 
   // 入室・退室を判定する関数
   const determineAction = (reservation) => {
@@ -66,22 +71,6 @@ function StudentContent() {
     return null;
   };
 
-  // 現在時刻が予約時間の有効範囲内かチェック（入室 or 退室可能か）
-  const isWithinValidTimeRange = () => {
-    if (!todaysReservations || todaysReservations.length === 0) {
-      return false;
-    }
-
-    for (const reservation of todaysReservations) {
-      const action = determineAction(reservation);
-      if (action !== null) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
   // QRボタンの状態を判定（入室 or 退室）
   const getQRButtonState = () => {
     if (!todaysReservations || todaysReservations.length === 0) {
@@ -107,9 +96,23 @@ function StudentContent() {
         const reservationsOfThisStudent = await doGet(
           "/api/reservation/getTodays"
         );
-        setTodaysReservations(reservationsOfThisStudent);
+        console.log("取得した予約データ:", reservationsOfThisStudent);
+        console.log("データ型:", typeof reservationsOfThisStudent);
+        console.log("配列か?:", Array.isArray(reservationsOfThisStudent));
+
+        // 配列でない場合は空配列にする
+        if (Array.isArray(reservationsOfThisStudent)) {
+          setTodaysReservations(reservationsOfThisStudent);
+        } else {
+          console.error(
+            "予約データが配列ではありません:",
+            reservationsOfThisStudent
+          );
+          setTodaysReservations([]);
+        }
       } catch (error) {
         console.error("予約の取得に失敗しました:", error);
+        setTodaysReservations([]);
       } finally {
         setLoading(false);
       }
@@ -126,8 +129,8 @@ function StudentContent() {
       setIsValidTime(buttonState !== null);
     };
 
-    checkValidTime(); // 初回チェック
-    const interval = setInterval(checkValidTime, 60000); // 1分ごと
+    checkValidTime();
+    const interval = setInterval(checkValidTime, 60000);
 
     return () => clearInterval(interval);
   }, [todaysReservations]);
@@ -183,7 +186,6 @@ function StudentContent() {
         try {
           const qrData = JSON.parse(decodedText);
 
-          // 現在の予約を見つけて、アクションを判定
           const currentReservation = todaysReservations.find((reservation) => {
             return reservation.studyRoomId === qrData.studyRoomId;
           });
@@ -211,7 +213,7 @@ function StudentContent() {
         }
       },
       (errorMessage) => {
-        // スキャン中のエラーは無視（カメラが読み取り中の場合に発生）
+        // スキャン中のエラーは無視
       }
     );
 
@@ -235,13 +237,11 @@ function StudentContent() {
 
     try {
       if (actionType === "checkin") {
-        // 入室処理
         await doPost("/api/attendance/record", {
           studyRoomId: scannedData.studyRoomId,
         });
         alert("入室を記録しました！");
       } else if (actionType === "checkout") {
-        // 退室処理
         await doPost("/api/attendance/checkout", {
           studyRoomId: scannedData.studyRoomId,
         });
@@ -250,7 +250,6 @@ function StudentContent() {
 
       handleCloseQRScanner();
 
-      // 予約情報を再取得
       const updatedReservations = await doGet("/api/reservation/getTodays");
       setTodaysReservations(updatedReservations);
     } catch (error) {
@@ -267,11 +266,20 @@ function StudentContent() {
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       {/* ヘッダー部分 */}
       <div className="max-w-4xl mx-auto mb-6">
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
-            ようこそ、{studentName}さん
-          </h1>
-          <p className="text-gray-600 text-sm sm:text-base">今日の予約状況</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+              ようこそ、{studentName}さん
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base">今日の予約状況</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold py-2 px-4 rounded-full transition duration-200 ease-in-out flex items-center gap-2"
+          >
+            <FontAwesomeIcon icon={faSignOutAlt} />
+            <span className="hidden sm:inline">ログアウト</span>
+          </button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -352,7 +360,6 @@ function StudentContent() {
         {todaysReservations && todaysReservations.length > 0 ? (
           <div className="space-y-4">
             {todaysReservations.map((reservation, index) => {
-              // ステータスに応じた表示を決定
               let statusColor = "border-blue-500";
               let statusBadge = {
                 text: "予約済み",
@@ -404,7 +411,6 @@ function StudentContent() {
                           {reservation.startHour} - {reservation.endHour}
                         </span>
                       </div>
-                      {/* チェックイン・チェックアウト情報 */}
                       <div className="mt-2 flex gap-2 text-sm">
                         {reservation.hasCheckedIn && (
                           <div className="flex items-center text-green-600">
@@ -506,7 +512,6 @@ function StudentContent() {
               </button>
             </div>
 
-            {/* QRスキャナー */}
             {!scannedData ? (
               <div>
                 <div id="qr-reader" ref={scannerRef} className="mb-4"></div>
@@ -516,7 +521,6 @@ function StudentContent() {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* 入室の場合 */}
                 {actionType === "checkin" && (
                   <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                     <div className="flex items-center mb-2">
@@ -544,7 +548,6 @@ function StudentContent() {
                   </div>
                 )}
 
-                {/* 退室の場合 */}
                 {actionType === "checkout" && (
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                     <div className="flex items-center mb-2">
