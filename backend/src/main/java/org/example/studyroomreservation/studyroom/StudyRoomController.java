@@ -56,7 +56,7 @@ public class StudyRoomController {
     @DeleteMapping("/{studyRoomId}")
     public ResponseEntity<?> deleteStudyRoom(@PathVariable int studyRoomId) {
         studyRoomService.deleteById(studyRoomId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("delete successful");
     }
 
     public record StudyRoomEditRequest(int studyRoomId, String name, int roomLimit){}

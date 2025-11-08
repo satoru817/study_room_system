@@ -1,5 +1,5 @@
 "use client";
-import { doGet, doPost } from "@/app/elfs/WebserviceElf";
+import { doDelete, doGet, doPost } from "@/app/elfs/WebserviceElf";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import StudyRoomCreate from "../../components/StudyRoomCreate";
@@ -209,6 +209,43 @@ function CramSchoolDetailContent() {
     }
   };
 
+  // CramSchoolDetailContent コンポーネント内に追加
+
+  const handleDeleteRoom = async () => {
+    if (!studyRoomId) {
+      alert("削除する自習室を選択してください");
+      return;
+    }
+
+    const selectedRoom = studyRooms.find(
+      (room) => room.studyRoomId === studyRoomId
+    );
+
+    if (!selectedRoom) {
+      alert("自習室が見つかりません");
+      return;
+    }
+
+    // 確認ダイアログ
+    const confirmMessage = `本当に「${selectedRoom.name}」を削除しますか？\n\nこの操作は取り消せません。`;
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const response = await doDelete(`/api/studyRoom/${studyRoomId}`);
+
+      setStudyRooms(
+        studyRooms.filter((room) => room.studyRoomId !== studyRoomId)
+      );
+      setstudyRoomId(-1);
+      alert("自習室を削除しました");
+    } catch (error) {
+      console.error("自習室の削除に失敗:", error);
+      alert("自習室の削除に失敗しました");
+    }
+  };
+
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -237,28 +274,35 @@ function CramSchoolDetailContent() {
                   className="btn btn-success"
                   onClick={() => setShowCreateModal(true)}
                 >
-                  + 自習室を追加
+                  <i className="fa fa-plus me-1"></i> 自習室を追加
                 </button>
                 <button
                   className="btn btn-info"
                   onClick={handlePrintQRCodes}
                   disabled={!studyRoomId}
                 >
-                  🖨️ QR印刷
+                  <i className="fa fa-qrcode me-1"></i> QR印刷
                 </button>
                 <button
                   className="btn btn-warning"
                   onClick={handleOpenEditModal}
                   disabled={!studyRoomId}
                 >
-                  編集
+                  <i className="fa fa-edit me-1"></i> 編集
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={handleDeleteRoom}
+                  disabled={!studyRoomId}
+                >
+                  <i className="fa fa-trash me-1"></i> 削除
                 </button>
                 <button
                   className="btn btn-primary"
                   onClick={handleGoToRoom}
                   disabled={!studyRoomId}
                 >
-                  詳細設定
+                  <i className="fa fa-cog me-1"></i> 詳細設定
                 </button>
               </div>
             </div>

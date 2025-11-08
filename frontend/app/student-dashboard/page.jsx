@@ -26,7 +26,7 @@ function StudentContent() {
   const handleLogout = async () => {
     try {
       await doLogout();
-      router.push("/login");
+      router.push("/user-login");
     } catch (error) {
       console.error("ログアウトに失敗:", error);
       alert("ログアウトに失敗しました");
