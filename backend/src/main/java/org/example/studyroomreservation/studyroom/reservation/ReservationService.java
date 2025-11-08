@@ -217,29 +217,52 @@ public class ReservationService {
 
         // delete all reservation of the student in the range
         jdbcTemplate.update(deleteSql, map);
-
-        String checkAvailabilitySql = """
-            SELECT
-                sr.room_limit - COUNT(srr.study_room_reservation_id) AS available_seats
-            FROM study_rooms sr
-            LEFT JOIN study_room_reservations srr
-                ON srr.study_room_id = sr.study_room_id
+        // TODO: correct the following check query!!
+//        String checkAvailabilitySql = """
+//            SELECT
+//                sr.room_limit - COUNT(srr.study_room_reservation_id) AS available_seats
+//            FROM study_rooms sr
+//            LEFT JOIN study_room_reservations srr
+//                ON srr.study_room_id = sr.study_room_id
+//                AND srr.date = :date
+//                AND  NOT (end_hour <= :startHour OR start_hour >= :endHour)
+//            WHERE sr.study_room_id = :studyRoomId
+//            GROUP BY sr.room_limit
+//            """;
+//
+//        for (dto.ReservationSlot slot : request.reservations()) {
+//            MapSqlParameterSource availParams = new MapSqlParameterSource()
+//                    .addValue("studyRoomId", request.studyRoomId())
+//                    .addValue("date", slot.date())
+//                    .addValue("startHour", slot.startHour())
+//                    .addValue("endHour", slot.endHour());
+//
+//            Integer availableSeats = jdbcTemplate.queryForObject(checkAvailabilitySql, availParams, Integer.class);
+//            if (availableSeats == null || availableSeats <= 0) {
+//                throw new IllegalStateException("空き席がありません: " + slot.date() + " " + slot.startHour());
+//            }
+//        }
+        // 同じ時間帯に他の部屋の予約があるかチェック
+        String duplicateCheckSql = """
+            SELECT EXISTS (
+                SELECT srr.study_room_reservation_id
+                FROM study_room_reservations srr
+                WHERE srr.student_id = :studentId
                 AND srr.date = :date
-                AND  NOT (end_hour <= :startHour OR start_hour >= :endHour)
-            WHERE sr.study_room_id = :studyRoomId
-            GROUP BY sr.room_limit
-            """;
+                AND NOT (srr.end_hour <= :startHour OR srr.start_hour >= :endHour)
+            )
+        """;
 
         for (dto.ReservationSlot slot : request.reservations()) {
-            MapSqlParameterSource availParams = new MapSqlParameterSource()
-                    .addValue("studyRoomId", request.studyRoomId())
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("studentId", studentId)  // 追加
                     .addValue("date", slot.date())
                     .addValue("startHour", slot.startHour())
                     .addValue("endHour", slot.endHour());
 
-            Integer availableSeats = jdbcTemplate.queryForObject(checkAvailabilitySql, availParams, Integer.class);
-            if (availableSeats == null || availableSeats <= 0) {
-                throw new IllegalStateException("空き席がありません: " + slot.date() + " " + slot.startHour());
+            Integer hasDuplicate = jdbcTemplate.queryForObject(duplicateCheckSql, params, Integer.class);
+            if (hasDuplicate != null && hasDuplicate > 0) {
+                throw new IllegalStateException("同じ時間帯に別の部屋を予約しています: " + slot.date() + " " + slot.startHour());
             }
         }
 
