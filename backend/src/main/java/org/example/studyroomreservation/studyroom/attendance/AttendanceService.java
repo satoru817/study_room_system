@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -21,9 +20,11 @@ public class AttendanceService {
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
     private final List<NotificationStrategy> strategies;
-    //　instance initializer
-   {
-        strategies = Arrays.asList(new LineNotificationStrategy(), new EmailNotificationStrategy());
+
+    public AttendanceService(
+            LineNotificationStrategy lineStrategy,
+            EmailNotificationStrategy emailStrategy) {
+        this.strategies = Arrays.asList(lineStrategy, emailStrategy);
     }
 
     private void notifyEntry(StudentUser studentUser) {

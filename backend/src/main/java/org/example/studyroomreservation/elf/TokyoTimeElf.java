@@ -4,6 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 
 public class TokyoTimeElf {
@@ -41,5 +42,10 @@ public class TokyoTimeElf {
 
     public static enum DayOfWeek {
         monday, tuesday, wednesday, thursday, friday, saturday, sunday
+    }
+
+    public static String getFormattedTime() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH時mm分");
+        return getTokyoLocalDateTime().format(formatter);
     }
 }
