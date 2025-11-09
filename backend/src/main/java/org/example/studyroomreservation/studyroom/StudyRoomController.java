@@ -1,6 +1,8 @@
 package org.example.studyroomreservation.studyroom;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.studyroomreservation.config.security.user.StudentUser;
+import org.example.studyroomreservation.config.security.user.TeacherUser;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
 import org.example.studyroomreservation.cramschool.CramSchoolService;
 import org.example.studyroomreservation.cramschool.CramSchool;
@@ -123,5 +125,27 @@ public class StudyRoomController {
         StudentUser student = userDetails.convertToStudent();
         List<dto.StudyRoomShowResponseForStudent> studyRooms = studyRoomService.getStudyRoomsOfStudent(student);
         return ResponseEntity.ok(studyRooms);
+    }
+
+    @GetMapping("/get/thisTeachers")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> getThisTeachersStudyRoom(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        TeacherUser teacherUser = userDetails.convertToTeacher();
+        List<dto.StudyRoomShow> studyRooms = studyRoomService.getThisTeachers(teacherUser);
+        return ResponseEntity.ok(studyRooms);
+    }
+
+    @PostMapping("/regularSchedule/copy")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> copyRegularSchedule(@RequestBody dto.CopyRegularScheduleRequest request) throws JsonProcessingException {
+        studyRoomService.copyRegularSchedule(request);
+        return ResponseEntity.ok().body("copy of regular schedule success");
+    }
+
+    @PostMapping("/scheduleException/copy")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> copyScheduleExceptionOfYearMonth(@RequestBody dto.CopyScheduleExceptionRequest request) throws JsonProcessingException {
+        studyRoomService.copyScheduleException(request);
+        return ResponseEntity.ok().body("copy of schedule exception success");
     }
 }

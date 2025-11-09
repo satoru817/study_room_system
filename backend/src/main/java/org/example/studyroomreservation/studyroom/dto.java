@@ -72,4 +72,23 @@ public class dto {
             LocalTime startHour,
             LocalTime endHour
     ) {}
+
+    public record StudyRoomShow(
+            int studyRoomId,
+            String studyRoomName,
+            String cramSchoolName
+    ){}
+
+    public record CopyRegularScheduleRequest(
+            int fromStudyRoomId,
+            List<Integer> toStudyRoomIds
+    ) {}
+
+    public record CopyScheduleExceptionRequest(
+            int fromStudyRoomId,
+            List<Integer> toStudyRoomIds,
+            int year,
+            int month
+    ) {}
+
 }

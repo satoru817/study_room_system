@@ -28,6 +28,13 @@ function StudyRoomDetailContent() {
   const [isDraggingException, setIsDraggingException] = useState(false);
   const [dragModeException, setDragModeException] = useState("open");
 
+  // Copy functionality state
+  const [studyRooms, setStudyRooms] = useState([]);
+  const [showCopyRegularModal, setShowCopyRegularModal] = useState(false);
+  const [showCopyExceptionModal, setShowCopyExceptionModal] = useState(false);
+  const [selectedStudyRoomIds, setSelectedStudyRoomIds] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+
   const DAYS = [
     { key: "monday", label: "月" },
     { key: "tuesday", label: "火" },
@@ -59,6 +66,16 @@ function StudyRoomDetailContent() {
       setExceptions(_exceptions);
     } catch (error) {
       console.error("例外スケジュールの取得に失敗", error);
+    }
+  };
+
+  const fetchStudyRooms = async () => {
+    try {
+      const url = `/api/studyRoom/get/thisTeachers`;
+      const _studyRooms = await doGet(url);
+      setStudyRooms(_studyRooms);
+    } catch (error) {
+      console.error("自習室リストの取得に失敗", error);
     }
   };
 
@@ -108,6 +125,7 @@ function StudyRoomDetailContent() {
 
   useEffect(() => {
     fetchStudyRoomRegularSchedules();
+    fetchStudyRooms();
   }, [studyRoomId]);
 
   useEffect(() => {
@@ -211,6 +229,129 @@ function StudyRoomDetailContent() {
   const handleReset = () => {
     if (confirm("変更を破棄して、元に戻しますか？")) {
       fetchStudyRoomRegularSchedules();
+    }
+  };
+
+  // Copy functions
+  const getAvailableStudyRooms = () => {
+    return studyRooms.filter(
+      (room) => room.studyRoomId.toString() !== studyRoomId
+    );
+  };
+
+  const handleOpenCopyRegularModal = () => {
+    setSelectedStudyRoomIds([]);
+    setSelectAll(false);
+    setShowCopyRegularModal(true);
+  };
+
+  const handleOpenCopyExceptionModal = () => {
+    setSelectedStudyRoomIds([]);
+    setSelectAll(false);
+    setShowCopyExceptionModal(true);
+  };
+
+  const handleToggleStudyRoom = (studyRoomId) => {
+    setSelectedStudyRoomIds((prev) => {
+      if (prev.includes(studyRoomId)) {
+        return prev.filter((id) => id !== studyRoomId);
+      } else {
+        return [...prev, studyRoomId];
+      }
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedStudyRoomIds([]);
+    } else {
+      const availableRooms = getAvailableStudyRooms();
+      setSelectedStudyRoomIds(
+        availableRooms.map((room) => room.studyRoomId.toString())
+      );
+    }
+    setSelectAll(!selectAll);
+  };
+
+  useEffect(() => {
+    const availableRooms = getAvailableStudyRooms();
+    if (
+      availableRooms.length > 0 &&
+      selectedStudyRoomIds.length === availableRooms.length
+    ) {
+      setSelectAll(true);
+    } else {
+      setSelectAll(false);
+    }
+  }, [selectedStudyRoomIds]);
+
+  const handleCopyRegularSchedule = async () => {
+    if (selectedStudyRoomIds.length === 0) {
+      alert("コピー先の自習室を選択してください");
+      return;
+    }
+
+    const selectedRooms = studyRooms.filter((room) =>
+      selectedStudyRoomIds.includes(room.studyRoomId.toString())
+    );
+    const roomNames = selectedRooms
+      .map((room) => `${room.cramSchoolName} - ${room.studyRoomName}`)
+      .join("\n");
+
+    if (
+      !confirm(
+        `以下の${selectedStudyRoomIds.length}件の自習室に通常スケジュールをコピーしますか？\n\n${roomNames}`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await doPost("/api/studyRoom/regularSchedule/copy", {
+        fromStudyRoomId: studyRoomId,
+        toStudyRoomIds: selectedStudyRoomIds,
+      });
+      setShowCopyRegularModal(false);
+      alert("通常スケジュールをコピーしました");
+    } catch (error) {
+      console.error("通常スケジュールのコピーに失敗:", error);
+      alert("通常スケジュールのコピーに失敗しました");
+    }
+  };
+
+  const handleCopyExceptionSchedule = async () => {
+    if (selectedStudyRoomIds.length === 0) {
+      alert("コピー先の自習室を選択してください");
+      return;
+    }
+
+    const selectedRooms = studyRooms.filter((room) =>
+      selectedStudyRoomIds.includes(room.studyRoomId.toString())
+    );
+    const roomNames = selectedRooms
+      .map((room) => `${room.cramSchoolName} - ${room.studyRoomName}`)
+      .join("\n");
+
+    if (
+      !confirm(
+        `以下の${selectedStudyRoomIds.length}件の自習室に${currentYear}年${currentMonth}月の例外スケジュールをコピーしますか？\n\n${roomNames}`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await doPost("/api/studyRoom/scheduleException/copy", {
+        fromStudyRoomId: studyRoomId,
+        toStudyRoomIds: selectedStudyRoomIds,
+        year: currentYear,
+        month: currentMonth,
+      });
+      setShowCopyExceptionModal(false);
+      alert("例外スケジュールをコピーしました");
+    } catch (error) {
+      console.error("例外スケジュールのコピーに失敗:", error);
+      alert("例外スケジュールのコピーに失敗しました");
     }
   };
 
@@ -514,6 +655,12 @@ function StudyRoomDetailContent() {
                 <h5 className="mb-0">デフォルト週間スケジュール</h5>
               </div>
               <div>
+                <button
+                  className="btn btn-info btn-sm me-2"
+                  onClick={handleOpenCopyRegularModal}
+                >
+                  📋 他の自習室にコピー
+                </button>
                 {hasChanges && (
                   <>
                     <button
@@ -662,8 +809,14 @@ function StudyRoomDetailContent() {
         {/* Right: Exception Schedule */}
         <div className="col-md-6">
           <div className="card">
-            <div className="card-header">
+            <div className="card-header d-flex justify-content-between align-items-center">
               <h5 className="mb-0">例外スケジュール（特別営業・休室日）</h5>
+              <button
+                className="btn btn-info btn-sm"
+                onClick={handleOpenCopyExceptionModal}
+              >
+                📋 他の自習室にコピー
+              </button>
             </div>
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3">
@@ -710,6 +863,228 @@ function StudyRoomDetailContent() {
           </div>
         </div>
       </div>
+
+      {/* Copy Regular Schedule Modal */}
+      {showCopyRegularModal && (
+        <>
+          <div
+            className="modal fade show"
+            style={{ display: "block" }}
+            tabIndex={-1}
+          >
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">通常スケジュールをコピー</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowCopyRegularModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <div className="alert alert-info">
+                    <small>
+                      コピー先の自習室を選択してください。選択した自習室の通常スケジュールが上書きされます。
+                    </small>
+                  </div>
+
+                  <div className="form-check mb-3">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="selectAllRegular"
+                      checked={selectAll}
+                      onChange={handleToggleSelectAll}
+                    />
+                    <label
+                      className="form-check-label fw-bold"
+                      htmlFor="selectAllRegular"
+                    >
+                      すべて選択
+                    </label>
+                  </div>
+
+                  <div
+                    style={{
+                      maxHeight: "400px",
+                      overflowY: "auto",
+                      border: "1px solid #dee2e6",
+                      borderRadius: "4px",
+                      padding: "10px",
+                    }}
+                  >
+                    {getAvailableStudyRooms().length === 0 ? (
+                      <div className="text-muted text-center py-3">
+                        コピー可能な自習室がありません
+                      </div>
+                    ) : (
+                      getAvailableStudyRooms().map((room) => (
+                        <div key={room.studyRoomId} className="form-check mb-2">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`room-regular-${room.studyRoomId}`}
+                            checked={selectedStudyRoomIds.includes(
+                              room.studyRoomId.toString()
+                            )}
+                            onChange={() =>
+                              handleToggleStudyRoom(room.studyRoomId.toString())
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`room-regular-${room.studyRoomId}`}
+                          >
+                            {room.cramSchoolName} - {room.studyRoomName}
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="mt-3">
+                    <small className="text-muted">
+                      選択中: {selectedStudyRoomIds.length}件
+                    </small>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowCopyRegularModal(false)}
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleCopyRegularSchedule}
+                    disabled={selectedStudyRoomIds.length === 0}
+                  >
+                    コピー実行
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </>
+      )}
+
+      {/* Copy Exception Schedule Modal */}
+      {showCopyExceptionModal && (
+        <>
+          <div
+            className="modal fade show"
+            style={{ display: "block" }}
+            tabIndex={-1}
+          >
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">
+                    例外スケジュールをコピー ({currentYear}年{currentMonth}月)
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowCopyExceptionModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <div className="alert alert-info">
+                    <small>
+                      コピー先の自習室を選択してください。{currentYear}年
+                      {currentMonth}
+                      月の例外スケジュールが選択した自習室にコピーされます。
+                    </small>
+                  </div>
+
+                  <div className="form-check mb-3">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="selectAllException"
+                      checked={selectAll}
+                      onChange={handleToggleSelectAll}
+                    />
+                    <label
+                      className="form-check-label fw-bold"
+                      htmlFor="selectAllException"
+                    >
+                      すべて選択
+                    </label>
+                  </div>
+
+                  <div
+                    style={{
+                      maxHeight: "400px",
+                      overflowY: "auto",
+                      border: "1px solid #dee2e6",
+                      borderRadius: "4px",
+                      padding: "10px",
+                    }}
+                  >
+                    {getAvailableStudyRooms().length === 0 ? (
+                      <div className="text-muted text-center py-3">
+                        コピー可能な自習室がありません
+                      </div>
+                    ) : (
+                      getAvailableStudyRooms().map((room) => (
+                        <div key={room.studyRoomId} className="form-check mb-2">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`room-exception-${room.studyRoomId}`}
+                            checked={selectedStudyRoomIds.includes(
+                              room.studyRoomId.toString()
+                            )}
+                            onChange={() =>
+                              handleToggleStudyRoom(room.studyRoomId.toString())
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`room-exception-${room.studyRoomId}`}
+                          >
+                            {room.cramSchoolName} - {room.studyRoomName}
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="mt-3">
+                    <small className="text-muted">
+                      選択中: {selectedStudyRoomIds.length}件
+                    </small>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowCopyExceptionModal(false)}
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleCopyExceptionSchedule}
+                    disabled={selectedStudyRoomIds.length === 0}
+                  >
+                    コピー実行
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </>
+      )}
 
       {/* Exception Modal */}
       {showExceptionModal && (

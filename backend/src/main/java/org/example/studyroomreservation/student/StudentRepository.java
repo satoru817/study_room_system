@@ -21,7 +21,7 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
                 sli.loginName,
                 sli.password,
                 s.lineUserId,
-                c.mail,
+                c.email,
                 c.lineChannelToken
             )
             FROM StudentLoginInfo sli
