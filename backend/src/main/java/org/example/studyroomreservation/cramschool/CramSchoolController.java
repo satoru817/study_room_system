@@ -22,7 +22,7 @@ public final class CramSchoolController {
     @GetMapping("/get")
     public ResponseEntity<?> getAllOfOneTeacher(@AuthenticationPrincipal UserDetailsImpl userDetails)
     {
-        TeacherUser user = userDetails.convetToTeacher();
+        TeacherUser user = userDetails.convertToTeacher();
         List<CramSchool> cramschools = cramSchoolService.getAllByTeacher(user);
         return ResponseEntity.ok(cramschools);
     }

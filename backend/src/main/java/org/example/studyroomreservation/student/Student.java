@@ -38,6 +38,9 @@ public class Student {
     @Column
     private String cardId; // this might be unnecessary
 
+    @Column
+    private String lineUserId;
+
     //===========================================================================
     //           GETTERS
     //===========================================================================
@@ -69,6 +72,8 @@ public class Student {
         return cardId;
     }
 
+    public String getLineUserId() { return lineUserId; }
+
     //==============================================================
     //               SETTERS
     //=============================================================
@@ -88,7 +93,7 @@ public class Student {
     public static String getGradeStr(int el1) {
         LocalDate now = TokyoTimeElf.getTokyoLocalDate();
 
-        int grade= (now.getMonthValue() >= GRADE_CHANGE_MONTH) ? now.getYear() - el1 + 1 : now.getYear();
+        int grade= (now.getMonthValue() >= GRADE_CHANGE_MONTH) ? now.getYear() - el1 + 1 : now.getYear() - el1;
 
         return switch (grade) {
             case 1, 2, 3, 4, 5, 6 -> "小学" + grade + "年";

@@ -8,6 +8,9 @@ public class StudentLoginDTO {
     private final String cramSchoolName;
     private final String cardId;
     private final String mail;
+    private final String lineUserId;
+    private final String cramSchoolEmail;
+    private final String cramSchoolLineChannelToken;
 
     //===========================================
     //       INFORMATION FOR LOGIN
@@ -29,7 +32,10 @@ public class StudentLoginDTO {
             String cardId,
             String mail,
             String loginName,
-            String password
+            String password,
+            String lineUserId,
+            String cramSchoolEmail,
+            String cramSchoolLineChannelToken
     ) {
         this.studentId = studentId;
         this.el1 = el1;
@@ -40,6 +46,9 @@ public class StudentLoginDTO {
         this.mail = mail;
         this.loginName = loginName;
         this.password = password;
+        this.lineUserId = lineUserId;
+        this.cramSchoolEmail = cramSchoolEmail;
+        this.cramSchoolLineChannelToken = cramSchoolLineChannelToken;
     }
 
     //===========================================
@@ -80,5 +89,9 @@ public class StudentLoginDTO {
     public String getPassword() {
         return password;
     }
+
+    public String getLineUserId() { return lineUserId; }
+    public String getCramSchoolEmail() { return cramSchoolEmail; }
+    public String getCramSchoolLineChannelToken() { return cramSchoolLineChannelToken; }
 }
 

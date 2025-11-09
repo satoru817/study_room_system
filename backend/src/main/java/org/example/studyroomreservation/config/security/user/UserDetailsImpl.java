@@ -44,7 +44,7 @@ public record UserDetailsImpl(AbstractLoginClient loginClient) implements UserDe
         return true;
     }
 
-    public TeacherUser convetToTeacher()
+    public TeacherUser convertToTeacher()
     {
         try {
             return (TeacherUser) this.loginClient;

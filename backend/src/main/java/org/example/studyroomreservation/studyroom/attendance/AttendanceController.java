@@ -2,6 +2,7 @@ package org.example.studyroomreservation.studyroom.attendance;
 
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
+import org.example.studyroomreservation.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,12 +58,26 @@ public class AttendanceController {
         try {
             StudentUser student = userDetails.convertToStudent();
             Integer reservationId = request.validate(validator, student);
-            attendanceService.checkout(reservationId);
+            attendanceService.checkout(reservationId, student);
             return ResponseEntity.ok()
                     .body(Map.of("message", "退出を記録しました"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @PreAuthorize("hasRole('STUDENT')")
+    @PostMapping("/histories")
+    public ResponseEntity<?> getHistoriesOfThisStudent(@RequestBody DTO.AttendanceHistoryRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails)
+    {
+        try {
+            StudentUser student = userDetails.convertToStudent();
+            DTO.AttendanceHistoryResponse response = attendanceService.createHistoryResponse(request, student);
+            return ResponseEntity.ok()
+                    .body(response);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

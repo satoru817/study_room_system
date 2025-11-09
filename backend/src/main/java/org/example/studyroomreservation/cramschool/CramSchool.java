@@ -18,6 +18,9 @@ public class CramSchool {
     @Column
     private String email;
 
+    @Column
+    private String lineChannelToken;
+
     protected CramSchool() {
         // for JPA
     }
@@ -25,4 +28,5 @@ public class CramSchool {
     public int getCramSchoolId() { return cramSchoolId; }
     public String getName() { return name; }
     public String getEmail() { return email; }
+    public String getLineChannelToken() { return lineChannelToken ;}
 }

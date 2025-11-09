@@ -13,4 +13,12 @@ public class StudentUser extends AbstractLoginClient{
     public int getStudentId() {
         return studentLoginDTO.getStudentId();
     }
+    public String getStudentEmail() { return studentLoginDTO.getMail(); }
+    public String getCramSchoolEmail() { return studentLoginDTO.getCramSchoolEmail(); }
+    public String getLineUserId() { return studentLoginDTO.getLineUserId(); }
+    public String getCramSchoolLineChannelToken() { return studentLoginDTO.getCramSchoolLineChannelToken(); }
+    public String getCramSchoolName() {
+        return studentLoginDTO.getCramSchoolName();
+    }
+    public String getStudentName() { return studentLoginDTO.getName(); }
 }
