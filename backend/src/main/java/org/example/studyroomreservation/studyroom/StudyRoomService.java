@@ -255,7 +255,7 @@ public class StudyRoomService {
                 SELECT jt.study_room_id, srse.date, srse.is_open, srse.open_time, srse.close_time, srse.reason
                 FROM study_room_schedule_exceptions srse
                 CROSS JOIN JSON_TABLE(
-                    CAST(:toIdsJson AS JSON),
+                    CAST(:toStudyRoomIds AS JSON),
                     "$[*]" COLUMNS(study_room_id INT PATH "$")
                 ) jt
                 WHERE srse.study_room_id = :fromStudyRoomId

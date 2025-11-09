@@ -652,7 +652,10 @@ function StudyRoomDetailContent() {
                 >
                   ← 戻る
                 </button>
-                <h5 className="mb-0">デフォルト週間スケジュール</h5>
+                <div>
+                  <h5 className="mb-0">デフォルト週間スケジュール</h5>
+                  <small className="text-muted">{studyRoomName}</small>
+                </div>
               </div>
               <div>
                 <button
@@ -810,7 +813,10 @@ function StudyRoomDetailContent() {
         <div className="col-md-6">
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">例外スケジュール（特別営業・休室日）</h5>
+              <div>
+                <h5 className="mb-0">例外スケジュール（特別営業・休室日）</h5>
+                <small className="text-muted">{studyRoomName}</small>
+              </div>
               <button
                 className="btn btn-info btn-sm"
                 onClick={handleOpenCopyExceptionModal}
