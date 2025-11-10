@@ -3,6 +3,7 @@ package org.example.studyroomreservation.student;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.studyroomreservation.config.security.user.TeacherUser;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
+import org.example.studyroomreservation.elf.AccessElf;
 import org.example.studyroomreservation.notification.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,8 @@ public class StudentController {
     private StudentService studentService;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private AccessElf accessElf;
 
     // StudentController.java
     @PostMapping("/register")
@@ -80,5 +83,14 @@ public class StudentController {
         );
         return ResponseEntity.ok(status);
     }
+
+    @GetMapping("/get/{studentId}")
+    public ResponseEntity<?> getStudentName(@PathVariable int studentId, @AuthenticationPrincipal UserDetailsImpl userDetails) throws IllegalAccessException {
+        accessElf.isValidAccess(studentId, userDetails);
+        String name = studentService.getName(studentId);
+        return ResponseEntity.ok(name);
+    }
+
+
 
 }

@@ -80,6 +80,7 @@ public class SecurityConfig {
                             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
                             // Build JSON response with user info
                             Map<String, Object> result = new HashMap<>();
+                            // this id can be user_id or student_id
                             result.put("id", userDetails.loginClient().id);
                             result.put("success", true);
                             result.put("username", authentication.getName());

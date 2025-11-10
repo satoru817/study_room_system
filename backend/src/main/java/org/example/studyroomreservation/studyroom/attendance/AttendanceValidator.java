@@ -26,13 +26,12 @@ public final class AttendanceValidator {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Integer validate(StudentUser student, int studyRoomId) {
+    public Integer validate(int studentId, int studyRoomId) {
         LocalDateTime now = TokyoTimeElf.getTokyoLocalDateTime();
         LocalDate today = now.toLocalDate();
         LocalTime time = now.toLocalTime();
         LocalTime maxStartTime = time.plusMinutes(RESERVATION_LEAD_TIME_MINUTES);
         LocalTime minEndTime = time.plusMinutes(CHECK_IN_CUT_OFF_MINUTES);
-        int studentId = student.getStudentId();
 
         String sql = """
             SELECT study_room_reservation_id
@@ -54,12 +53,11 @@ public final class AttendanceValidator {
         return jdbcTemplate.queryForObject(sql, params, Integer.class);
     }
 
-    public Integer validateCheckout(StudentUser student, int studyRoomId) {
+    public Integer validateCheckout(int studentId, int studyRoomId) {
         LocalDateTime now = TokyoTimeElf.getTokyoLocalDateTime();
         LocalDate today = now.toLocalDate();
         LocalTime time = now.toLocalTime();
         LocalTime minCheckoutTime = time.minusMinutes(CHECKOUT_GRACE_MINUTES);
-        int studentId = student.getStudentId();
 
         String sql = """
                 SELECT study_room_reservation_id

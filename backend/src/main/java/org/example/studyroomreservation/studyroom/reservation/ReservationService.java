@@ -25,17 +25,15 @@ public class ReservationService {
     private NamedParameterJdbcTemplate jdbcTemplate;
 
 
-    public List<DTO.ReservationShowResponse> getReservationsOfOneStudentOfToday(StudentUser student) {
+    public List<DTO.ReservationShowResponse> getReservationsOfOneStudentOfToday(int studentId) {
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
-        int studentId = student.getStudentId();
         return reservationRepository.getReservationOfOneStudentOfThisDay(studentId, today);
     }
 
-    public dto.WeeklyAvailabilityResponse getWeeklyAvailabilityResponse(int studyRoomId, int offset, StudentUser student) {
+    public dto.WeeklyAvailabilityResponse getWeeklyAvailabilityResponse(int studyRoomId, int offset, int studentId) {
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
         LocalDate monday = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY)).plusWeeks((long) offset);
         LocalDate sunday = today.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY)).plusWeeks((long) offset);
-        int studentId = student.getStudentId();
         List<dto.TimeSlotAvailability> availabilities = getTimeSlotAvailability(studyRoomId, monday, sunday, studentId);
         List<dto.DailyAvailability> list =
                 availabilities.parallelStream()
@@ -195,7 +193,7 @@ public class ReservationService {
 
 
     @Transactional
-    public dto.WeeklyAvailabilityResponse createReservationBulk(StudentUser student, dto.CreateReservationRequest request) {
+    public dto.WeeklyAvailabilityResponse createReservationBulk(int studentId, dto.CreateReservationRequest request) {
         // get lock!
         String lock = """
                 SELECT 1 FROM study_rooms WHERE study_room_id = :studyRoomId FOR UPDATE
@@ -208,7 +206,6 @@ public class ReservationService {
         LocalDate start = request.getWeekStart();
         LocalDate end = request.getWeekEnd();
         int studyRoomId = request.studyRoomId();
-        int studentId = student.getStudentId();
 
         String deleteSql = """
                 DELETE FROM study_room_reservations
@@ -301,11 +298,11 @@ public class ReservationService {
                         .addValue("startHour", slot.startHour())
                         .addValue("endHour", slot.endHour())
                         .addValue("studyRoomId", request.studyRoomId())
-                        .addValue("studentId", student.getStudentId()))
+                        .addValue("studentId", studentId))
                 .toArray(SqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(insertSql, batchParams);
 
-        return getWeeklyAvailabilityResponse(request.studyRoomId(), request.offset(), student);
+        return getWeeklyAvailabilityResponse(request.studyRoomId(), request.offset(), studentId);
     }
 }

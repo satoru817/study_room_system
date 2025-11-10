@@ -2,6 +2,7 @@ package org.example.studyroomreservation.studyroom.reservation;
 
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
+import org.example.studyroomreservation.elf.AccessElf;
 import org.example.studyroomreservation.studyroom.dto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,13 +22,13 @@ import java.util.Map;
 public class ReservationController {
     @Autowired
     private ReservationService reservationService;
+    @Autowired
+    private AccessElf accessElf;
 
-    @PreAuthorize("hasRole('STUDENT')")
-    @GetMapping("/getTodays")
-    public ResponseEntity<?> getReservationOfToday(@AuthenticationPrincipal UserDetailsImpl userDetails)
-    {
-        StudentUser student = userDetails.convertToStudent();
-        List<DTO.ReservationShowResponse> response = reservationService.getReservationsOfOneStudentOfToday(student);
+    @GetMapping("/getTodays/{studentId}")
+    public ResponseEntity<?> getReservationOfToday(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable int studentId) throws IllegalAccessException {
+        accessElf.isValidAccess(studentId, userDetails);
+        List<DTO.ReservationShowResponse> response = reservationService.getReservationsOfOneStudentOfToday(studentId);
         return ResponseEntity.ok(response);
     }
 
@@ -37,24 +38,21 @@ public class ReservationController {
      * @param offset this means how many weeks ahead
      * @return
      */
-    @PreAuthorize("hasRole('STUDENT')")
-    @GetMapping("/weekly")
-    public ResponseEntity<dto.WeeklyAvailabilityResponse> getWeeklyAvailability(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam int studyRoomId, @RequestParam int offset)
-    {
-        StudentUser student = userDetails.convertToStudent();
-        dto.WeeklyAvailabilityResponse response = reservationService.getWeeklyAvailabilityResponse(studyRoomId, offset, student);
+    @GetMapping("/weekly/{studentId}")
+    public ResponseEntity<dto.WeeklyAvailabilityResponse> getWeeklyAvailability(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam int studyRoomId, @RequestParam int offset, @PathVariable int studentId) throws IllegalAccessException {
+        accessElf.isValidAccess(studentId, userDetails);
+        dto.WeeklyAvailabilityResponse response = reservationService.getWeeklyAvailabilityResponse(studyRoomId, offset, studentId);
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasRole('STUDENT')")
-    @PostMapping("/create")  // GETではなくPOSTが適切
+    @PostMapping("/create/{studentId}")
     public ResponseEntity<?> createBulk(
             @RequestBody dto.CreateReservationRequest request,
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails , @PathVariable int studentId) {
 
         try {
-            StudentUser student = userDetails.convertToStudent();
-            dto.WeeklyAvailabilityResponse response = reservationService.createReservationBulk(student, request);
+            accessElf.isValidAccess(studentId, userDetails);
+            dto.WeeklyAvailabilityResponse response = reservationService.createReservationBulk(studentId, request);
             return ResponseEntity.ok(response);
 
         } catch (IllegalStateException e) {

@@ -569,7 +569,7 @@ const Students = () => {
                             <a
                               href={`/student-dashboard?studentId=${student.studentId}`}
                               className="btn btn-sm btn-outline-primary"
-                              title="ダッシュボードを表示"
+                              title="生徒用ダッシュボードを表示"
                             >
                               <i className="bi bi-speedometer2"></i>
                             </a>

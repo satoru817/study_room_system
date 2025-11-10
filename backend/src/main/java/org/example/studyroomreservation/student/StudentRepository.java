@@ -74,4 +74,9 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
             WHERE s.studentId IN :studentIds
             """)
     List<StudentLoginDTO> getLoginDtosInIds(List<Integer> studentIds);
+
+    @Query(loginDtoQueryCommon + """
+            WHERE s.studentId = :studentId
+            """)
+    StudentLoginDTO getStudentLoginDTOByStudentId(int studentId);
 }

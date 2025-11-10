@@ -74,9 +74,8 @@ public class AttendanceService {
         notifyExit(studentUser);
     }
 
-    public DTO.AttendanceHistoryResponse createHistoryResponse(DTO.AttendanceHistoryRequest request, StudentUser student) {
+    public DTO.AttendanceHistoryResponse createHistoryResponse(DTO.AttendanceHistoryRequest request, int studentId) {
         boolean isAll = request.isAll();
-        int studentId = student.getStudentId();
         String commonSql = """
             SELECT
                 DATE_SUB(srr.date, INTERVAL WEEKDAY(srr.date) DAY) AS weekStartDay,

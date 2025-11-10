@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 import { doGet, doPost } from "@/app/elfs/WebserviceElf";
 
-export default function Booking() {
+function Booking() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const studentId = searchParams.get("studentId");
   const [studyRooms, setStudyRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -19,7 +21,7 @@ export default function Booking() {
 
   useEffect(() => {
     const fetchStudyRoomsOfThisStudent = async () => {
-      const studyRooms = await doGet("/api/studyRoom/ofStudent");
+      const studyRooms = await doGet(`/api/studyRoom/ofStudent/${studentId}`);
       setStudyRooms(studyRooms);
       if (studyRooms.length > 0) {
         setSelectedRoomId(studyRooms[0].studyRoomId);
@@ -27,14 +29,14 @@ export default function Booking() {
     };
 
     fetchStudyRoomsOfThisStudent();
-  }, []);
+  }, [studentId]);
 
   useEffect(() => {
     const fetchWeeklyAvailability = async () => {
       setLoading(true);
       try {
         const data = await doGet(
-          `/api/reservation/weekly?studyRoomId=${selectedRoomId}&offset=${weekOffset}`
+          `/api/reservation/weekly/${studentId}?studyRoomId=${selectedRoomId}&offset=${weekOffset}`
         );
         setWeeklyData(data);
         //既存の予約をselectedSlotsに追加
@@ -58,7 +60,7 @@ export default function Booking() {
     if (selectedRoomId !== null) {
       fetchWeeklyAvailability();
     }
-  }, [selectedRoomId, weekOffset]);
+  }, [selectedRoomId, weekOffset, studentId]);
 
   const handleRoomChange = (e) => {
     setSelectedRoomId(parseInt(e.target.value));
@@ -217,11 +219,14 @@ export default function Booking() {
     }
 
     try {
-      const updatedWeeklyData = await doPost("/api/reservation/create", {
-        studyRoomId: selectedRoomId,
-        reservations: grouped,
-        offset: weekOffset,
-      });
+      const updatedWeeklyData = await doPost(
+        `/api/reservation/create/${studentId}`,
+        {
+          studyRoomId: selectedRoomId,
+          reservations: grouped,
+          offset: weekOffset,
+        }
+      );
       alert("予約が完了しました！");
       setWeeklyData(updatedWeeklyData);
 
@@ -634,5 +639,13 @@ export default function Booking() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function StudentBooking() {
+  return (
+    <Suspense fallback={<div className="p-6">読み込み中</div>}>
+      <Booking></Booking>
+    </Suspense>
   );
 }

@@ -49,7 +49,7 @@ public record UserDetailsImpl(AbstractLoginClient loginClient) implements UserDe
         try {
             return (TeacherUser) this.loginClient;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return null;
         }
     }
 
@@ -58,7 +58,7 @@ public record UserDetailsImpl(AbstractLoginClient loginClient) implements UserDe
         try {
             return (StudentUser) loginClient;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return null;
         }
     }
 }

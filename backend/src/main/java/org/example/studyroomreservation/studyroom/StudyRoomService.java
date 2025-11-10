@@ -163,8 +163,8 @@ public class StudyRoomService {
         return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
     }
 
-    public List<dto.StudyRoomShowResponseForStudent> getStudyRoomsOfStudent(StudentUser student) {
-        return studyRoomRepository.getStudyRoomOfThisStudent(student.getStudentId());
+    public List<dto.StudyRoomShowResponseForStudent> getStudyRoomsOfStudent(int studentId) {
+        return studyRoomRepository.getStudyRoomOfThisStudent(studentId);
     }
 
     public List<dto.StudyRoomShow> getThisTeachers(TeacherUser teacherUser) {

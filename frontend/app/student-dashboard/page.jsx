@@ -18,7 +18,7 @@ import {
 } from "recharts";
 
 // 学習時間グラフコンポーネント
-function StudyTimeChart() {
+function StudyTimeChart({ studentId }) {
   const [chartData, setChartData] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState("4weeks");
   const [loading, setLoading] = useState(true);
@@ -47,7 +47,10 @@ function StudyTimeChart() {
         weeks: selectedOption.weeks,
       };
 
-      const response = await doPost("/api/attendance/histories", requestBody);
+      const response = await doPost(
+        `/api/attendance/histories/${studentId}`,
+        requestBody
+      );
 
       const formattedData = response.histories.map((record) => {
         const date = new Date(record.weekStartDay);
@@ -224,7 +227,8 @@ function StudyTimeChart() {
 function StudentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const studentName = searchParams.get("username");
+  const studentId = searchParams.get("studentId");
+  const [studentName, setStudentName] = useState(null);
   const [todaysReservations, setTodaysReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -300,10 +304,18 @@ function StudentContent() {
   };
 
   useEffect(() => {
+    const fetchStudentName = async () => {
+      const _studentName = await doGet(`/api/student/get/${studentId}`);
+      setStudentName(_studentName);
+    };
+    fetchStudentName();
+  }, [studentId]);
+
+  useEffect(() => {
     const fetchTodaysReservations = async () => {
       try {
         const reservationsOfThisStudent = await doGet(
-          "/api/reservation/getTodays"
+          `/api/reservation/getTodays/${studentId}`
         );
 
         if (Array.isArray(reservationsOfThisStudent)) {
@@ -324,7 +336,7 @@ function StudentContent() {
     };
 
     fetchTodaysReservations();
-  }, []);
+  }, [studentId]);
 
   useEffect(() => {
     const checkValidTime = () => {
@@ -348,7 +360,9 @@ function StudentContent() {
   }, []);
 
   const handleBookReservation = () => {
-    router.push("/student-dashboard/book");
+    router.push(
+      `/student-dashboard/book?studentId=${encodeURIComponent(studentId)}`
+    );
   };
 
   const handleOpenQRScanner = () => {
@@ -440,12 +454,12 @@ function StudentContent() {
 
     try {
       if (actionType === "checkin") {
-        await doPost("/api/attendance/record", {
+        await doPost(`/api/attendance/record/${studentId}`, {
           studyRoomId: scannedData.studyRoomId,
         });
         alert("入室を記録しました！");
       } else if (actionType === "checkout") {
-        await doPost("/api/attendance/checkout", {
+        await doPost(`/api/attendance/checkout/${studentId}`, {
           studyRoomId: scannedData.studyRoomId,
         });
         alert("退室を記録しました！");
@@ -453,7 +467,9 @@ function StudentContent() {
 
       handleCloseQRScanner();
 
-      const updatedReservations = await doGet("/api/reservation/getTodays");
+      const updatedReservations = await doGet(
+        `/api/reservation/getTodays/${studentId}`
+      );
       setTodaysReservations(updatedReservations);
     } catch (error) {
       console.error("記録に失敗:", error);
@@ -687,7 +703,7 @@ function StudentContent() {
 
       {/* 学習時間グラフ - 予約リストの下に配置 */}
       <div className="max-w-4xl mx-auto">
-        <StudyTimeChart />
+        <StudyTimeChart studentId={studentId} />
       </div>
 
       {/* QRスキャナーモーダル */}

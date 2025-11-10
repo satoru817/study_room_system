@@ -1,9 +1,13 @@
 package org.example.studyroomreservation.student;
 
+import org.example.studyroomreservation.config.security.user.StudentUser;
+import org.example.studyroomreservation.config.security.user.UserDetailsServiceImpl;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class StudentService {
@@ -20,18 +25,24 @@ public class StudentService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final StudentRepository studentRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private final UserDetailsServiceImpl userDetailsService;
 
     public StudentService(
             StudentTokenRepository studentTokenRepository,
             StudentLoginInfoRepository studentLoginInfoRepository,
             StudentRepository studentRepository,
-            JdbcTemplate jdbcTemplate
+            JdbcTemplate jdbcTemplate,
+            NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+            UserDetailsServiceImpl userDetailsService
     ) {
         this.studentTokenRepository = studentTokenRepository;
         this.studentLoginInfoRepository = studentLoginInfoRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.studentRepository = studentRepository;
         this.jdbcTemplate = jdbcTemplate;
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+        this.userDetailsService = userDetailsService;
     }
 
     @Transactional
@@ -86,5 +97,18 @@ public class StudentService {
 
     public List<StudentLoginDTO> getLoginDtosInIds(List<Integer> studentIds) {
         return studentRepository.getLoginDtosInIds(studentIds);
+    }
+
+    public String getName(int studentId) {
+        String sql = """
+                SELECT s.name
+                FROM students s
+                WHERE s.student_id = :studentId
+                """;
+        return namedParameterJdbcTemplate.queryForObject(sql, Map.of("studentId", studentId), String.class);
+    }
+
+    public StudentUser getStudentUserByStudentId(int studentId) {
+        return userDetailsService.loadStudentUserByStudentId(studentId);
     }
 }

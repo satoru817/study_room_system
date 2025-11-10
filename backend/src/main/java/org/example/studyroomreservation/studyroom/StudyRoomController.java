@@ -6,6 +6,7 @@ import org.example.studyroomreservation.config.security.user.TeacherUser;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
 import org.example.studyroomreservation.cramschool.CramSchoolService;
 import org.example.studyroomreservation.cramschool.CramSchool;
+import org.example.studyroomreservation.elf.AccessElf;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
@@ -26,6 +27,8 @@ public class StudyRoomController {
     private StudyRoomService studyRoomService;
     @Autowired
     private CramSchoolService cramSchoolService;
+    @Autowired
+    private AccessElf accessElf;
 
     @GetMapping("/get/{cramSchoolId}")
     @PreAuthorize("hasRole('TEACHER')")
@@ -118,12 +121,10 @@ public class StudyRoomController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/ofStudent")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<?> getStudyRoomOfThisStudent(@AuthenticationPrincipal UserDetailsImpl userDetails)
-    {
-        StudentUser student = userDetails.convertToStudent();
-        List<dto.StudyRoomShowResponseForStudent> studyRooms = studyRoomService.getStudyRoomsOfStudent(student);
+    @GetMapping("/ofStudent/{studentId}")
+    public ResponseEntity<?> getStudyRoomOfThisStudent(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable int studentId) throws IllegalAccessException {
+        accessElf.isValidAccess(studentId, userDetails);
+        List<dto.StudyRoomShowResponseForStudent> studyRooms = studyRoomService.getStudyRoomsOfStudent(studentId);
         return ResponseEntity.ok(studyRooms);
     }
 

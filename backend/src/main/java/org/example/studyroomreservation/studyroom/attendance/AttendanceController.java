@@ -2,13 +2,16 @@ package org.example.studyroomreservation.studyroom.attendance;
 
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
+import org.example.studyroomreservation.elf.AccessElf;
 import org.example.studyroomreservation.entity.User;
+import org.example.studyroomreservation.student.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,15 +25,18 @@ public class AttendanceController {
     private AttendanceValidator validator;
     @Autowired
     private AttendanceService attendanceService;
+    @Autowired
+    private AccessElf accessElf;
+    @Autowired
+    private StudentService studentService;
 
-    @PreAuthorize("hasRole('STUDENT')")
-    @PostMapping("/record")
+    @PostMapping("/record/{studentId}")
     public ResponseEntity<?> attend(@RequestBody DTO.AttendanceRequest request,
-                                    @AuthenticationPrincipal UserDetailsImpl userDetails) {
+                                    @AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable int studentId) {
         try {
-            StudentUser student = userDetails.convertToStudent();
-            Integer reservationId = request.validate(validator, student);
-
+            accessElf.isValidAccess(studentId, userDetails);
+            Integer reservationId = request.validate(validator, studentId);
+            StudentUser student = studentService.getStudentUserByStudentId(studentId);
             if (reservationId == null) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "有効な予約が見つかりません。予約時間内か確認してください。"));
@@ -51,13 +57,13 @@ public class AttendanceController {
         }
     }
 
-    @PreAuthorize("hasRole('STUDENT')")
-    @PostMapping("/checkout")
-    public ResponseEntity<?> checkout(@RequestBody DTO.CheckoutRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails)
+    @PostMapping("/checkout/{studentId}")
+    public ResponseEntity<?> checkout(@RequestBody DTO.CheckoutRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable int studentId)
     {
         try {
-            StudentUser student = userDetails.convertToStudent();
-            Integer reservationId = request.validate(validator, student);
+            accessElf.isValidAccess(studentId, userDetails);
+            Integer reservationId = request.validate(validator, studentId);
+            StudentUser student = studentService.getStudentUserByStudentId(studentId);
             attendanceService.checkout(reservationId, student);
             return ResponseEntity.ok()
                     .body(Map.of("message", "退出を記録しました"));
@@ -67,13 +73,12 @@ public class AttendanceController {
 
     }
 
-    @PreAuthorize("hasRole('STUDENT')")
-    @PostMapping("/histories")
-    public ResponseEntity<?> getHistoriesOfThisStudent(@RequestBody DTO.AttendanceHistoryRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails)
+    @PostMapping("/histories/{studentId}")
+    public ResponseEntity<?> getHistoriesOfThisStudent(@PathVariable int studentId, @RequestBody DTO.AttendanceHistoryRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails)
     {
         try {
-            StudentUser student = userDetails.convertToStudent();
-            DTO.AttendanceHistoryResponse response = attendanceService.createHistoryResponse(request, student);
+            accessElf.isValidAccess(studentId, userDetails);
+            DTO.AttendanceHistoryResponse response = attendanceService.createHistoryResponse(request, studentId);
             return ResponseEntity.ok()
                     .body(response);
         } catch (Exception e) {

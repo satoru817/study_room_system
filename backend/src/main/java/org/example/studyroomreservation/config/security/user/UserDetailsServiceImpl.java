@@ -37,4 +37,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         throw new UsernameNotFoundException("User not found: " + username);
     }
+
+    public StudentUser loadStudentUserByStudentId(int studentId) {
+        StudentLoginDTO loginDTO = studentRepository.getStudentLoginDTOByStudentId(studentId);
+        return new StudentUser(loginDTO);
+    }
 }
