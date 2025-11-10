@@ -496,6 +496,9 @@ const Students = () => {
                         <th className="text-center" style={{ width: "60px" }}>
                           出席
                         </th>
+                        <th className="text-center" style={{ width: "100px" }}>
+                          操作
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -558,6 +561,18 @@ const Students = () => {
                             ) : (
                               <i className="bi bi-dash text-muted"></i>
                             )}
+                          </td>
+                          <td
+                            className="text-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <a
+                              href={`/student-dashboard?studentId=${student.studentId}`}
+                              className="btn btn-sm btn-outline-primary"
+                              title="ダッシュボードを表示"
+                            >
+                              <i className="bi bi-speedometer2"></i>
+                            </a>
                           </td>
                         </tr>
                       ))}

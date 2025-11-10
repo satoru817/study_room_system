@@ -7,7 +7,7 @@ public class TeacherUser extends AbstractLoginClient {
     public final User user;
 
     public TeacherUser(User user) {
-        super(Authority.ROLE_TEACHER, user.getPassword(), user.getName());
+        super(Authority.ROLE_TEACHER, user.getPassword(), user.getName(), user.getUserId());
         this.user = user;
     }
 }

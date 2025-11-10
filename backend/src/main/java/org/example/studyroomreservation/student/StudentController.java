@@ -70,7 +70,7 @@ public class StudentController {
 
     @PostMapping("/send-register-link")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<?> sendRegisterLinkEmail(@RequestBody List<Integer> studentIds, HttpServletRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<?> sendRegisterLink(@RequestBody List<Integer> studentIds, HttpServletRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         TeacherUser teacher = (TeacherUser) userDetails.loginClient();
         int userId = teacher.user.getUserId();
         DTO.NotificationSuccessStatus status = notificationService.sendRegistrationUrl(

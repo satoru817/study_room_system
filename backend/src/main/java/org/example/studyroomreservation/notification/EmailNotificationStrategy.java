@@ -1,5 +1,6 @@
 package org.example.studyroomreservation.notification;
 
+import jakarta.annotation.PostConstruct;
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.elf.StringElf;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
@@ -22,19 +23,18 @@ import java.util.Collections;
 public class EmailNotificationStrategy implements NotificationStrategy{
     private static final Logger log = LoggerFactory.getLogger(EmailNotificationStrategy.class);
 
-    private final TransactionalEmailsApi apiInstance;
+    private TransactionalEmailsApi apiInstance;
     @Value("${sendinblue.api-key}")
     private String apiKey;
 
-    public EmailNotificationStrategy() {
-
+    @PostConstruct
+    public void init() {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         ApiKeyAuth apiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
         apiKeyAuth.setApiKey(apiKey);
         this.apiInstance = new TransactionalEmailsApi();
-
-        log.info("EmailNotificationStrategy initialized with API key: {}",
-                apiKey != null && !apiKey.isEmpty());
+        // ログで成功確認（本番では削除）
+        System.out.println("APIキー設定済み: " + (apiKey != null && !apiKey.isEmpty()));
     }
 
     @Override

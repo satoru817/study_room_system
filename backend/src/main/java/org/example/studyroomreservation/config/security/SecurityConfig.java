@@ -2,6 +2,7 @@ package org.example.studyroomreservation.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,9 +77,10 @@ public class SecurityConfig {
                         .successHandler((request, response, authentication) -> {
                             response.setStatus(HttpServletResponse.SC_OK);
                             response.setContentType("application/json;charset=UTF-8");
-
+                            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
                             // Build JSON response with user info
                             Map<String, Object> result = new HashMap<>();
+                            result.put("id", userDetails.loginClient().id);
                             result.put("success", true);
                             result.put("username", authentication.getName());
                             // maybe just adding one role is enough... list seems ridiculous

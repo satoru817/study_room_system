@@ -6,7 +6,7 @@ public class StudentUser extends AbstractLoginClient{
     private StudentLoginDTO studentLoginDTO;
 
     protected StudentUser(StudentLoginDTO studentLoginDTO) {
-        super(Authority.ROLE_STUDENT, studentLoginDTO.getPassword(), studentLoginDTO.getLoginName());
+        super(Authority.ROLE_STUDENT, studentLoginDTO.getPassword(), studentLoginDTO.getLoginName(), studentLoginDTO.getStudentId());
         this.studentLoginDTO = studentLoginDTO;
     }
 

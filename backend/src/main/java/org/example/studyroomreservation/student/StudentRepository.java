@@ -54,7 +54,23 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
             """)
     Page<StudentStatus> getStatuses(int cramSchoolId, LocalDate today, LocalTime now, int minEl1, Pageable pageable);
 
-    @Query(loginDtoQueryCommon + """
+    @Query( """
+            SELECT NEW org.example.studyroomreservation.student.StudentLoginDTO(
+                s.studentId,
+                s.el1,
+                s.name,
+                s.furigana,
+                c.name,
+                s.cardId,
+                s.mail,
+                '',
+                '',
+                s.lineUserId,
+                c.email,
+                c.lineChannelToken
+            )
+            FROM Student s
+            JOIN s.cramSchool c
             WHERE s.studentId IN :studentIds
             """)
     List<StudentLoginDTO> getLoginDtosInIds(List<Integer> studentIds);

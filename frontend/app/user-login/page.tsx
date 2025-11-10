@@ -13,10 +13,10 @@ export default function LoginPage() {
   const router = useRouter();
 
   const navigateBasedOnRole = useCallback(
-    async (role: string, username: string) => {
+    async (role: string, id: number) => {
       const navigateTo =
         role === "ROLE_STUDENT"
-          ? `/student-dashboard?username=${encodeURIComponent(username)}`
+          ? `/student-dashboard?studentId=${encodeURIComponent(id)}`
           : "/teacher-dashboard";
       router.push(navigateTo);
     },
@@ -45,8 +45,9 @@ export default function LoginPage() {
     if (response.success) {
       setIsSubmitting(false);
       const role = response.role;
+      const id = response.id;
       await getCsrfToken();
-      navigateBasedOnRole(role, username);
+      navigateBasedOnRole(role, id);
     } else {
       setIsSubmitting(false);
       alert(response.error || "ログインに失敗しました");
