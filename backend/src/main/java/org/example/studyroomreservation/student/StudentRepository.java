@@ -7,9 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 public interface StudentRepository extends JpaRepository<Student, Integer> {
-    @Query("""
+    String loginDtoQueryCommon = """
             SELECT NEW org.example.studyroomreservation.student.StudentLoginDTO(
                 s.studentId,
                 s.el1,
@@ -27,6 +28,10 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
             FROM StudentLoginInfo sli
             JOIN sli.student s
             JOIN s.cramSchool c
+            """;
+
+
+    @Query( loginDtoQueryCommon + """
             WHERE sli.loginName = :loginName
             """)
     StudentLoginDTO getStudentLoginDTOByLoginName(String loginName);
@@ -48,4 +53,9 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
             LEFT JOIN StudentLoginInfo sli ON sli.student = s
             """)
     Page<StudentStatus> getStatuses(int cramSchoolId, LocalDate today, LocalTime now, int minEl1, Pageable pageable);
+
+    @Query(loginDtoQueryCommon + """
+            WHERE s.studentId IN :studentIds
+            """)
+    List<StudentLoginDTO> getLoginDtosInIds(List<Integer> studentIds);
 }

@@ -16,6 +16,7 @@ import com.linecorp.bot.model.message.flex.unit.FlexPaddingSize;
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.elf.StringElf;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.student.StudentLoginDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -35,6 +36,11 @@ public class LineNotificationStrategy implements NotificationStrategy{
     }
 
     @Override
+    public boolean canSend(StudentLoginDTO student) {
+        return StringElf.isValid(student.getLineUserId()) && StringElf.isValid(student.getCramSchoolLineChannelToken());
+    }
+
+    @Override
     public void sendEntranceNotification(StudentUser student) {
         FlexMessage message = createAttendanceLineFlexMessage(student.getStudentName() + "さん自習室入室連絡", student.getStudentName(), "自習室入室", TokyoTimeElf.getFormattedTime());
         sendLineShared(student, message);
@@ -44,6 +50,16 @@ public class LineNotificationStrategy implements NotificationStrategy{
     public void sendExitNotification(StudentUser student) {
         FlexMessage message = createAttendanceLineFlexMessage(student.getStudentName() + "さん自習室退室連絡", student.getStudentName(), "自習室退室", TokyoTimeElf.getFormattedTime());
         sendLineShared(student, message);
+    }
+
+    @Override
+    public void sendRegistrationUrl(StudentLoginDTO student, String url, int validPeriod) {
+        try {
+            FlexMessage message = createRegistrationLineFlexMessage(student, url, validPeriod);
+            sendLineShared(student, message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendLineShared(StudentUser studentUser, FlexMessage message) {
@@ -64,6 +80,27 @@ public class LineNotificationStrategy implements NotificationStrategy{
             log.error("LINE送信失敗: {}", studentUser.getStudentName(), e);
             throw new RuntimeException("LINE送信エラー", e);
         }
+    }
+
+    private void sendLineShared(StudentLoginDTO student, FlexMessage message) throws ExecutionException, InterruptedException {
+        LineMessagingClient client = LineMessagingClient
+                .builder(student.getCramSchoolLineChannelToken())
+                .build();
+
+        client.pushMessage(new PushMessage(
+                student.getLineUserId(),
+                Collections.singletonList(message)
+        )).get();
+    }
+
+    private FlexMessage createRegistrationLineFlexMessage(StudentLoginDTO student, String url ,int validPeriod) {
+        Text title = getTitle("翔栄学院入退室システム登録のお願い");
+        Text message = getHeadMessage(student.getName() , "様");
+        Button link = getLinkBtn("以下のリンクをクリックしてシステムに登録してください", url);
+        Text note = createNote(validPeriod);
+        Box body = getBox(Arrays.asList(title, message, link, note));
+        Bubble bubble = createFromBody(body);
+        return new FlexMessage("翔栄学院入退室システム登録のお願い", bubble);
     }
 
     private FlexMessage createAttendanceLineFlexMessage(String subject, String studentName, String action, String formattedTime) {

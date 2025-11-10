@@ -1,9 +1,9 @@
 package org.example.studyroomreservation.student;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.example.studyroomreservation.commonService.EmailService;
 import org.example.studyroomreservation.config.security.user.TeacherUser;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
+import org.example.studyroomreservation.notification.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,7 +24,7 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
     @Autowired
-    private EmailService emailService;
+    private NotificationService notificationService;
 
     // StudentController.java
     @PostMapping("/register")
@@ -74,9 +73,12 @@ public class StudentController {
     public ResponseEntity<?> sendRegisterLinkEmail(@RequestBody List<Integer> studentIds, HttpServletRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         TeacherUser teacher = (TeacherUser) userDetails.loginClient();
         int userId = teacher.user.getUserId();
-        EmailService.EmailSuccessStatus status = emailService.sendRegistrationEmail(studentIds, request, userId);
+        DTO.NotificationSuccessStatus status = notificationService.sendRegistrationUrl(
+                studentIds,
+                request,
+                userId
+        );
         return ResponseEntity.ok(status);
     }
-
 
 }
