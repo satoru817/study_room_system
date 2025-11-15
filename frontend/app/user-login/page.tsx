@@ -55,10 +55,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center vh-100">
-      <div className="card mx-auto" style={{ maxWidth: "400px" }}>
-        <div className="card-body">
-          <h2 className="card-title">ログイン</h2>
+    <div className="container d-flex justify-content-center align-items-center vh-100 px-3">
+      <div className="card mx-auto w-100" style={{ maxWidth: "400px" }}>
+        <div className="card-body p-3 p-sm-4">
+          <h2 className="card-title mb-3 text-center">ログイン</h2>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label className="form-label">

@@ -601,16 +601,17 @@ function StudyRoomDetailContent() {
           onClick={() => handleDateClick(day)}
           style={{
             cursor: "pointer",
-            padding: "10px",
+            padding: "8px",
             backgroundColor: isClosed ? "#ffcccc" : hasEx ? "#fff3cd" : "white",
             border: "1px solid #dee2e6",
             textAlign: "center",
+            minHeight: "50px",
           }}
           className="hover-cell"
         >
-          <div>{day}</div>
+          <div style={{ fontSize: "1rem", fontWeight: hasEx ? "bold" : "normal" }}>{day}</div>
           {hasEx && (
-            <small style={{ color: isClosed ? "#dc3545" : "#856404" }}>
+            <small style={{ color: isClosed ? "#dc3545" : "#856404", fontSize: "0.7rem" }}>
               {isClosed ? "休室" : "特別"}
             </small>
           )}
@@ -633,47 +634,50 @@ function StudyRoomDetailContent() {
   };
 
   return (
-    <div className="container-fluid mt-4" onMouseUp={handleMouseUp}>
+    <div className="container-fluid mt-3 mt-md-4 px-2 px-md-3" onMouseUp={handleMouseUp}>
       <style jsx>{`
         .hover-cell:hover {
           background-color: #e9ecef !important;
         }
       `}</style>
 
-      <div className="row">
+      <div className="row g-3">
         {/* Left: Regular Schedule */}
-        <div className="col-md-6">
+        <div className="col-12 col-lg-6">
           <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <div className="d-flex align-items-center">
-                <button
-                  className="btn btn-outline-secondary me-3"
-                  onClick={() => router.back()}
-                >
-                  ← 戻る
-                </button>
-                <div>
-                  <h5 className="mb-0">デフォルト週間スケジュール</h5>
-                  <small className="text-muted">{studyRoomName}</small>
+            <div className="card-header">
+              <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-2">
+                <div className="d-flex align-items-center w-100 w-sm-auto">
+                  <button
+                    className="btn btn-outline-secondary btn-sm me-2"
+                    onClick={() => router.back()}
+                  >
+                    ← 戻る
+                  </button>
+                  <div>
+                    <h5 className="mb-0 fs-6">デフォルト週間スケジュール</h5>
+                    <small className="text-muted">{studyRoomName}</small>
+                  </div>
                 </div>
               </div>
-              <div>
+              <div className="d-flex flex-wrap gap-2">
                 <button
-                  className="btn btn-info btn-sm me-2"
+                  className="btn btn-info btn-sm flex-fill flex-sm-grow-0"
                   onClick={handleOpenCopyRegularModal}
                 >
-                  📋 他の自習室にコピー
+                  <span className="d-none d-sm-inline">📋 他の自習室にコピー</span>
+                  <span className="d-inline d-sm-none">📋 コピー</span>
                 </button>
                 {hasChanges && (
                   <>
                     <button
-                      className="btn btn-warning btn-sm me-2"
+                      className="btn btn-warning btn-sm flex-fill flex-sm-grow-0"
                       onClick={handleReset}
                     >
                       リセット
                     </button>
                     <button
-                      className="btn btn-success btn-sm"
+                      className="btn btn-success btn-sm flex-fill flex-sm-grow-0"
                       onClick={handleSaveSchedules}
                     >
                       💾 保存
@@ -682,15 +686,15 @@ function StudyRoomDetailContent() {
                 )}
               </div>
             </div>
-            <div className="card-body">
-              <div className="alert alert-info">
+            <div className="card-body p-2 p-sm-3">
+              <div className="alert alert-info mb-2 py-2 px-2">
                 <small>📌 ドラッグして開室時間を設定</small>
               </div>
 
               <div className="table-responsive">
                 <table
-                  className="table table-bordered text-center"
-                  style={{ userSelect: "none", fontSize: "0.8rem" }}
+                  className="table table-bordered text-center mb-0"
+                  style={{ userSelect: "none", fontSize: "0.75rem" }}
                 >
                   <thead>
                     <tr>
@@ -787,8 +791,8 @@ function StudyRoomDetailContent() {
               </div>
 
               {/* 開室時間の文字表示 */}
-              <div className="mb-3 p-3 bg-light rounded">
-                <h6 className="mb-2">現在の開室時間</h6>
+              <div className="mt-2 p-2 p-sm-3 bg-light rounded">
+                <h6 className="mb-2 fs-6">現在の開室時間</h6>
                 {weekSchedule.map((day) => (
                   <div key={day.dayOfWeek} className="mb-1">
                     <strong>{day.dayLabel}曜日: </strong>
@@ -810,61 +814,66 @@ function StudyRoomDetailContent() {
         </div>
 
         {/* Right: Exception Schedule */}
-        <div className="col-md-6">
+        <div className="col-12 col-lg-6">
           <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <div>
-                <h5 className="mb-0">例外スケジュール（特別営業・休室日）</h5>
-                <small className="text-muted">{studyRoomName}</small>
+            <div className="card-header">
+              <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-2">
+                <div>
+                  <h5 className="mb-0 fs-6">例外スケジュール（特別営業・休室日）</h5>
+                  <small className="text-muted">{studyRoomName}</small>
+                </div>
+                <button
+                  className="btn btn-info btn-sm w-100 w-sm-auto"
+                  onClick={handleOpenCopyExceptionModal}
+                >
+                  <span className="d-none d-sm-inline">📋 他の自習室にコピー</span>
+                  <span className="d-inline d-sm-none">📋 コピー</span>
+                </button>
               </div>
-              <button
-                className="btn btn-info btn-sm"
-                onClick={handleOpenCopyExceptionModal}
-              >
-                📋 他の自習室にコピー
-              </button>
             </div>
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="card-body p-2 p-sm-3">
+              <div className="d-flex justify-content-between align-items-center mb-2 mb-sm-3">
                 <button
                   className="btn btn-outline-primary btn-sm"
                   onClick={handlePrevMonth}
                 >
-                  ← 前月
+                  ← <span className="d-none d-sm-inline">前月</span>
                 </button>
-                <h5 className="mb-0">
+                <h5 className="mb-0 fs-6">
                   {currentYear}年 {currentMonth}月
                 </h5>
                 <button
                   className="btn btn-outline-primary btn-sm"
                   onClick={handleNextMonth}
                 >
-                  次月 →
+                  <span className="d-none d-sm-inline">次月</span> →
                 </button>
               </div>
 
-              <div className="alert alert-warning">
+              <div className="alert alert-warning mb-2 py-2 px-2">
                 <small>
-                  📅 カレンダーの日付をクリックして例外を設定
+                  📅 <span className="d-none d-sm-inline">カレンダーの日付をクリックして例外を設定</span><span className="d-inline d-sm-none">日付タップで設定</span>
                   <br />
-                  🟨 黄色: 特別営業日 / 🟥 赤色: 休室日
+                  🟨 <span className="d-none d-sm-inline">黄色: 特別営業日 / </span>🟥 <span className="d-none d-sm-inline">赤色: </span>休室日
                 </small>
               </div>
 
-              <table className="table table-bordered">
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "center", color: "red" }}>日</th>
-                    <th style={{ textAlign: "center" }}>月</th>
-                    <th style={{ textAlign: "center" }}>火</th>
-                    <th style={{ textAlign: "center" }}>水</th>
-                    <th style={{ textAlign: "center" }}>木</th>
-                    <th style={{ textAlign: "center" }}>金</th>
-                    <th style={{ textAlign: "center", color: "blue" }}>土</th>
-                  </tr>
-                </thead>
-                <tbody>{renderCalendar()}</tbody>
-              </table>
+              <div className="table-responsive">
+                <table className="table table-bordered mb-0" style={{ fontSize: "0.85rem" }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "center", color: "red", padding: "8px" }}>日</th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>月</th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>火</th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>水</th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>木</th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>金</th>
+                      <th style={{ textAlign: "center", color: "blue", padding: "8px" }}>土</th>
+                    </tr>
+                  </thead>
+                  <tbody>{renderCalendar()}</tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

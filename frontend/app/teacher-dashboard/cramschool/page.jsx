@@ -247,79 +247,79 @@ function CramSchoolDetailContent() {
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-3 mt-md-5 px-3">
       <div className="row justify-content-center">
-        <div className="col-md-8">
+        <div className="col-12 col-md-10 col-lg-8">
           <div className="card">
             <div className="card-header">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <div className="d-flex align-items-center">
+              <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
+                <div className="d-flex align-items-center w-100 w-sm-auto">
                   <button
-                    className="btn btn-outline-secondary me-3"
+                    className="btn btn-outline-secondary me-2 me-sm-3"
                     onClick={() => router.back()}
                   >
                     ← 戻る
                   </button>
-                  <h4 className="mb-0">{cramSchoolName} - 自習室管理</h4>
+                  <h4 className="mb-0 fs-6 fs-sm-5">{cramSchoolName} - 自習室管理</h4>
                 </div>
                 <button
-                  className="btn btn-outline-primary"
+                  className="btn btn-outline-primary w-100 w-sm-auto"
                   onClick={handleGoToStudentSetting}
                 >
-                  生徒管理
+                  <i className="fa fa-users me-1"></i> 生徒管理
                 </button>
               </div>
-              <div className="d-flex justify-content-end gap-2">
+              <div className="d-flex flex-wrap gap-2">
                 <button
-                  className="btn btn-success"
+                  className="btn btn-success btn-sm flex-fill flex-sm-grow-0"
                   onClick={() => setShowCreateModal(true)}
                 >
-                  <i className="fa fa-plus me-1"></i> 自習室を追加
+                  <i className="fa fa-plus me-1"></i><span className="d-none d-sm-inline"> 自習室を追加</span><span className="d-inline d-sm-none"> 追加</span>
                 </button>
                 <button
-                  className="btn btn-info"
+                  className="btn btn-info btn-sm flex-fill flex-sm-grow-0"
                   onClick={handlePrintQRCodes}
                   disabled={!studyRoomId}
                 >
-                  <i className="fa fa-qrcode me-1"></i> QR印刷
+                  <i className="fa fa-qrcode me-1"></i><span className="d-none d-sm-inline"> QR印刷</span><span className="d-inline d-sm-none"> QR</span>
                 </button>
                 <button
-                  className="btn btn-warning"
+                  className="btn btn-warning btn-sm flex-fill flex-sm-grow-0"
                   onClick={handleOpenEditModal}
                   disabled={!studyRoomId}
                 >
-                  <i className="fa fa-edit me-1"></i> 編集
+                  <i className="fa fa-edit me-1"></i><span className="d-none d-sm-inline"> 編集</span><span className="d-inline d-sm-none"> 編集</span>
                 </button>
                 <button
-                  className="btn btn-danger"
+                  className="btn btn-danger btn-sm flex-fill flex-sm-grow-0"
                   onClick={handleDeleteRoom}
                   disabled={!studyRoomId}
                 >
-                  <i className="fa fa-trash me-1"></i> 削除
+                  <i className="fa fa-trash me-1"></i><span className="d-none d-sm-inline"> 削除</span><span className="d-inline d-sm-none"> 削除</span>
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-sm flex-fill flex-sm-grow-0"
                   onClick={handleGoToRoom}
                   disabled={!studyRoomId}
                 >
-                  <i className="fa fa-cog me-1"></i> 詳細設定
+                  <i className="fa fa-cog me-1"></i><span className="d-none d-sm-inline"> 詳細設定</span><span className="d-inline d-sm-none"> 詳細</span>
                 </button>
               </div>
             </div>
-            <div className="card-body">
+            <div className="card-body p-2 p-sm-3">
               <div className="list-group">
                 {studyRooms.map((room) => (
                   <button
                     key={room.studyRoomId}
                     type="button"
-                    className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${
+                    className={`list-group-item list-group-item-action d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 ${
                       studyRoomId === room.studyRoomId ? "active" : ""
                     }`}
                     onClick={() => setstudyRoomId(room.studyRoomId)}
                   >
-                    <div>
-                      <h6 className="mb-1">{room.name}</h6>
-                      <small>定員: {room.roomLimit}名</small>
+                    <div className="w-100 w-sm-auto">
+                      <h6 className="mb-1 fs-6">{room.name}</h6>
+                      <small className="d-block d-sm-inline">定員: {room.roomLimit}名</small>
                     </div>
                     {room.currentStudents !== undefined && (
                       <span className="badge bg-info rounded-pill">

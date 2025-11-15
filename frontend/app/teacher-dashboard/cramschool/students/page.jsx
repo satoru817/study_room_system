@@ -229,13 +229,13 @@ const Students = () => {
   };
 
   return (
-    <div className="container-fluid py-4" style={{ maxWidth: "1400px" }}>
+    <div className="container-fluid py-3 py-md-4 px-3" style={{ maxWidth: "1400px" }}>
       {/* ヘッダー */}
-      <div className="row mb-4">
+      <div className="row mb-3 mb-md-4">
         <div className="col">
-          <div className="d-flex justify-content-between align-items-center">
+          <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
             <div>
-              <h2 className="mb-1">
+              <h2 className="mb-1 fs-4 fs-md-3">
                 <i className="bi bi-people-fill me-2 text-primary"></i>
                 {cramSchoolName}
               </h2>
@@ -246,7 +246,7 @@ const Students = () => {
               )}
             </div>
             <button
-              className="btn btn-outline-primary"
+              className="btn btn-outline-primary btn-sm w-100 w-sm-auto"
               onClick={fetchStudents}
               disabled={isLoading}
             >
@@ -281,12 +281,13 @@ const Students = () => {
         <div className="row mb-3">
           <div className="col">
             <div className="card border-primary shadow-sm">
-              <div className="card-body py-3">
-                <div className="row align-items-center">
-                  <div className="col-md-6">
-                    <h6 className="mb-1 fw-bold">
+              <div className="card-body py-2 py-sm-3 px-2 px-sm-3">
+                <div className="row align-items-center g-2">
+                  <div className="col-12 col-md-6">
+                    <h6 className="mb-1 fw-bold fs-6">
                       <i className="bi bi-envelope-fill me-2 text-primary"></i>
-                      登録案内メール一括送信
+                      <span className="d-none d-sm-inline">登録案内メール一括送信</span>
+                      <span className="d-inline d-sm-none">一括メール送信</span>
                     </h6>
                     <small className="text-muted">
                       {selectedStudentIds.size > 0
@@ -294,24 +295,26 @@ const Students = () => {
                         : "未登録の生徒を選択してください"}
                     </small>
                   </div>
-                  <div className="col-md-6 text-md-end mt-2 mt-md-0">
-                    <button
-                      className="btn btn-outline-secondary btn-sm me-2"
-                      onClick={handleSelectAll}
-                      disabled={isSendingEmail}
-                    >
-                      {selectedStudentIds.size === unregisteredCount
-                        ? "全解除"
-                        : "全選択"}
-                    </button>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={handleSendRegisterLink}
-                      disabled={selectedStudentIds.size === 0 || isSendingEmail}
-                    >
-                      <i className="bi bi-send-fill me-1"></i>
-                      メール送信
-                    </button>
+                  <div className="col-12 col-md-6 text-start text-md-end">
+                    <div className="d-flex gap-2">
+                      <button
+                        className="btn btn-outline-secondary btn-sm flex-fill flex-md-grow-0"
+                        onClick={handleSelectAll}
+                        disabled={isSendingEmail}
+                      >
+                        {selectedStudentIds.size === unregisteredCount
+                          ? "全解除"
+                          : "全選択"}
+                      </button>
+                      <button
+                        className="btn btn-primary btn-sm flex-fill flex-md-grow-0"
+                        onClick={handleSendRegisterLink}
+                        disabled={selectedStudentIds.size === 0 || isSendingEmail}
+                      >
+                        <i className="bi bi-send-fill me-1"></i>
+                        メール送信
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -324,10 +327,10 @@ const Students = () => {
       <div className="row mb-3">
         <div className="col">
           <div className="card shadow-sm">
-            <div className="card-body py-3">
-              <div className="row align-items-center g-3">
-                <div className="col-lg-8">
-                  <div className="btn-group w-100" role="group">
+            <div className="card-body py-2 py-sm-3 px-2 px-sm-3">
+              <div className="row align-items-center g-2 g-sm-3">
+                <div className="col-12 col-lg-8">
+                  <div className="btn-group w-100 d-flex flex-wrap" role="group">
                     <input
                       type="radio"
                       className="btn-check"
@@ -337,10 +340,10 @@ const Students = () => {
                       onChange={() => setFilterType("all")}
                     />
                     <label
-                      className="btn btn-outline-primary"
+                      className="btn btn-outline-primary btn-sm flex-fill"
                       htmlFor="filter-all"
                     >
-                      <i className="bi bi-list-ul me-1"></i>
+                      <i className="bi bi-list-ul me-1 d-none d-sm-inline"></i>
                       全て
                     </label>
 
@@ -353,10 +356,10 @@ const Students = () => {
                       onChange={() => setFilterType("attending")}
                     />
                     <label
-                      className="btn btn-outline-success"
+                      className="btn btn-outline-success btn-sm flex-fill"
                       htmlFor="filter-attending"
                     >
-                      <i className="bi bi-check-circle me-1"></i>
+                      <i className="bi bi-check-circle me-1 d-none d-sm-inline"></i>
                       出席中
                     </label>
 
@@ -369,10 +372,10 @@ const Students = () => {
                       onChange={() => setFilterType("problem")}
                     />
                     <label
-                      className="btn btn-outline-danger"
+                      className="btn btn-outline-danger btn-sm flex-fill"
                       htmlFor="filter-problem"
                     >
-                      <i className="bi bi-exclamation-circle me-1"></i>
+                      <i className="bi bi-exclamation-circle me-1 d-none d-sm-inline"></i>
                       要確認
                     </label>
 
@@ -385,20 +388,20 @@ const Students = () => {
                       onChange={() => setFilterType("unregistered")}
                     />
                     <label
-                      className="btn btn-outline-secondary"
+                      className="btn btn-outline-secondary btn-sm flex-fill"
                       htmlFor="filter-unregistered"
                     >
-                      <i className="bi bi-person-x me-1"></i>
+                      <i className="bi bi-person-x me-1 d-none d-sm-inline"></i>
                       未登録 ({unregisteredCount})
                     </label>
                   </div>
                 </div>
-                <div className="col-lg-4">
-                  <div className="d-flex align-items-center justify-content-lg-end">
+                <div className="col-12 col-lg-4">
+                  <div className="d-flex align-items-center justify-content-start justify-content-lg-end">
                     <label className="me-2 text-nowrap small">表示件数:</label>
                     <select
                       className="form-select form-select-sm"
-                      style={{ width: "auto" }}
+                      style={{ maxWidth: "120px" }}
                       value={pageSize}
                       onChange={(e) =>
                         handlePageSizeChange(Number(e.target.value))
@@ -420,29 +423,30 @@ const Students = () => {
       {/* 凡例 */}
       <div className="row mb-3">
         <div className="col">
-          <div className="alert alert-info mb-0 py-2">
+          <div className="alert alert-info mb-0 py-2 px-2 px-sm-3">
             <div className="row g-2 small">
               <div className="col-6 col-md-3">
                 <span className="badge bg-success me-1">出席中</span>
-                予約あり・出席済
+                <span className="d-none d-sm-inline">予約あり・出席済</span>
               </div>
               <div className="col-6 col-md-3">
                 <span className="badge bg-warning text-dark me-1">未出席</span>
-                予約あり・未出席
+                <span className="d-none d-sm-inline">予約あり・未出席</span>
               </div>
               <div className="col-6 col-md-3">
                 <span className="badge bg-danger me-1">要確認</span>
-                出席すべきだが未出席
+                <span className="d-none d-sm-inline">出席すべきだが未出席</span>
               </div>
               <div className="col-6 col-md-3">
                 <span className="badge bg-secondary me-1">未登録</span>
-                システム未登録
+                <span className="d-none d-sm-inline">システム未登録</span>
               </div>
             </div>
             <hr className="my-2" />
             <p className="mb-0 small">
               <i className="bi bi-info-circle me-1"></i>
-              行をダブルクリックでメールアドレスを登録できます
+              <span className="d-none d-sm-inline">行をダブルクリックでメールアドレスを登録できます</span>
+              <span className="d-inline d-sm-none">タップでメール登録</span>
             </p>
           </div>
         </div>
@@ -467,10 +471,10 @@ const Students = () => {
             <>
               <div className="card shadow-sm">
                 <div className="table-responsive">
-                  <table className="table table-hover mb-0">
+                  <table className="table table-hover mb-0" style={{ fontSize: "0.9rem" }}>
                     <thead className="table-light">
                       <tr>
-                        <th style={{ width: "40px" }}>
+                        <th style={{ width: "40px", minWidth: "40px" }}>
                           {unregisteredCount > 0 && (
                             <input
                               type="checkbox"
@@ -483,20 +487,20 @@ const Students = () => {
                             />
                           )}
                         </th>
-                        <th style={{ width: "180px" }}>名前</th>
-                        <th style={{ width: "100px" }}>学年</th>
-                        <th>メールアドレス</th>
-                        <th style={{ width: "100px" }}>状態</th>
-                        <th className="text-center" style={{ width: "60px" }}>
+                        <th style={{ minWidth: "120px" }}>名前</th>
+                        <th className="d-none d-md-table-cell" style={{ minWidth: "80px" }}>学年</th>
+                        <th className="d-none d-lg-table-cell" style={{ minWidth: "150px" }}>メールアドレス</th>
+                        <th style={{ minWidth: "100px" }}>状態</th>
+                        <th className="text-center d-none d-sm-table-cell" style={{ minWidth: "60px" }}>
                           登録
                         </th>
-                        <th className="text-center" style={{ width: "60px" }}>
+                        <th className="text-center d-none d-sm-table-cell" style={{ minWidth: "60px" }}>
                           予約
                         </th>
-                        <th className="text-center" style={{ width: "60px" }}>
+                        <th className="text-center d-none d-sm-table-cell" style={{ minWidth: "60px" }}>
                           出席
                         </th>
-                        <th className="text-center" style={{ width: "100px" }}>
+                        <th className="text-center" style={{ minWidth: "80px" }}>
                           操作
                         </th>
                       </tr>
@@ -524,36 +528,37 @@ const Students = () => {
                             )}
                           </td>
                           <td>
-                            <strong>{student.name}</strong>
+                            <strong className="d-block">{student.name}</strong>
+                            <small className="text-muted d-md-none">{student.gradeStr}</small>
                           </td>
-                          <td>
+                          <td className="d-none d-md-table-cell">
                             <small className="text-muted">
                               {student.gradeStr}
                             </small>
                           </td>
-                          <td>
-                            <small className="text-muted">
+                          <td className="d-none d-lg-table-cell">
+                            <small className="text-muted text-truncate" style={{ maxWidth: "200px", display: "inline-block" }}>
                               {student.mail || (
                                 <span className="text-danger">未設定</span>
                               )}
                             </small>
                           </td>
                           <td>{getStatusBadge(student)}</td>
-                          <td className="text-center">
+                          <td className="text-center d-none d-sm-table-cell">
                             {student.isRegistered ? (
                               <i className="bi bi-check-circle-fill text-success fs-5"></i>
                             ) : (
                               <i className="bi bi-x-circle-fill text-secondary fs-5"></i>
                             )}
                           </td>
-                          <td className="text-center">
+                          <td className="text-center d-none d-sm-table-cell">
                             {student.shouldBeAttending ? (
                               <i className="bi bi-calendar-check-fill text-primary fs-5"></i>
                             ) : (
                               <i className="bi bi-dash text-muted"></i>
                             )}
                           </td>
-                          <td className="text-center">
+                          <td className="text-center d-none d-sm-table-cell">
                             {student.isAttending ? (
                               <i className="bi bi-person-check-fill text-success fs-5"></i>
                             ) : student.shouldBeAttending ? (

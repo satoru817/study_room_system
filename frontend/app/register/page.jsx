@@ -49,7 +49,7 @@ function StudentRegisterPage() {
 
   if (!token) {
     return (
-      <div className="container mt-5">
+      <div className="container mt-3 mt-sm-5 px-3">
         <div className="alert alert-danger">
           無効なリンクです。正しい登録リンクからアクセスしてください。
         </div>
@@ -58,10 +58,10 @@ function StudentRegisterPage() {
   }
 
   return (
-    <div className="container mt-5">
-      <div className="card mx-auto" style={{ maxWidth: "500px" }}>
-        <div className="card-body">
-          <h2 className="card-title text-center mb-4">
+    <div className="container mt-3 mt-sm-5 px-3">
+      <div className="card mx-auto w-100" style={{ maxWidth: "500px" }}>
+        <div className="card-body p-3 p-sm-4">
+          <h2 className="card-title text-center mb-3 mb-sm-4">
             <i className="bi bi-person-plus-fill me-2"></i>
             生徒登録
           </h2>
