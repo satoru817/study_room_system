@@ -1,11 +1,9 @@
 package org.example.studyroomreservation.studyroom.attendance;
 
-import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;

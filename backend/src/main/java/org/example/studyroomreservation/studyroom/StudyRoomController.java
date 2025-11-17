@@ -105,6 +105,7 @@ public class StudyRoomController {
         return ResponseEntity.ok(dtos);
     }
 
+    // TODO: add delete function
     @PostMapping("/scheduleException/save")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> saveStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request)

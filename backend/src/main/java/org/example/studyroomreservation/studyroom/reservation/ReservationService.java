@@ -222,7 +222,6 @@ public class ReservationService {
 
         // delete all reservation of the student in the range
         jdbcTemplate.update(deleteSql, map);
-        // TODO: correct the following check query!!
 
         String checkAvailabilitySql = """
                 WITH slot_starts AS (
@@ -304,5 +303,31 @@ public class ReservationService {
         jdbcTemplate.batchUpdate(insertSql, batchParams);
 
         return getWeeklyAvailabilityResponse(request.studyRoomId(), request.offset(), studentId);
+    }
+
+    public List<DTO.ReservationDtoForConfirmation> findWhichReservationWillBeDeletedByClosingOneDay(DTO.CloseRequest closeRequest) {
+        int studyRoomId = closeRequest.studyRoomId();
+        LocalDate date = closeRequest.date();
+
+        String sql = """
+                SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                FROM study_room_reservations srr
+                JOIN study_rooms sr ON sr.study_room_id = :studyRoomId AND sr.study_room_id = srr.study_room_id AND srr.date = :date
+                JOIN students st ON st.student_id = srr.student_id
+                """;
+
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()
+                .addValue("studyRoomId", studyRoomId)
+                .addValue("date", date);
+
+        return jdbcTemplate.query(sql, mapSqlParameterSource, (rs, rowNum) ->
+                new DTO.ReservationDtoForConfirmation(
+                        rs.getInt("study_room_id"),
+                        rs.getString("study_room_name"),
+                        rs.getString("student_name"),
+                        rs.getObject("date", LocalDate.class),
+                        rs.getObject("start_hour", LocalTime.class),
+                        rs.getObject("end_hour", LocalTime.class)
+                ));
     }
 }

@@ -25,6 +25,12 @@ public class ReservationController {
     @Autowired
     private AccessElf accessElf;
 
+    @PostMapping("/confirm/deletedByClosingOneDay")
+    public ResponseEntity<?> confirmReservationsToBeDeletedByClosingOneDay(@RequestBody DTO.CloseRequest closeRequest){
+        List<DTO.ReservationDtoForConfirmation> reservationsToBeDeleted = reservationService.findWhichReservationWillBeDeletedByClosingOneDay(closeRequest);
+        return ResponseEntity.ok(reservationsToBeDeleted);
+    }
+
     @GetMapping("/getTodays/{studentId}")
     public ResponseEntity<?> getReservationOfToday(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable int studentId) throws IllegalAccessException {
         accessElf.isValidAccess(studentId, userDetails);

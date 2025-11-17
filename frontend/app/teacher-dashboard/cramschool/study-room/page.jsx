@@ -206,7 +206,7 @@ function StudyRoomDetailContent() {
       .toString()
       .padStart(2, "0")}`;
   };
-
+  // TODO: add confirmation of the change!!
   const handleSaveSchedules = async () => {
     try {
       const schedules = convertScheduleToRanges();
@@ -284,7 +284,7 @@ function StudyRoomDetailContent() {
       setSelectAll(false);
     }
   }, [selectedStudyRoomIds]);
-
+  // TODO: update here to add confirmation!!
   const handleCopyRegularSchedule = async () => {
     if (selectedStudyRoomIds.length === 0) {
       alert("コピー先の自習室を選択してください");
@@ -318,7 +318,9 @@ function StudyRoomDetailContent() {
       alert("通常スケジュールのコピーに失敗しました");
     }
   };
-
+  // TODO: update here to add confirmation!!
+  // front-end: make it possible to check whose booking will be lost by the change
+  // back-end: send e-mail or line to each student for the loss of the booking
   const handleCopyExceptionSchedule = async () => {
     if (selectedStudyRoomIds.length === 0) {
       alert("コピー先の自習室を選択してください");
@@ -500,7 +502,7 @@ function StudyRoomDetailContent() {
 
     return ranges;
   };
-
+  // TODO: add confirmation of the change!!
   const handleSaveException = async () => {
     if (!exceptionReason.trim()) {
       alert("理由を入力してください");
@@ -510,16 +512,41 @@ function StudyRoomDetailContent() {
     try {
       if (exceptionType === "closed") {
         // 閉鎖日として保存
-        updatedExceptions = await doPost(
-          SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
+        const reservationsToBeDeleted = await doPost(
+          "/api/reservation/confirm/deletedByClosingOneDay",
           {
-            studyRoomId: studyRoomId,
+            studyRoomId,
             date: selectedDate,
-            isOpen: false,
-            schedules: [],
-            reason: exceptionReason,
           }
         );
+
+        let message;
+        if (reservationsToBeDeleted.length > 0) {
+          message =
+            "以下の予約が削除され、生徒に連絡されます\n" +
+            reservationsToBeDeleted
+              .map(
+                (res) =>
+                  `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
+              )
+              .join("\n");
+        } else {
+          message = "この変更で削除される予約はありません。";
+        }
+
+        if (confirm(message)) {
+          // TODO: update the api endpoint to send notification of the change!!
+          updatedExceptions = await doPost(
+            SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
+            {
+              studyRoomId: studyRoomId,
+              date: selectedDate,
+              isOpen: false,
+              schedules: [],
+              reason: exceptionReason,
+            }
+          );
+        }
       } else {
         // カスタムスケジュールとして保存
         const ranges = convertExceptionSlotsToRanges();
@@ -609,9 +636,18 @@ function StudyRoomDetailContent() {
           }}
           className="hover-cell"
         >
-          <div style={{ fontSize: "1rem", fontWeight: hasEx ? "bold" : "normal" }}>{day}</div>
+          <div
+            style={{ fontSize: "1rem", fontWeight: hasEx ? "bold" : "normal" }}
+          >
+            {day}
+          </div>
           {hasEx && (
-            <small style={{ color: isClosed ? "#dc3545" : "#856404", fontSize: "0.7rem" }}>
+            <small
+              style={{
+                color: isClosed ? "#dc3545" : "#856404",
+                fontSize: "0.7rem",
+              }}
+            >
               {isClosed ? "休室" : "特別"}
             </small>
           )}
@@ -634,7 +670,10 @@ function StudyRoomDetailContent() {
   };
 
   return (
-    <div className="container-fluid mt-3 mt-md-4 px-2 px-md-3" onMouseUp={handleMouseUp}>
+    <div
+      className="container-fluid mt-3 mt-md-4 px-2 px-md-3"
+      onMouseUp={handleMouseUp}
+    >
       <style jsx>{`
         .hover-cell:hover {
           background-color: #e9ecef !important;
@@ -665,7 +704,9 @@ function StudyRoomDetailContent() {
                   className="btn btn-info btn-sm flex-fill flex-sm-grow-0"
                   onClick={handleOpenCopyRegularModal}
                 >
-                  <span className="d-none d-sm-inline">📋 他の自習室にコピー</span>
+                  <span className="d-none d-sm-inline">
+                    📋 他の自習室にコピー
+                  </span>
                   <span className="d-inline d-sm-none">📋 コピー</span>
                 </button>
                 {hasChanges && (
@@ -819,14 +860,18 @@ function StudyRoomDetailContent() {
             <div className="card-header">
               <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-2">
                 <div>
-                  <h5 className="mb-0 fs-6">例外スケジュール（特別営業・休室日）</h5>
+                  <h5 className="mb-0 fs-6">
+                    例外スケジュール（特別営業・休室日）
+                  </h5>
                   <small className="text-muted">{studyRoomName}</small>
                 </div>
                 <button
                   className="btn btn-info btn-sm w-100 w-sm-auto"
                   onClick={handleOpenCopyExceptionModal}
                 >
-                  <span className="d-none d-sm-inline">📋 他の自習室にコピー</span>
+                  <span className="d-none d-sm-inline">
+                    📋 他の自習室にコピー
+                  </span>
                   <span className="d-inline d-sm-none">📋 コピー</span>
                 </button>
               </div>
@@ -852,23 +897,60 @@ function StudyRoomDetailContent() {
 
               <div className="alert alert-warning mb-2 py-2 px-2">
                 <small>
-                  📅 <span className="d-none d-sm-inline">カレンダーの日付をクリックして例外を設定</span><span className="d-inline d-sm-none">日付タップで設定</span>
+                  📅{" "}
+                  <span className="d-none d-sm-inline">
+                    カレンダーの日付をクリックして例外を設定
+                  </span>
+                  <span className="d-inline d-sm-none">日付タップで設定</span>
                   <br />
-                  🟨 <span className="d-none d-sm-inline">黄色: 特別営業日 / </span>🟥 <span className="d-none d-sm-inline">赤色: </span>休室日
+                  🟨{" "}
+                  <span className="d-none d-sm-inline">
+                    黄色: 特別営業日 /{" "}
+                  </span>
+                  🟥 <span className="d-none d-sm-inline">赤色: </span>休室日
                 </small>
               </div>
 
               <div className="table-responsive">
-                <table className="table table-bordered mb-0" style={{ fontSize: "0.85rem" }}>
+                <table
+                  className="table table-bordered mb-0"
+                  style={{ fontSize: "0.85rem" }}
+                >
                   <thead>
                     <tr>
-                      <th style={{ textAlign: "center", color: "red", padding: "8px" }}>日</th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>月</th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>火</th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>水</th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>木</th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>金</th>
-                      <th style={{ textAlign: "center", color: "blue", padding: "8px" }}>土</th>
+                      <th
+                        style={{
+                          textAlign: "center",
+                          color: "red",
+                          padding: "8px",
+                        }}
+                      >
+                        日
+                      </th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>
+                        月
+                      </th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>
+                        火
+                      </th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>
+                        水
+                      </th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>
+                        木
+                      </th>
+                      <th style={{ textAlign: "center", padding: "8px" }}>
+                        金
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "center",
+                          color: "blue",
+                          padding: "8px",
+                        }}
+                      >
+                        土
+                      </th>
                     </tr>
                   </thead>
                   <tbody>{renderCalendar()}</tbody>

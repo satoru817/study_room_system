@@ -102,7 +102,7 @@ public class StudyRoomService {
         return getRegularSchedulesOfOneStudyRoom(studyRoomId);
     }
 
-    // TODO: add notification feature
+    // TODO: add notification feature and delete feature
     @Transactional
     public List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> saveException(dto.StudyRoomScheduleExceptionOfOneDate request) {
         String deleteSql = """
