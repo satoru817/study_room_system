@@ -24,4 +24,11 @@ public interface StudyRoomReservationRepository extends JpaRepository<StudyRoomR
             """)
     List<DTO.ReservationShowResponse> getReservationOfOneStudentOfThisDay(int studentId, LocalDate today);
 
+    @Query("""
+            SELECT srr
+            FROM StudyRoomReservations srr
+            WHERE srr.studyRoom.studyRoomId = :studyRoomId
+            AND srr.date = :date
+            """)
+    List<StudyRoomReservation> getReservationsOfOneRoomOfOneDay(int studyRoomId, LocalDate date)
 }

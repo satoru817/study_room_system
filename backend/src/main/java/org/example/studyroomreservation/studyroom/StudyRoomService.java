@@ -6,6 +6,9 @@ import jakarta.persistence.EntityNotFoundException;
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.config.security.user.TeacherUser;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.studyroom.reservation.RangeService;
+import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
+import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -17,16 +20,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class StudyRoomService {
     @Autowired
+    private StudyRoomReservationRepository studyRoomReservationRepository;
+    @Autowired
     private StudyRoomRepository studyRoomRepository;
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+    @Autowired
+    private RangeService rangeService;
     private static String INVALID_TIME = "00:00:00";
 
     public List<StudyRoomStatus> findAllByCramSchoolId(int cramSchoolId) {
@@ -101,27 +107,43 @@ public class StudyRoomService {
 
         return getRegularSchedulesOfOneStudyRoom(studyRoomId);
     }
+    // TODO: ここで、study_room_reservationsもupdateしないといけない。
 
-    // TODO: add notification feature and delete feature
     @Transactional
     public List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> saveException(dto.StudyRoomScheduleExceptionOfOneDate request) {
+        int studyRoomId = request.studyRoomId();
+        LocalDate date = request.date();
+        List<StudyRoomReservation> preReservations = studyRoomReservationRepository.getReservationsOfOneRoomOfOneDay(studyRoomId, date);
         String deleteSql = """
                 DELETE FROM study_room_schedule_exceptions srse
                 WHERE srse.study_room_id = :studyRoomId
                 AND srse.date = :date
                 """;
-        int studyRoomId = request.studyRoomId();
-        LocalDate date = request.date();
+
         Map<String, Object> map = new HashMap<>();
         map.put("studyRoomId", studyRoomId);
         map.put("date", date);
         // delete all first
         jdbcTemplate.update(deleteSql, map);
 
+        // just delete all the reservations of the day because this day will just be closed... simple right?
+        String deleteReservationsSql = """
+                    DELETE FROM study_room_reservations
+                    WHERE study_room_id = :studyRoomId
+                    AND date = :date
+                    """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("studyRoomId", studyRoomId)
+                .addValue("date", date);
+
+        jdbcTemplate.update(deleteReservationsSql, params);
+
         String insertSql = """
                 INSERT INTO study_room_schedule_exceptions (study_room_id, date, is_open, open_time, close_time, reason)
                 VALUES (:studyRoomId, :date, :isOpen, :openTime, :closeTime, :reason)
                 """;
+        // if !request.isOpen() then it just means this day WILL BE CLOSED.
         if (!request.isOpen()) {
             map.put("isOpen", false);
             map.put("openTime", INVALID_TIME);
@@ -129,6 +151,7 @@ public class StudyRoomService {
             map.put("reason", request.reason());
             jdbcTemplate.update(insertSql, map);
         }
+        // if request.isOpen() then it means this day will be open
         else {
             List<MapSqlParameterSource> batchInsertParams = request.schedules().stream()
                     .map(range -> new MapSqlParameterSource()
@@ -140,8 +163,39 @@ public class StudyRoomService {
                             .addValue("reason", request.reason())
                     ).toList();
             jdbcTemplate.batchUpdate(insertSql, batchInsertParams.toArray(new MapSqlParameterSource[0]));
-        }
 
+            // TODO: preReservationsと、requestをつかって、新たに挿入クエリを作成し、挿入する。その後、変更通知のメールを送る。
+            List<dto.Range> rangesOfThisDay = request.schedules();
+            Map<Integer, Set<dto.Range>> studentIdToUpdatedRanges = new HashMap<>();
+            preReservations.parallelStream()
+                    .forEach(studyRoomReservation -> {
+                        Set<dto.Range> ranges = rangeService.createAdjustedRanges(rangesOfThisDay, studyRoomReservation.getStartHour(), studyRoomReservation.getEndHour());
+                        studentIdToUpdatedRanges.computeIfAbsent(studyRoomReservation.getStudent().getStudentId(), k -> new HashSet<>()).addAll(ranges);
+                    });
+            String insertReservationsSql = """
+                    INSERT INTO study_room_reservations (date, start_hour, end_hour, study_room_id, student_id)
+                    VALUES (:date, :startHour, :endHour, :studyRoomId, :studentId)
+                    """;
+
+            List<MapSqlParameterSource> batchInsertReservationParams =
+                    studentIdToUpdatedRanges.entrySet().parallelStream()
+                            .flatMap(entry ->
+                                    entry.getValue().stream().map(range ->
+                                            new MapSqlParameterSource()
+                                                    .addValue("date", date)
+                                                    .addValue("studyRoomId", studyRoomId)
+                                                    .addValue("studentId", entry.getKey())
+                                                    .addValue("startHour", range.openTime())
+                                                    .addValue("endHour", range.closeTime())
+                                    )
+                            )
+                            .toList();
+
+            // update the reservations to comply with the new exception schedule of the day
+            jdbcTemplate.batchUpdate(insertReservationsSql, batchInsertReservationParams.toArray(new MapSqlParameterSource[0]));
+        }
+        List<StudyRoomReservation> changedReservations = studyRoomReservationRepository.getReservationsOfOneRoomOfOneDay(studyRoomId, date);
+        
         return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
     }
 

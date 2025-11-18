@@ -106,6 +106,15 @@ public class StudyRoomController {
     }
 
     // TODO: add delete function
+    // ここで何をしたいのか？
+    // 例外スケジュールの変更がある日について生じる。
+    // それによって、その日のすべての予約をキャンセルしてもよいのだが、必ずしもすべてキャンセルするのではなく、
+    // 変更しなくても良い予約はそのままにして、また、変更される予約は変更する。
+    // この変更のロジックがとても本質的に複雑である。
+    // 一つの予約が複数に分割されうるからである。
+    //　予約を変更した上で、その通知を生徒に送らないといけない。
+    // 送るときも、ほんしつてきな変更があった生徒のみに送るのでいい。
+    // まあ、そうするのも面倒だが...
     @PostMapping("/scheduleException/save")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> saveStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request)

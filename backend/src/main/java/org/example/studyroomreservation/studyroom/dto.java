@@ -15,6 +15,13 @@ public class dto {
                 throw new IllegalArgumentException();
             }
         }
+        public Range adjust(LocalTime startHour, LocalTime endHour) {
+            if (closeTime.isBefore(startHour) || openTime.isAfter(endHour)) return null;
+            return new Range(
+                    openTime.isAfter(startHour) ? openTime : startHour,
+                    closeTime.isBefore(endHour) ? closeTime : endHour
+            );
+        }
     }
 
     public record StudyRoomScheduleExceptionOfOneDate(int studyRoomId, LocalDate date, boolean isOpen, List<Range> schedules, String reason){}
