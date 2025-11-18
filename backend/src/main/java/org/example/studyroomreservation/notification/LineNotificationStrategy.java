@@ -16,23 +16,40 @@ import com.linecorp.bot.model.message.flex.unit.FlexPaddingSize;
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.elf.StringElf;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.student.Student;
 import org.example.studyroomreservation.student.StudentLoginDTO;
+import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @Component
 public class LineNotificationStrategy implements NotificationStrategy{
     private static final  Logger log = LoggerFactory.getLogger(LineNotificationStrategy.class);
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("M月d日(E)", Locale.JAPAN);
+    private static final DateTimeFormatter TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("HH:mm");
     @Override
     public boolean canSend(StudentUser student) {
         return StringElf.isValid(student.getLineUserId()) && StringElf.isValid(student.getCramSchoolLineChannelToken());
+    }
+
+    @Override
+    public boolean canSend(Student student) {
+        return StringElf.isValid(student.getLineUserId()) && StringElf.isValid(student.getCramSchool().getLineChannelToken());
     }
 
     @Override
@@ -62,17 +79,97 @@ public class LineNotificationStrategy implements NotificationStrategy{
         }
     }
 
+    @Override
+    public void sendReservationChangeNotification(Student student, DTO.ReservationChangeOfOneDay reservationChangeOfOneDay) throws ExecutionException, InterruptedException {
+        FlexMessage changeReservationMessage = createChangeReservationMessage(student, reservationChangeOfOneDay);
+        sendLine(student.getCramSchool().getLineChannelToken(), student.getLineUserId(), changeReservationMessage);
+    }
+
+    private FlexMessage createChangeReservationMessage(Student student, DTO.ReservationChangeOfOneDay reservationChangeOfOneDay) {
+        Text title = getTitle("予約自動変更のお知らせ");
+        Text message = getHeadMessage(student.getName(), "様");
+        List<FlexComponent> components = new ArrayList<>();
+        components.add(title);
+        components.add(message);
+        LocalDate changeDate = reservationChangeOfOneDay.getDate();
+
+        if (reservationChangeOfOneDay.isUnChanged()) {
+            components.add(createBodyText(changeDate + "のご予約内容に変更はありませんでした。"));
+        } else {
+            if (reservationChangeOfOneDay.isDeleted()) {
+                components.add(createBodyText(changeDate + "の自習室予約は自動的にキャンセルされました。"));
+            } else {
+                components.add(createBodyText(changeDate + "の自習室の予約時間を自動調整いたしました。"));
+            }
+            components.add(createReservationSummary("変更前", reservationChangeOfOneDay.getPreReservations()));
+            components.add(createReservationSummary("変更後", reservationChangeOfOneDay.getPostReservations()));
+        }
+        components.add(createBodyText("ご不明点がございましたら翔栄学院までお問い合わせください。"));
+
+        Box body = getBox(components);
+        Bubble bubble = createFromBody(body);
+        return new FlexMessage("予約自動変更のお知らせ", bubble);
+    }
+
+    private Text createBodyText(String text) {
+        return Text.builder()
+                .text(text)
+                .wrap(true)
+                .margin(FlexMarginSize.MD)
+                .size(FlexFontSize.Md)
+                .build();
+    }
+
+    private Box createReservationSummary(String label, Set<StudyRoomReservation> reservations) {
+        List<FlexComponent> contents = new ArrayList<>();
+        contents.add(Text.builder()
+                .text(label)
+                .weight(Text.TextWeight.BOLD)
+                .margin(FlexMarginSize.MD)
+                .size(FlexFontSize.Md)
+                .build());
+
+        if (reservations == null || reservations.isEmpty()) {
+            contents.add(Text.builder()
+                    .text("なし")
+                    .size(FlexFontSize.SM)
+                    .color("#888888")
+                    .margin(FlexMarginSize.SM)
+                    .wrap(true)
+                    .build());
+        } else {
+            reservations.stream()
+                    .sorted(Comparator
+                            .comparing(StudyRoomReservation::getDate)
+                            .thenComparing(StudyRoomReservation::getStartHour))
+                    .forEach(reservation -> contents.add(Text.builder()
+                            .text(formatReservation(reservation))
+                            .size(FlexFontSize.SM)
+                            .wrap(true)
+                            .margin(FlexMarginSize.SM)
+                            .build()));
+        }
+
+        return Box.builder()
+                .layout(FlexLayout.VERTICAL)
+                .contents(contents)
+                .margin(FlexMarginSize.MD)
+                .build();
+    }
+
+    private String formatReservation(StudyRoomReservation reservation) {
+        String date = reservation.getDate().format(DATE_FORMATTER);
+        String timeWindow = reservation.getStartHour().format(TIME_FORMATTER)
+                + "〜" + reservation.getEndHour().format(TIME_FORMATTER);
+        String roomName = reservation.getStudyRoom() != null
+                ? reservation.getStudyRoom().getName()
+                : "";
+        return date + " " + timeWindow + (roomName.isBlank() ? "" : " / " + roomName);
+    }
+
     private void sendLineShared(StudentUser studentUser, FlexMessage message) {
         try {
-            LineMessagingClient client = LineMessagingClient
-                    .builder(studentUser.getCramSchoolLineChannelToken())
-                    .build();
-
-            client.pushMessage(new PushMessage(
-                    studentUser.getLineUserId(),
-                    Collections.singletonList(message)
-            )).get();
-
+            sendLine(studentUser.getCramSchoolLineChannelToken(), studentUser.getLineUserId(), message);
         } catch (InterruptedException | ExecutionException e) {
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
@@ -82,15 +179,19 @@ public class LineNotificationStrategy implements NotificationStrategy{
         }
     }
 
-    private void sendLineShared(StudentLoginDTO student, FlexMessage message) throws ExecutionException, InterruptedException {
+    private void sendLine(String lineChannelAccessToken, String lineUserId, FlexMessage message) throws ExecutionException, InterruptedException {
         LineMessagingClient client = LineMessagingClient
-                .builder(student.getCramSchoolLineChannelToken())
+                .builder(lineChannelAccessToken)
                 .build();
 
         client.pushMessage(new PushMessage(
-                student.getLineUserId(),
+                lineUserId,
                 Collections.singletonList(message)
         )).get();
+    }
+
+    private void sendLineShared(StudentLoginDTO student, FlexMessage message) throws ExecutionException, InterruptedException {
+        sendLine(student.getCramSchoolLineChannelToken(), student.getLineUserId(), message);
     }
 
     private FlexMessage createRegistrationLineFlexMessage(StudentLoginDTO student, String url ,int validPeriod) {

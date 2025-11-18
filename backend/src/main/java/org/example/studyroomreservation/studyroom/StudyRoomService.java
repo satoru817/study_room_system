@@ -6,6 +6,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.config.security.user.TeacherUser;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.notification.DTO;
+import org.example.studyroomreservation.notification.NotificationService;
 import org.example.studyroomreservation.studyroom.reservation.RangeService;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservationRepository;
@@ -33,6 +35,8 @@ public class StudyRoomService {
     private NamedParameterJdbcTemplate jdbcTemplate;
     @Autowired
     private RangeService rangeService;
+    @Autowired
+    private NotificationService notificationService;
     private static String INVALID_TIME = "00:00:00";
 
     public List<StudyRoomStatus> findAllByCramSchoolId(int cramSchoolId) {
@@ -195,8 +199,10 @@ public class StudyRoomService {
             jdbcTemplate.batchUpdate(insertReservationsSql, batchInsertReservationParams.toArray(new MapSqlParameterSource[0]));
         }
         List<StudyRoomReservation> changedReservations = studyRoomReservationRepository.getReservationsOfOneRoomOfOneDay(studyRoomId, date);
-        
-        return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
+        // TODO: このpreReservationとchangedに基づいてメールを送るロジックを書かないと行けない。
+        DTO.NotificationResult notificationResult = notificationService.sendNotificationOfReservationChangeOfOneDay(preReservations, changedReservations);
+        // TODO: write  change the line below( return both value: notificationResult and changed scheduleExceptions)
+        //return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
     }
 
     @Transactional

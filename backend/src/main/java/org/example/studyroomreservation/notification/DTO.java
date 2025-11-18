@@ -1,121 +1,77 @@
 package org.example.studyroomreservation.notification;
 
+import org.example.studyroomreservation.student.Student;
+import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
+import java.util.*;
 
 public class DTO {
     public static record NotificationSuccessStatus(int successCount, List<String> failedStudent) {}
     public record TimeWindow(LocalTime startHour, LocalTime endHour){}
-    // 下のrecordは、特定の生徒のある自習室のある日における予約の変更情報を担う。
-    public class ReservationChangeOfOneRoomOfOneDay {
 
-        private int studentId;
-        private String studentName;
-        private int studyRoomId;
-        private String studyRoomName;
-        private LocalDate date;
-        private List<TimeWindow> preTimeWindows;
-        private boolean isAllClosed;
-        private List<TimeWindow> postTimeWindow;
+    public static class ReservationChangeOfOneDay{
+        private Student student;
+        private Set<StudyRoomReservation> preReservations;
+        private Set<StudyRoomReservation> postReservations;
 
-        public ReservationChangeOfOneRoomOfOneDay() {
+        public ReservationChangeOfOneDay(Student student, Set<StudyRoomReservation> preReservations, Set<StudyRoomReservation> postReservations) {
+            this.student = student;
+            this.preReservations = preReservations;
+            this.postReservations = postReservations;
         }
 
-        public ReservationChangeOfOneRoomOfOneDay(
-                int studentId,
-                String studentName,
-                int studyRoomId,
-                String studyRoomName,
-                LocalDate date,
-                List<TimeWindow> preTimeWindows,
-                boolean isAllClosed,
-                List<TimeWindow> postTimeWindow
-        ) {
-            this.studentId = studentId;
-            this.studentName = studentName;
-            this.studyRoomId = studyRoomId;
-            this.studyRoomName = studyRoomName;
-            this.date = date;
-            this.preTimeWindows = preTimeWindows;
-            this.isAllClosed = isAllClosed;
-            this.postTimeWindow = postTimeWindow;
-        }
-
-        // ---------- Getter ----------
-
-        public int getStudentId() {
-            return studentId;
-        }
-
-        public String getStudentName() {
-            return studentName;
-        }
-
-        public int getStudyRoomId() {
-            return studyRoomId;
-        }
-
-        public String getStudyRoomName() {
-            return studyRoomName;
+        public Student getStudent() {
+            return student;
         }
 
         public LocalDate getDate() {
-            return date;
+            return preReservations.stream().findFirst().get().getDate();
         }
 
-        public List<TimeWindow> getPreTimeWindows() {
-            return preTimeWindows;
+        public Set<StudyRoomReservation> getPreReservations() {
+            return Collections.unmodifiableSet(preReservations);
         }
 
-        public boolean isAllClosed() {
-            return isAllClosed;
+        public Set<StudyRoomReservation> getPostReservations() {
+            return Collections.unmodifiableSet(postReservations);
+        }
+        public boolean isDeleted() {
+            return this.postReservations.size() == 0;
         }
 
-        public List<TimeWindow> getPostTimeWindow() {
-            return postTimeWindow;
+        private record Slot(LocalTime start, LocalTime end) {}
+
+        public boolean isUnChanged() {
+            if (preReservations.size() != postReservations.size()) {
+                return false;
+            }
+
+            Set<Slot> slots = new HashSet<>();
+            for (StudyRoomReservation res : preReservations) {
+                slots.add(new Slot(res.getStartHour(), res.getEndHour()));
+            }
+            for (StudyRoomReservation res : postReservations) {
+                if (!slots.remove(new Slot(res.getStartHour(), res.getEndHour()))) {
+                    return false;
+                }
+            }
+            return slots.isEmpty();
+        }
+    }
+
+    public static class NotificationResult {
+        private final int successCount;
+        private List<String> failedStudents = new ArrayList<>();
+        public NotificationResult(int successCount, List<String> failedStudents) {
+            this.successCount = successCount;
+            this. failedStudents = failedStudents;
         }
 
-        // ---------- Fluent Setter (return this) ----------
-
-        public ReservationChangeOfOneRoomOfOneDay setStudentId(int studentId) {
-            this.studentId = studentId;
-            return this;
+        public boolean isAllSuccess() {
+            return failedStudents.size() == 0;
         }
 
-        public ReservationChangeOfOneRoomOfOneDay setStudentName(String studentName) {
-            this.studentName = studentName;
-            return this;
-        }
-
-        public ReservationChangeOfOneRoomOfOneDay setStudyRoomId(int studyRoomId) {
-            this.studyRoomId = studyRoomId;
-            return this;
-        }
-
-        public ReservationChangeOfOneRoomOfOneDay setStudyRoomName(String studyRoomName) {
-            this.studyRoomName = studyRoomName;
-            return this;
-        }
-
-        public ReservationChangeOfOneRoomOfOneDay setDate(LocalDate date) {
-            this.date = date;
-            return this;
-        }
-
-        public ReservationChangeOfOneRoomOfOneDay setPreTimeWindows(List<TimeWindow> preTimeWindows) {
-            this.preTimeWindows = preTimeWindows;
-            return this;
-        }
-
-        public ReservationChangeOfOneRoomOfOneDay setAllClosed(boolean allClosed) {
-            this.isAllClosed = allClosed;
-            return this;
-        }
-
-        public ReservationChangeOfOneRoomOfOneDay setPostTimeWindow(List<TimeWindow> postTimeWindow) {
-            this.postTimeWindow = postTimeWindow;
-            return this;
-        }
     }
 }

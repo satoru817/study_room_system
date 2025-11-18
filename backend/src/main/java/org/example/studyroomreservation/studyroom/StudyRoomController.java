@@ -115,6 +115,7 @@ public class StudyRoomController {
     //　予約を変更した上で、その通知を生徒に送らないといけない。
     // 送るときも、ほんしつてきな変更があった生徒のみに送るのでいい。
     // まあ、そうするのも面倒だが...
+    // これ、rest controllerの形式を変えて、送信結果も受け取れるようにしないといけない。
     @PostMapping("/scheduleException/save")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> saveStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request)

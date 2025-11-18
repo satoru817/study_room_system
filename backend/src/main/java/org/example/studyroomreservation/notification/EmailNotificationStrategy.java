@@ -4,7 +4,9 @@ import jakarta.annotation.PostConstruct;
 import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.elf.StringElf;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.student.Student;
 import org.example.studyroomreservation.student.StudentLoginDTO;
+import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,10 +20,20 @@ import sibModel.SendSmtpEmail;
 import sibModel.SendSmtpEmailSender;
 import sibModel.SendSmtpEmailTo;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 @Component
 public class EmailNotificationStrategy implements NotificationStrategy{
     private static final Logger log = LoggerFactory.getLogger(EmailNotificationStrategy.class);
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("M月d日(E)", Locale.JAPAN);
+    private static final DateTimeFormatter TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("HH:mm");
 
     private TransactionalEmailsApi apiInstance;
     @Value("${sendinblue.api-key}")
@@ -41,6 +53,11 @@ public class EmailNotificationStrategy implements NotificationStrategy{
     public boolean canSend(StudentUser student) {
         return StringElf.isValid(student.getStudentEmail())
                 && StringElf.isValid(student.getCramSchoolEmail());
+    }
+
+    @Override
+    public boolean canSend(Student student) {
+        return StringElf.isValid(student.getMail()) && StringElf.isValid(student.getCramSchool().getEmail());
     }
 
     @Override
@@ -83,6 +100,19 @@ public class EmailNotificationStrategy implements NotificationStrategy{
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void sendReservationChangeNotification(Student student, DTO.ReservationChangeOfOneDay reservationChangeOfOneDay) {
+        if (!canSend(student)) {
+            log.info("Skip reservation-change email because student/cram-school email missing: {}", student.getName());
+            return;
+        }
+        LocalDate changeDate = reservationChangeOfOneDay.getDate();
+        String subject = "自習室予約変更のお知らせ";
+        String htmlContent = createChangeReservationHtml(student, changeDate, reservationChangeOfOneDay);
+        String textContent = createChangeReservationText(student, changeDate, reservationChangeOfOneDay);
+        sendEmail(student, htmlContent, textContent, subject);
     }
 
     private String createRegistrationHTML(StudentLoginDTO student, String url, int validPeriod) {
@@ -207,5 +237,115 @@ public class EmailNotificationStrategy implements NotificationStrategy{
 
         apiInstance.sendTransacEmail(email);
         log.info("Email sent successfully to: {}", student.getMail());
+    }
+
+    private String createChangeReservationHtml(Student student, LocalDate changeDate, DTO.ReservationChangeOfOneDay change) {
+        StringBuilder html = new StringBuilder();
+        html.append("<html><body>");
+        html.append("<h1>自習室予約変更のお知らせ</h1>");
+        html.append("<p>").append(student.getName()).append("様</p>");
+        html.append("<p>").append(formatDate(changeDate)).append("の自習室予約についてお知らせいたします。</p>");
+        html.append("<p>").append(buildChangeMessage(change)).append("</p>");
+        html.append("<h2>変更前</h2>");
+        html.append(buildReservationListHtml(change.getPreReservations()));
+        html.append("<h2>変更後</h2>");
+        html.append(buildReservationListHtml(change.getPostReservations()));
+        html.append("<p>ご不明点がございましたら翔栄学院までお問い合わせください。</p>");
+        html.append("<p>このメールはシステムにより自動送信されています。</p>");
+        html.append("</body></html>");
+        return html.toString();
+    }
+
+    private String createChangeReservationText(Student student, LocalDate changeDate, DTO.ReservationChangeOfOneDay change) {
+        StringBuilder text = new StringBuilder();
+        text.append("自習室予約変更のお知らせ").append("\n\n");
+        text.append(student.getName()).append("様").append("\n\n");
+        text.append(formatDate(changeDate)).append("の自習室予約についてお知らせいたします。\n");
+        text.append(buildChangeMessage(change)).append("\n\n");
+        text.append("【変更前】\n");
+        text.append(buildReservationListText(change.getPreReservations()));
+        text.append("\n【変更後】\n");
+        text.append(buildReservationListText(change.getPostReservations()));
+        text.append("\nご不明点がございましたら翔栄学院までお問い合わせください。\n");
+        text.append("このメールはシステムにより自動送信されています。");
+        return text.toString();
+    }
+
+    private String buildChangeMessage(DTO.ReservationChangeOfOneDay change) {
+        if (change.isUnChanged()) {
+            return "ご予約内容に変更はありませんでした。";
+        }
+        if (change.isDeleted()) {
+            return "満席のため該当日のご予約は自動的にキャンセルされました。";
+        }
+        return "以下の通り自習室の予約時間を自動調整いたしました。";
+    }
+
+    private String buildReservationListHtml(Set<StudyRoomReservation> reservations) {
+        if (reservations == null || reservations.isEmpty()) {
+            return "<p>なし</p>";
+        }
+        StringBuilder sb = new StringBuilder("<ul>");
+        sortedReservations(reservations).forEach(res -> sb.append("<li>")
+                .append(formatReservation(res))
+                .append("</li>"));
+        sb.append("</ul>");
+        return sb.toString();
+    }
+
+    private String buildReservationListText(Set<StudyRoomReservation> reservations) {
+        if (reservations == null || reservations.isEmpty()) {
+            return "なし\n";
+        }
+        StringBuilder sb = new StringBuilder();
+        sortedReservations(reservations).forEach(res -> sb.append("・")
+                .append(formatReservation(res))
+                .append("\n"));
+        return sb.toString();
+    }
+
+    private List<StudyRoomReservation> sortedReservations(Set<StudyRoomReservation> reservations) {
+        return reservations.stream()
+                .sorted(Comparator
+                        .comparing(StudyRoomReservation::getDate)
+                        .thenComparing(StudyRoomReservation::getStartHour))
+                .toList();
+    }
+
+    private String formatReservation(StudyRoomReservation reservation) {
+        String date = formatDate(reservation.getDate());
+        String timeRange = reservation.getStartHour().format(TIME_FORMATTER)
+                + "〜" + reservation.getEndHour().format(TIME_FORMATTER);
+        String roomName = reservation.getStudyRoom() != null ? reservation.getStudyRoom().getName() : "";
+        return date + " " + timeRange + (roomName.isBlank() ? "" : " / " + roomName);
+    }
+
+    private String formatDate(LocalDate date) {
+        return date.format(DATE_FORMATTER);
+    }
+
+    private void sendEmail(Student student, String htmlContent,
+                           String textContent, String subject) {
+        try {
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setName(student.getCramSchool().getName());
+            sender.setEmail(student.getCramSchool().getEmail());
+
+            SendSmtpEmail email = new SendSmtpEmail();
+            email.setSender(sender);
+            email.setTo(Collections.singletonList(
+                    new SendSmtpEmailTo().email(student.getMail())
+            ));
+            email.setSubject(subject);
+            email.setHtmlContent(htmlContent);
+            email.setTextContent(textContent);
+
+            apiInstance.sendTransacEmail(email);
+            log.info("Reservation-change email sent successfully to: {}", student.getMail());
+
+        } catch (ApiException e) {
+            log.error("Failed to send reservation-change email to: {}", student.getMail(), e);
+            throw new RuntimeException("Email sending failed", e);
+        }
     }
 }

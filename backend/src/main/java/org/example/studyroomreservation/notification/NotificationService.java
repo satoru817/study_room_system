@@ -3,8 +3,10 @@ package org.example.studyroomreservation.notification;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.elf.UrlElf;
+import org.example.studyroomreservation.student.Student;
 import org.example.studyroomreservation.student.StudentLoginDTO;
 import org.example.studyroomreservation.student.StudentService;
+import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -97,5 +99,56 @@ public class NotificationService {
 
     private String getRegistrationUrl(String token, String baseUrl) {
         return baseUrl + "/register?token=" + token;
+    }
+    /*
+    * とりあえず、ある日のある一つの予約の変更のメールを送りたい。
+    * ある生徒の予約が
+    * １：一切変わっていない
+    * ２：時間帯が変わっている（途中で途切れたり、２つに分解されたり、遅く始まったりしている場合
+    * 3:なくなっている
+    * この三通りで文面を変えたほうがいいだろう。というか1の場合はメールを送らなくていい。
+    * */
+    public DTO.NotificationResult sendNotificationOfReservationChangeOfOneDay(List<StudyRoomReservation> preReservations, List<StudyRoomReservation> changedReservations) {
+        Map<Student, Set<StudyRoomReservation>> studentToPreReservationsMap = preReservations.parallelStream()
+                .collect(
+                        Collectors.groupingBy(
+                                StudyRoomReservation::getStudent,
+                                Collectors.toSet())
+                );
+
+        Map<Student, Set<StudyRoomReservation>> studentToPostReservationsMap = changedReservations.parallelStream()
+                .collect(
+                        Collectors.groupingBy(
+                                StudyRoomReservation::getStudent,
+                                Collectors.toSet()
+                        )
+                );
+        List<DTO.ReservationChangeOfOneDay> changes = studentToPreReservationsMap.entrySet().parallelStream()
+                .map(entrySet ->
+                    new DTO.ReservationChangeOfOneDay(entrySet.getKey(), entrySet.getValue(), studentToPostReservationsMap.getOrDefault(entrySet.getKey(), new HashSet<>()))
+                ).toList();
+
+        return sendReservationChangeNotifications(changes);
+    }
+
+    private DTO.NotificationResult sendReservationChangeNotifications(List<DTO.ReservationChangeOfOneDay> changes) {
+        int successCount = 0;
+        List<String> failedStudents = new ArrayList<>();
+        for (DTO.ReservationChangeOfOneDay change : changes) {
+            Student student = change.getStudent();
+            try {
+                for (NotificationStrategy strategy : strategies) {
+                    if (strategy.canSend(student)) {
+                        strategy.sendReservationChangeNotification(student, change);
+                        successCount++;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                failedStudents.add(student.getName());
+            }
+        }
+
+        return new DTO.NotificationResult(successCount, failedStudents);
     }
 }
