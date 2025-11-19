@@ -76,10 +76,12 @@ function StudyTimeChart({ studentId }) {
 
       setTotalHours(total.toFixed(1));
       setAverageHours(average.toFixed(1));
-    } catch (error) {
+    }
+ catch (error) {
       console.error("学習履歴の取得に失敗:", error);
       setChartData([]);
-    } finally {
+    }
+ finally {
       setLoading(false);
     }
   };
@@ -244,7 +246,8 @@ function StudentContent() {
     try {
       await doLogout();
       router.push("/user-login");
-    } catch (error) {
+    }
+ catch (error) {
       console.error("ログアウトに失敗:", error);
       alert("ログアウトに失敗しました");
     }
@@ -320,17 +323,20 @@ function StudentContent() {
 
         if (Array.isArray(reservationsOfThisStudent)) {
           setTodaysReservations(reservationsOfThisStudent);
-        } else {
+        }
+ else {
           console.error(
             "予約データが配列ではありません:",
             reservationsOfThisStudent
           );
           setTodaysReservations([]);
         }
-      } catch (error) {
+      }
+ catch (error) {
         console.error("予約の取得に失敗しました:", error);
         setTodaysReservations([]);
-      } finally {
+      }
+ finally {
         setLoading(false);
       }
     };
@@ -424,7 +430,8 @@ function StudentContent() {
           scanner.clear();
           setQrScannerActive(false);
           qrScannerInstanceRef.current = null;
-        } catch (error) {
+        }
+ catch (error) {
           console.error("QRコードの解析に失敗:", error);
           alert("無効なQRコードです");
         }
@@ -458,7 +465,8 @@ function StudentContent() {
           studyRoomId: scannedData.studyRoomId,
         });
         alert("入室を記録しました！");
-      } else if (actionType === "checkout") {
+      }
+ else if (actionType === "checkout") {
         await doPost(`/api/attendance/checkout/${studentId}`, {
           studyRoomId: scannedData.studyRoomId,
         });
@@ -471,7 +479,8 @@ function StudentContent() {
         `/api/reservation/getTodays/${studentId}`
       );
       setTodaysReservations(updatedReservations);
-    } catch (error) {
+    }
+ catch (error) {
       console.error("記録に失敗:", error);
       alert("記録に失敗しました");
     }
@@ -591,7 +600,8 @@ function StudentContent() {
                   bgColor: "bg-gray-100",
                   textColor: "text-gray-800",
                 };
-              } else if (reservation.hasCheckedIn) {
+              }
+ else if (reservation.hasCheckedIn) {
                 statusColor = "border-green-500";
                 statusBadge = {
                   text: "入室中",

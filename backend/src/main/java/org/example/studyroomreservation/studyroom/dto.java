@@ -18,9 +18,11 @@ public class dto {
         }
         public Range adjust(LocalTime startHour, LocalTime endHour) {
             if (closeTime.isBefore(startHour) || openTime.isAfter(endHour)) return null;
+            var _openTime = openTime.isAfter(startHour) ? openTime : startHour;
+            var _closeTime = closeTime.isBefore(endHour) ? closeTime : endHour;
+            if (_openTime.equals(_closeTime)) return null;
             return new Range(
-                    openTime.isAfter(startHour) ? openTime : startHour,
-                    closeTime.isBefore(endHour) ? closeTime : endHour
+                    _openTime, _closeTime
             );
         }
     }

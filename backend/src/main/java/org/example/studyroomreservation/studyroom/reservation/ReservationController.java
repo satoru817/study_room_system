@@ -36,7 +36,7 @@ public class ReservationController {
     // 実際のdb操作はしない。(update やinsertは)
     @PostMapping("/scheduleException/changeOneDay")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<?> calculateDeletedOrModifiedReservations(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request) {
+    public ResponseEntity<DTO.WillBeDeletedOrModifiedReservations> calculateDeletedOrModifiedReservations(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request) {
         DTO.WillBeDeletedOrModifiedReservations reservations = reservationService.getWillBeDeletedOrModifiedReservations(request);
         return ResponseEntity.ok(reservations);
     }
@@ -59,6 +59,13 @@ public class ReservationController {
         accessElf.isValidAccess(studentId, userDetails);
         dto.WeeklyAvailabilityResponse response = reservationService.getWeeklyAvailabilityResponse(studyRoomId, offset, studentId);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/scheduleExceptionChange/confirmBeforeDelete")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<DTO.WillBeDeletedOrModifiedReservations> confirmBeforeChange(@RequestBody DTO.ScheduleExceptionDeleteRequest request) {
+        DTO.WillBeDeletedOrModifiedReservations reservations = reservationService.calculateWillBeDeletedOrModifiedReservationsByDeletingOneDayScheduleException(request);
+        return ResponseEntity.ok(reservations);
     }
 
     @PostMapping("/create/{studentId}")

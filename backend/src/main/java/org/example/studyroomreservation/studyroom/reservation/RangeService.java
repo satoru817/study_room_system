@@ -15,6 +15,6 @@ public class RangeService {
         return ranges.parallelStream()
                 .map(
                         range -> range.adjust(startHour, endHour)
-                ).collect(Collectors.toSet());
+                ).filter(range -> range != null).collect(Collectors.toSet());
     }
 }

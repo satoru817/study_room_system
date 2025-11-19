@@ -50,9 +50,11 @@ function Booking() {
           });
         });
         setSelectedSlots(bookedSlots);
-      } catch (error) {
+      }
+ catch (error) {
         console.error("週間データの取得に失敗:", error);
-      } finally {
+      }
+ finally {
         setLoading(false);
       }
     };
@@ -154,7 +156,8 @@ function Booking() {
       const newSet = new Set(prev);
       if (shouldSelect) {
         newSet.add(key);
-      } else {
+      }
+ else {
         newSet.delete(key);
       }
       return newSet;
@@ -241,7 +244,8 @@ function Booking() {
         });
       });
       setSelectedSlots(bookedSlots);
-    } catch (error) {
+    }
+ catch (error) {
       console.error("予約の作成に失敗:", error);
 
       // エラーレスポンスから詳細なメッセージを取得
@@ -297,7 +301,8 @@ function Booking() {
         if (prevMinutes === currMinutes) {
           // 連続している
           currentTime = times[i];
-        } else {
+        }
+ else {
           // 連続していない → 1つの予約として追加
           const [endHour, endMin] = currentTime.split(":").map(Number);
           const endMinutes = endHour * 60 + endMin + 15;

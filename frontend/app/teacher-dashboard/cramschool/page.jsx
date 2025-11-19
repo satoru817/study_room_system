@@ -27,7 +27,8 @@ function CramSchoolDetailContent() {
       const url = `/api/studyRoom/get/${cramSchoolId}`;
       const _studyRooms = await doGet(url);
       setStudyRooms(_studyRooms);
-    } catch (error) {
+    }
+ catch (error) {
       console.error("自習室の取得に失敗:", error);
     }
   };
@@ -48,7 +49,8 @@ function CramSchoolDetailContent() {
           )}&name=${encodeURIComponent(selectedRoom.name)}`
         );
       }
-    } else {
+    }
+ else {
       alert("自習室を選択してください");
     }
   };
@@ -76,7 +78,8 @@ function CramSchoolDetailContent() {
 
       await fetchStudyRooms();
       alert("自習室を追加しました");
-    } catch (error) {
+    }
+ catch (error) {
       console.error("自習室の追加に失敗:", error);
       alert("自習室の追加に失敗しました");
     }
@@ -131,7 +134,8 @@ function CramSchoolDetailContent() {
       ]);
 
       alert("自習室を更新しました");
-    } catch (error) {
+    }
+ catch (error) {
       console.error("自習室の更新に失敗:", error);
       alert("自習室の更新に失敗しました");
     }
@@ -203,7 +207,8 @@ function CramSchoolDetailContent() {
       const fileName = `StudyRoom_${selectedRoom.studyRoomId}_QR.pdf`;
       pdf.save(fileName);
       alert("QRコードPDFを生成しました");
-    } catch (error) {
+    }
+ catch (error) {
       console.error("QRコード生成に失敗:", error);
       alert("QRコード生成に失敗しました");
     }
@@ -240,7 +245,8 @@ function CramSchoolDetailContent() {
       );
       setstudyRoomId(-1);
       alert("自習室を削除しました");
-    } catch (error) {
+    }
+ catch (error) {
       console.error("自習室の削除に失敗:", error);
       alert("自習室の削除に失敗しました");
     }

@@ -2,7 +2,7 @@
 import { SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL } from "@/app/constants/urls";
 import { doGet, doPost, doDelete } from "@/app/elfs/WebserviceElf";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, use, useCallback, useEffect, useState } from "react";
 
 function StudyRoomDetailContent() {
   const searchParams = useSearchParams();
@@ -233,11 +233,11 @@ function StudyRoomDetailContent() {
   };
 
   // Copy functions
-  const getAvailableStudyRooms = () => {
+  const getAvailableStudyRooms = useCallback(() => {
     return studyRooms.filter(
       (room) => room.studyRoomId.toString() !== studyRoomId
     );
-  };
+  }, [studyRoomId, studyRooms]);
 
   const handleOpenCopyRegularModal = () => {
     setSelectedStudyRoomIds([]);
@@ -283,7 +283,7 @@ function StudyRoomDetailContent() {
     } else {
       setSelectAll(false);
     }
-  }, [selectedStudyRoomIds]);
+  }, [selectedStudyRoomIds, getAvailableStudyRooms]);
   // TODO: update here to add confirmation!!
   const handleCopyRegularSchedule = async () => {
     if (selectedStudyRoomIds.length === 0) {
@@ -537,8 +537,6 @@ function StudyRoomDetailContent() {
         }
 
         if (confirm(message)) {
-          // TODO: update the api endpoint to send notification of the change!!
-
           const { scheduleExceptions, notificationResult } = await doPost(
             SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
             {
@@ -570,7 +568,6 @@ function StudyRoomDetailContent() {
         );
         let message;
         if (willBeDeleted.length === 0 && willBeModified.length === 0) {
-          // 例外スケジュールの変更で削除、変更される予定がない場合は、そのまま保存処理に入る
           message = "この変更で削除や変更される生徒の予約はありません。";
         } else {
           message =
@@ -627,22 +624,30 @@ function StudyRoomDetailContent() {
       alert("例外スケジュールの保存に失敗しました");
     }
   };
+  // TODO: update this!!!
 
   const handleDeleteException = async () => {
     if (!confirm("この例外スケジュールを削除しますか？")) return;
 
-    try {
-      const updatedExceptions = await doPost(
-        "/api/studyRoom/scheduleException/delete",
-        {
-          studyRoomId: studyRoomId,
-          date: selectedDate,
-        }
-      );
+    const selectedException = exceptions.find(
+      (exception) => exception.date === selectedDate
+    );
 
-      setShowExceptionModal(false);
-      setExceptions(updatedExceptions);
-      alert("例外スケジュールを削除しました");
+    try {
+      if (!selectedException.isOpen) {
+        const updatedExceptions = await doPost(
+          "/api/studyRoom/scheduleException/delete",
+          {
+            studyRoomId: studyRoomId,
+            date: selectedDate,
+          }
+        );
+
+        setShowExceptionModal(false);
+        setExceptions(updatedExceptions);
+        alert("例外スケジュールを削除しました");
+      } else {
+      }
     } catch (error) {
       console.error("例外スケジュールの削除に失敗:", error);
       alert("例外スケジュールの削除に失敗しました");

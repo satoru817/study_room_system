@@ -9,4 +9,5 @@ public class DTO {
     public record CloseRequest(int studyRoomId, LocalDate date){}
     public record ReservationDtoForConfirmation(int studyRoomId, String studyRoomName, String studentName, LocalDate date, LocalTime startHour, LocalTime endHour){}
     public record WillBeDeletedOrModifiedReservations(List<ReservationDtoForConfirmation> willBeDeleted, List<ReservationDtoForConfirmation> willBeModified){}
+    public record ScheduleExceptionDeleteRequest(int studyRoomId, LocalDate selectedDate){}
 }

@@ -59,9 +59,11 @@ const _fetch = async (url, method, data = null, callIfFailed = undefined) => {
     let fetchedData;
     if (contentType.includes("text/plain")) {
       fetchedData = await response.text();
-    } else if (contentType.includes("application/json")) {
+    }
+ else if (contentType.includes("application/json")) {
       fetchedData = await response.json();
-    } else {
+    }
+ else {
       fetchedData = await response.text();
     }
 
@@ -72,7 +74,8 @@ const _fetch = async (url, method, data = null, callIfFailed = undefined) => {
     );
 
     return fetchedData;
-  } catch (error) {
+  }
+ catch (error) {
     console.error(`Error: ${error}`);
 
     if (
@@ -170,7 +173,8 @@ export async function doLogin(username, password) {
     console.log(`Login finished, result = ${JSON.stringify(result)}`);
 
     return result;
-  } catch (error) {
+  }
+ catch (error) {
     console.error(`Login Error: ${error}`);
     throw error;
   }

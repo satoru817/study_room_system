@@ -161,4 +161,5 @@ public class StudyRoomController {
         studyRoomService.copyScheduleException(request);
         return ResponseEntity.ok().body("copy of schedule exception success");
     }
+    
 }

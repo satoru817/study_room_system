@@ -39,10 +39,12 @@ function StudentRegisterPage() {
 
       alert("登録が完了しました！");
       router.push("/student/login");
-    } catch (e) {
+    }
+ catch (e) {
       console.error("Registration failed:", e);
       setError("登録に失敗しました。トークンが無効か、既に使用されています。");
-    } finally {
+    }
+ finally {
       setIsLoading(false);
     }
   };

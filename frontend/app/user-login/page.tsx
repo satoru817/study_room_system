@@ -48,7 +48,8 @@ export default function LoginPage() {
       const id = response.id;
       await getCsrfToken();
       navigateBasedOnRole(role, id);
-    } else {
+    }
+ else {
       setIsSubmitting(false);
       alert(response.error || "ログインに失敗しました");
     }

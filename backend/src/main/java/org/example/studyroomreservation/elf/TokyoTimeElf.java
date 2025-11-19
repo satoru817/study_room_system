@@ -44,6 +44,18 @@ public class TokyoTimeElf {
         monday, tuesday, wednesday, thursday, friday, saturday, sunday
     }
 
+    public static DayOfWeek convert(java.time.DayOfWeek dayOfWeek) {
+        return switch(dayOfWeek) {
+            case SUNDAY -> DayOfWeek.sunday;
+            case MONDAY -> DayOfWeek.monday;
+            case TUESDAY -> DayOfWeek.tuesday;
+            case WEDNESDAY -> DayOfWeek.wednesday;
+            case THURSDAY -> DayOfWeek.thursday;
+            case FRIDAY -> DayOfWeek.friday;
+            case SATURDAY -> DayOfWeek.saturday;
+        };
+    }
+
     public static String getFormattedTime() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH時mm分");
         return getTokyoLocalDateTime().format(formatter);

@@ -35,10 +35,12 @@ const Students = () => {
       const url = `/api/student/getStatuses/${cramSchoolId}?page=${currentPage}&size=${pageSize}&sort=el1&direction=DESC`;
       const data = await doGet(url);
       setPageData(data);
-    } catch (e) {
+    }
+ catch (e) {
       console.error("Failed to fetch students:", e);
       setError("生徒情報の取得に失敗しました");
-    } finally {
+    }
+ finally {
       setIsLoading(false);
     }
   }, [cramSchoolId, currentPage, pageSize]);
@@ -65,7 +67,8 @@ const Students = () => {
       const newSet = new Set(prev);
       if (newSet.has(studentId)) {
         newSet.delete(studentId);
-      } else {
+      }
+ else {
         newSet.add(studentId);
       }
       return newSet;
@@ -78,7 +81,8 @@ const Students = () => {
     );
     if (selectedStudentIds.size === unregisteredStudents.length) {
       setSelectedStudentIds(new Set());
-    } else {
+    }
+ else {
       setSelectedStudentIds(
         new Set(unregisteredStudents.map((s) => s.studentId))
       );
@@ -116,13 +120,15 @@ const Students = () => {
 
       // リストを更新
       await fetchStudents();
-    } catch (e) {
+    }
+ catch (e) {
       console.error("Failed to send registration emails:", e);
       setEmailResult({
         successCount: 0,
         failedStudent: ["通信エラーが発生しました"],
       });
-    } finally {
+    }
+ finally {
       setIsSendingEmail(false);
     }
   };
@@ -176,10 +182,12 @@ const Students = () => {
 
       await fetchStudents();
       handleCloseEditModal();
-    } catch (e) {
+    }
+ catch (e) {
       console.error("Failed to register email:", e);
       setModalError("メールアドレスの登録に失敗しました");
-    } finally {
+    }
+ finally {
       setIsRegistering(false);
     }
   };

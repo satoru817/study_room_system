@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
@@ -312,7 +313,10 @@ public class ReservationService {
     public List<DTO.ReservationDtoForConfirmation> findWhichReservationWillBeDeletedByClosingOneDay(DTO.CloseRequest closeRequest) {
         int studyRoomId = closeRequest.studyRoomId();
         LocalDate date = closeRequest.date();
+        return checkWillBeDeletedByClosingOneDay(studyRoomId, date);
+    }
 
+    private List<DTO.ReservationDtoForConfirmation> checkWillBeDeletedByClosingOneDay(int studyRoomId, LocalDate date) {
         String sql = """
                 SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
                 FROM study_room_reservations srr
@@ -354,16 +358,16 @@ public class ReservationService {
             ), non_deleted_reservation_ids AS (
                 SELECT DISTINCT srr.study_room_reservation_id
                 FROM study_room_reservations srr
-                JOIN time_slots ts 
+                JOIN time_slots ts
                     ON NOT (srr.end_hour <= ts.openTime OR srr.start_hour >= ts.closeTime)
                 WHERE srr.study_room_id = :studyRoomId AND srr.date = :date
             )
-            SELECT DISTINCT sr.study_room_id, sr.name AS study_room_name, 
+            SELECT DISTINCT sr.study_room_id, sr.name AS study_room_name,
                    s.name AS student_name, srr.date, srr.start_hour, srr.end_hour
             FROM study_room_reservations srr
             JOIN study_rooms sr ON srr.study_room_id = sr.study_room_id AND srr.study_room_id = :studyRoomId AND srr.date = :date
-            JOIN students s ON srr.student_id = s.student_id 
-            LEFT JOIN non_deleted_reservation_ids ndri 
+            JOIN students s ON srr.student_id = s.student_id
+            LEFT JOIN non_deleted_reservation_ids ndri
                 ON ndri.study_room_reservation_id = srr.study_room_reservation_id
             WHERE ndri.study_room_reservation_id IS NULL
             """);
@@ -438,5 +442,48 @@ public class ReservationService {
         }
 
         return params;
+    }
+
+    public DTO.WillBeDeletedOrModifiedReservations calculateWillBeDeletedOrModifiedReservationsByDeletingOneDayScheduleException(DTO.ScheduleExceptionDeleteRequest request) {
+        LocalDate date = request.selectedDate();
+        TokyoTimeElf.DayOfWeek dayOfWeek = TokyoTimeElf.convert(date.getDayOfWeek());
+        int studyRoomId = request.studyRoomId();
+        String existSql = """
+                SELECT EXISTS (
+                    SELECT srrs.study_room_regular_schedule_id
+                    FROM study_room_regular_schedules srrs
+                    WHERE srrs.day_of_week = :dayOfWeek
+                        AND srrs.study_room_id = :studyRoomId
+                )
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("studyRoomId", studyRoomId)
+                .addValue("dayOfWeek", dayOfWeek);
+
+        boolean hasRegularSchedule = Boolean.TRUE.equals(jdbcTemplate.queryForObject(existSql, params, Boolean.class));
+
+        if (!hasRegularSchedule) {
+            List<DTO.ReservationDtoForConfirmation> willBeDeleted = checkWillBeDeletedByClosingOneDay(studyRoomId, date);
+            return new DTO.WillBeDeletedOrModifiedReservations(willBeDeleted, List.of());
+        }
+        else {
+            // this is tough part
+            String getWillBeDeletedSql = """
+                    WITH will_be_deleted_reservation_ids AS (
+                        SELECT srr.study_room_reservation_id
+                        FROM study_room_reservations srr
+                        JOIN study_rooms sr
+                            ON sr.study_room_id = srr.study_room_id 
+                            AND sr.study_room_id = :studyRoomId 
+                            AND srr.date = :date
+                        LEFT JOIN study_room_regular_schedules srrs 
+                            ON srrs.study_room_id = srr.study_room_id 
+                            AND srrs.day_of_week = :dayOfWeek
+                            AND NOT (srr.start_hour => srrs.close_time OR srr.end_hour <= srrs.open_time)
+                        WHERE srrs.study_room_regular_schedule_id IS NULL
+                    )
+                    
+                    """
+        }
     }
 }

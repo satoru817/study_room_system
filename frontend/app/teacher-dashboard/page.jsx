@@ -18,7 +18,8 @@ export default function TeacherDashboard() {
     try {
       await doLogout();
       router.push("/user-login");
-    } catch (error) {
+    }
+ catch (error) {
       console.error("ログアウトに失敗:", error);
       alert("ログアウトに失敗しました");
     }
@@ -46,7 +47,8 @@ export default function TeacherDashboard() {
           )}&name=${encodeURIComponent(selectedSchool.name)}`
         );
       }
-    } else {
+    }
+ else {
       alert("校舎を選択してください");
     }
   };
