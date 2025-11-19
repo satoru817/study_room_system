@@ -482,8 +482,12 @@ public class ReservationService {
                             AND NOT (srr.start_hour => srrs.close_time OR srr.end_hour <= srrs.open_time)
                         WHERE srrs.study_room_regular_schedule_id IS NULL
                     )
-                    
-                    """
+                    SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                    FROM study_room_reservations srr
+                    JOIN will_be_deleted_reservation_ids wbdri ON wbdri.study_room_reservation_id = srr.study_room_reservation_id
+                    JOIN study_rooms sr ON sr.study_room_id = srr.study_room_id
+                    JOIN students st ON st.student_id = srr.student_id
+                    """;
         }
     }
 }
