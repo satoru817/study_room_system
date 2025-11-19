@@ -9,6 +9,7 @@ import org.example.studyroomreservation.student.StudentLoginDTO;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import sendinblue.ApiClient;
@@ -34,7 +35,6 @@ public class EmailNotificationStrategy implements NotificationStrategy{
             DateTimeFormatter.ofPattern("M月d日(E)", Locale.JAPAN);
     private static final DateTimeFormatter TIME_FORMATTER =
             DateTimeFormatter.ofPattern("HH:mm");
-
     private TransactionalEmailsApi apiInstance;
     @Value("${sendinblue.api-key}")
     private String apiKey;
@@ -91,14 +91,24 @@ public class EmailNotificationStrategy implements NotificationStrategy{
 
     @Override
     public void sendRegistrationUrl(StudentLoginDTO student, String url, int validPeriod) {
-        log.info("sending registration-url email to: {}", student);
+        log.info("Sending registration URL email - Student: {}, Email: {}, CramSchool: {}, ValidPeriod: {} days",
+                student.getName(), student.getMail(), student.getCramSchoolName(), validPeriod);
+
         try {
             sendEmail(student, createRegistrationHTML(student, url, validPeriod),
                     createRegistrationText(student, url, validPeriod),
                     "翔栄学院入退室システム登録のお願い"
             );
+            log.info("Registration URL email sent successfully - Student: {}, Email: {}",
+                    student.getName(), student.getMail());
+        } catch (ApiException e) {
+            log.error("Failed to send registration URL email - Student: {}, Email: {}, Error: {}, Response: {}",
+                    student.getName(), student.getMail(), e.getMessage(), e.getResponseBody(), e);
+            throw new RuntimeException("Failed to send registration URL email to " + student.getMail(), e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Unexpected error sending registration URL email - Student: {}, Email: {}",
+                    student.getName(), student.getMail(), e);
+            throw new RuntimeException("Failed to send registration URL email to " + student.getMail(), e);
         }
     }
 
@@ -198,6 +208,10 @@ public class EmailNotificationStrategy implements NotificationStrategy{
 
     private void sendEmail(StudentUser student, String htmlContent,
                            String textContent, String subject) {
+        log.info("Preparing to send email - Recipient: {} ({}), Subject: '{}', Sender: {} ({})",
+                student.getStudentName(), student.getStudentEmail(), subject,
+                student.getCramSchoolName(), student.getCramSchoolEmail());
+
         try {
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setName(student.getCramSchoolName());
@@ -212,31 +226,57 @@ public class EmailNotificationStrategy implements NotificationStrategy{
             email.setHtmlContent(htmlContent);
             email.setTextContent(textContent);
 
+            log.debug("Sending transactional email via API - Recipient: {}", student.getStudentEmail());
             apiInstance.sendTransacEmail(email);
-            log.info("Email sent successfully to: {}", student.getStudentEmail());
+            log.info("Email sent successfully - Recipient: {} ({}), Subject: '{}'",
+                    student.getStudentName(), student.getStudentEmail(), subject);
 
         } catch (ApiException e) {
-            log.error("Failed to send email to: {}", student.getStudentEmail(), e);
-            throw new RuntimeException("Email sending failed", e);
+            log.error("API error sending email - Recipient: {} ({}), Subject: '{}', StatusCode: {}, Error: {}, Response: {}",
+                    student.getStudentName(), student.getStudentEmail(), subject,
+                    e.getCode(), e.getMessage(), e.getResponseBody(), e);
+            throw new RuntimeException("Failed to send email to " + student.getStudentEmail() + ": " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error sending email - Recipient: {} ({}), Subject: '{}'",
+                    student.getStudentName(), student.getStudentEmail(), subject, e);
+            throw new RuntimeException("Failed to send email to " + student.getStudentEmail(), e);
         }
     }
 
     private void sendEmail(StudentLoginDTO student, String htmlContent, String textContent, String subject) throws ApiException {
-        SendSmtpEmailSender sender = new SendSmtpEmailSender();
-        sender.setName(student.getCramSchoolName());
-        sender.setEmail(student.getCramSchoolEmail());
+        log.info("Preparing to send email - Recipient: {} ({}), Subject: '{}', Sender: {} ({})",
+                student.getName(), student.getMail(), subject,
+                student.getCramSchoolName(), student.getCramSchoolEmail());
 
-        SendSmtpEmail email = new SendSmtpEmail();
-        email.setSender(sender);
-        email.setTo(Collections.singletonList(
-                new SendSmtpEmailTo().email(student.getMail())
-        ));
-        email.setSubject(subject);
-        email.setHtmlContent(htmlContent);
-        email.setTextContent(textContent);
+        try {
+            SendSmtpEmailSender sender = new SendSmtpEmailSender();
+            sender.setName(student.getCramSchoolName());
+            sender.setEmail(student.getCramSchoolEmail());
 
-        apiInstance.sendTransacEmail(email);
-        log.info("Email sent successfully to: {}", student.getMail());
+            SendSmtpEmail email = new SendSmtpEmail();
+            email.setSender(sender);
+            email.setTo(Collections.singletonList(
+                    new SendSmtpEmailTo().email(student.getMail())
+            ));
+            email.setSubject(subject);
+            email.setHtmlContent(htmlContent);
+            email.setTextContent(textContent);
+
+            log.debug("Sending transactional email via API - Recipient: {}", student.getMail());
+            apiInstance.sendTransacEmail(email);
+            log.info("Email sent successfully - Recipient: {} ({}), Subject: '{}'",
+                    student.getName(), student.getMail(), subject);
+
+        } catch (ApiException e) {
+            log.error("API error sending email - Recipient: {} ({}), Subject: '{}', StatusCode: {}, Error: {}, Response: {}",
+                    student.getName(), student.getMail(), subject,
+                    e.getCode(), e.getMessage(), e.getResponseBody(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error sending email - Recipient: {} ({}), Subject: '{}'",
+                    student.getName(), student.getMail(), subject, e);
+            throw new RuntimeException("Failed to send email to " + student.getMail(), e);
+        }
     }
 
     private String createChangeReservationHtml(Student student, LocalDate changeDate, DTO.ReservationChangeOfOneDay change) {
@@ -276,14 +316,14 @@ public class EmailNotificationStrategy implements NotificationStrategy{
             return "ご予約内容に変更はありませんでした。";
         }
         if (change.isDeleted()) {
-            return "満席のため該当日のご予約は自動的にキャンセルされました。";
+            return "該当日のご予約は開室スケジュール変更のため自動的にキャンセルされました。";
         }
         return "以下の通り自習室の予約時間を自動調整いたしました。";
     }
 
     private String buildReservationListHtml(Set<StudyRoomReservation> reservations) {
         if (reservations == null || reservations.isEmpty()) {
-            return "<p>なし</p>";
+            return "<p>予約なし</p>";
         }
         StringBuilder sb = new StringBuilder("<ul>");
         sortedReservations(reservations).forEach(res -> sb.append("<li>")
@@ -326,6 +366,10 @@ public class EmailNotificationStrategy implements NotificationStrategy{
 
     private void sendEmail(Student student, String htmlContent,
                            String textContent, String subject) {
+        log.info("Preparing to send email - Recipient: {} ({}), Subject: '{}', Sender: {} ({})",
+                student.getName(), student.getMail(), subject,
+                student.getCramSchool().getName(), student.getCramSchool().getEmail());
+
         try {
             SendSmtpEmailSender sender = new SendSmtpEmailSender();
             sender.setName(student.getCramSchool().getName());
@@ -340,12 +384,20 @@ public class EmailNotificationStrategy implements NotificationStrategy{
             email.setHtmlContent(htmlContent);
             email.setTextContent(textContent);
 
+            log.debug("Sending transactional email via API - Recipient: {}", student.getMail());
             apiInstance.sendTransacEmail(email);
-            log.info("Reservation-change email sent successfully to: {}", student.getMail());
+            log.info("Email sent successfully - Recipient: {} ({}), Subject: '{}'",
+                    student.getName(), student.getMail(), subject);
 
         } catch (ApiException e) {
-            log.error("Failed to send reservation-change email to: {}", student.getMail(), e);
-            throw new RuntimeException("Email sending failed", e);
+            log.error("API error sending email - Recipient: {} ({}), Subject: '{}', StatusCode: {}, Error: {}, Response: {}",
+                    student.getName(), student.getMail(), subject,
+                    e.getCode(), e.getMessage(), e.getResponseBody(), e);
+            throw new RuntimeException("Failed to send email to " + student.getMail() + ": " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error sending email - Recipient: {} ({}), Subject: '{}'",
+                    student.getName(), student.getMail(), subject, e);
+            throw new RuntimeException("Failed to send email to " + student.getMail(), e);
         }
     }
 }

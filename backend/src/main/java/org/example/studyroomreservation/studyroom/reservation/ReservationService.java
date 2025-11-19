@@ -1,6 +1,8 @@
 package org.example.studyroomreservation.studyroom.reservation;
 
-import org.example.studyroomreservation.config.security.user.StudentUser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.studyroom.dto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ public class ReservationService {
     private StudyRoomReservationRepository reservationRepository;
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     public List<DTO.ReservationShowResponse> getReservationsOfOneStudentOfToday(int studentId) {
@@ -315,11 +319,14 @@ public class ReservationService {
                 JOIN study_rooms sr ON sr.study_room_id = :studyRoomId AND sr.study_room_id = srr.study_room_id AND srr.date = :date
                 JOIN students st ON st.student_id = srr.student_id
                 """;
-
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()
                 .addValue("studyRoomId", studyRoomId)
                 .addValue("date", date);
 
+        return getConfirmationDTOUsingNamedParameterJdbcTemplate(sql, mapSqlParameterSource);
+    }
+
+    private List<DTO.ReservationDtoForConfirmation> getConfirmationDTOUsingNamedParameterJdbcTemplate(String sql, MapSqlParameterSource mapSqlParameterSource) {
         return jdbcTemplate.query(sql, mapSqlParameterSource, (rs, rowNum) ->
                 new DTO.ReservationDtoForConfirmation(
                         rs.getInt("study_room_id"),
@@ -329,5 +336,107 @@ public class ReservationService {
                         rs.getObject("start_hour", LocalTime.class),
                         rs.getObject("end_hour", LocalTime.class)
                 ));
+    }
+
+    public DTO.WillBeDeletedOrModifiedReservations getWillBeDeletedOrModifiedReservations(dto.StudyRoomScheduleExceptionOfOneDate request) {
+        int studyRoomId = request.studyRoomId();
+        LocalDate date = request.date();
+        List<dto.Range> timeSlots = request.schedules();
+        List<DTO.ReservationDtoForConfirmation> willBeDeletedReservations = willBeDeletedReservations(studyRoomId, date, timeSlots);
+        List<DTO.ReservationDtoForConfirmation> willBeModifiedReservations = willBeModifiedReservations(studyRoomId, date, timeSlots);
+        return new DTO.WillBeDeletedOrModifiedReservations(willBeDeletedReservations, willBeModifiedReservations);
+    }
+
+    public List<DTO.ReservationDtoForConfirmation> willBeDeletedReservations(
+            int studyRoomId, LocalDate date, List<dto.Range> timeSlots) {
+
+        String sql = buildSqlWithTimeSlots("""
+            ), non_deleted_reservation_ids AS (
+                SELECT DISTINCT srr.study_room_reservation_id
+                FROM study_room_reservations srr
+                JOIN time_slots ts 
+                    ON NOT (srr.end_hour <= ts.openTime OR srr.start_hour >= ts.closeTime)
+                WHERE srr.study_room_id = :studyRoomId AND srr.date = :date
+            )
+            SELECT DISTINCT sr.study_room_id, sr.name AS study_room_name, 
+                   s.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+            FROM study_room_reservations srr
+            JOIN study_rooms sr ON srr.study_room_id = sr.study_room_id AND srr.study_room_id = :studyRoomId AND srr.date = :date
+            JOIN students s ON srr.student_id = s.student_id 
+            LEFT JOIN non_deleted_reservation_ids ndri 
+                ON ndri.study_room_reservation_id = srr.study_room_reservation_id
+            WHERE ndri.study_room_reservation_id IS NULL
+            """);
+
+        MapSqlParameterSource params = buildParams(studyRoomId, date, timeSlots);
+        return getConfirmationDTOUsingNamedParameterJdbcTemplate(sql, params);
+    }
+
+    public List<DTO.ReservationDtoForConfirmation> willBeModifiedReservations(
+            int studyRoomId, LocalDate date, List<dto.Range> timeSlots) {
+
+        String sql = buildSqlWithTimeSlots( """
+            ), partially_covered_reservation_ids AS (
+                SELECT DISTINCT srr.study_room_reservation_id
+                FROM study_room_reservations srr
+                JOIN time_slots ts
+                    ON srr.study_room_id = :studyRoomId AND srr.date = :date
+                    AND (
+                        (srr.start_hour < ts.openTime AND srr.end_hour > ts.openTime AND srr.end_hour <= ts.closeTime)
+                        OR (srr.start_hour >= ts.openTime AND srr.start_hour < ts.closeTime AND srr.end_hour > ts.closeTime)
+                        OR (srr.start_hour <= ts.openTime AND srr.end_hour > ts.closeTime)
+                        OR (srr.start_hour < ts.openTime AND srr.end_hour >= ts.closeTime)
+                    )
+            )
+            SELECT sr.study_room_id, sr.name AS study_room_name,
+                   s.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+            FROM study_room_reservations srr
+            JOIN study_rooms sr ON srr.study_room_id = sr.study_room_id AND srr.study_room_id = :studyRoomId AND srr.date = :date
+            JOIN students s ON srr.student_id = s.student_id
+            JOIN partially_covered_reservation_ids pcri
+                ON pcri.study_room_reservation_id = srr.study_room_reservation_id
+            """);
+
+        MapSqlParameterSource params = buildParams(studyRoomId, date, timeSlots);
+        return getConfirmationDTOUsingNamedParameterJdbcTemplate(sql, params);
+    }
+
+    private String buildSqlWithTimeSlots(String mainQuery) {
+
+        return """
+               WITH time_slots AS (
+                    SELECT jt.openTime, jt.closeTime
+                    FROM JSON_TABLE (
+                        CAST(:timeSlots AS JSON),
+                        "$[*]"
+                        COLUMNS(
+                            openTime TIME PATH "$.openTime",
+                            closeTime TIME PATH "$.closeTime"
+                        )
+                    ) AS jt
+               """
+                +mainQuery;
+    }
+
+    private MapSqlParameterSource buildParams(
+            int studyRoomId, LocalDate date, List<dto.Range> timeSlots) {
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("studyRoomId", studyRoomId);
+        params.addValue("date", date);
+        try {
+            List<Map<String, String>> timeSlotsForJson = timeSlots.stream()
+                    .map(slot -> Map.of(
+                            "openTime", slot.openTime().toString(),   // "09:00:00"
+                            "closeTime", slot.closeTime().toString()  // "11:15:00"
+                    ))
+                    .toList();
+            String timeSlotsJson = objectMapper.writeValueAsString(timeSlotsForJson);
+            params.addValue("timeSlots", timeSlotsJson);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return params;
     }
 }

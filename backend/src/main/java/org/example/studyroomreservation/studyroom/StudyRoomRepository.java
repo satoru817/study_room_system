@@ -1,5 +1,6 @@
 package org.example.studyroomreservation.studyroom;
 
+import org.example.studyroomreservation.notification.DTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -47,7 +48,7 @@ public interface StudyRoomRepository extends JpaRepository<StudyRoom, Integer> {
     List<StudyRoomController.StudyRoomRegularScheduleDTO> getRegularScheduleOfOneStudyRoom(int studyRoomId);
 
     @Query("""
-            SELECT NEW org.example.studyroomreservation.studyroom.StudyRoomController$StudyRoomScheduleExceptionShowResponse(
+            SELECT NEW org.example.studyroomreservation.notification.DTO$StudyRoomScheduleExceptionShowResponse(
                 sr.studyRoomId,
                 srse.date,
                 srse.isOpen,
@@ -61,7 +62,7 @@ public interface StudyRoomRepository extends JpaRepository<StudyRoom, Integer> {
                 AND YEAR(srse.date) = :year
                 AND MONTH(srse.date) = :month
             """)
-    List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> getScheduleExceptionsOfOneStudyRoomOfYearMonth(int studyRoomId, int year, int month);
+    List<DTO.StudyRoomScheduleExceptionShowResponse> getScheduleExceptionsOfOneStudyRoomOfYearMonth(int studyRoomId, int year, int month);
 
     @Query("""
             SELECT NEW org.example.studyroomreservation.studyroom.dto$StudyRoomShowResponseForStudent(

@@ -75,7 +75,7 @@ public class StudyRoomService {
         return studyRoomRepository.getRegularScheduleOfOneStudyRoom(studyRoomId);
     }
 
-    public List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> getScheduleExceptionsOfOneStudyRoom(StudyRoomController.StudyRoomScheduleExceptionShowRequest request) {
+    public List<DTO.StudyRoomScheduleExceptionShowResponse> getScheduleExceptionsOfOneStudyRoom(StudyRoomController.StudyRoomScheduleExceptionShowRequest request) {
         try {
             return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(request.studyRoomId(), request.year(), request.month());
         } catch (Exception e) {
@@ -114,7 +114,7 @@ public class StudyRoomService {
     // TODO: ここで、study_room_reservationsもupdateしないといけない。
 
     @Transactional
-    public List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> saveException(dto.StudyRoomScheduleExceptionOfOneDate request) {
+    public DTO.ScheduleExceptionsAndNotificationResult saveException(dto.StudyRoomScheduleExceptionOfOneDate request) {
         int studyRoomId = request.studyRoomId();
         LocalDate date = request.date();
         List<StudyRoomReservation> preReservations = studyRoomReservationRepository.getReservationsOfOneRoomOfOneDay(studyRoomId, date);
@@ -199,14 +199,13 @@ public class StudyRoomService {
             jdbcTemplate.batchUpdate(insertReservationsSql, batchInsertReservationParams.toArray(new MapSqlParameterSource[0]));
         }
         List<StudyRoomReservation> changedReservations = studyRoomReservationRepository.getReservationsOfOneRoomOfOneDay(studyRoomId, date);
-        // TODO: このpreReservationとchangedに基づいてメールを送るロジックを書かないと行けない。
         DTO.NotificationResult notificationResult = notificationService.sendNotificationOfReservationChangeOfOneDay(preReservations, changedReservations);
-        // TODO: write  change the line below( return both value: notificationResult and changed scheduleExceptions)
-        //return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
+        List<DTO.StudyRoomScheduleExceptionShowResponse> exceptions = studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
+        return new DTO.ScheduleExceptionsAndNotificationResult(exceptions, notificationResult);
     }
 
     @Transactional
-    public List<StudyRoomController.StudyRoomScheduleExceptionShowResponse> deleteExceptionOfOneDay(dto.StudyRoomScheduleExceptionDeleteRequest deleteRequest) {
+    public List<DTO.StudyRoomScheduleExceptionShowResponse> deleteExceptionOfOneDay(dto.StudyRoomScheduleExceptionDeleteRequest deleteRequest) {
         int studyRoomId = deleteRequest.studyRoomId();
         LocalDate date = deleteRequest.date();
         String deleteSql = """

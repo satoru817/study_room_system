@@ -26,9 +26,10 @@ public interface StudyRoomReservationRepository extends JpaRepository<StudyRoomR
 
     @Query("""
             SELECT srr
-            FROM StudyRoomReservations srr
+            FROM StudyRoomReservation srr
             WHERE srr.studyRoom.studyRoomId = :studyRoomId
             AND srr.date = :date
             """)
-    List<StudyRoomReservation> getReservationsOfOneRoomOfOneDay(int studyRoomId, LocalDate date)
+    List<StudyRoomReservation> getReservationsOfOneRoomOfOneDay(int studyRoomId, LocalDate date);
+
 }

@@ -31,6 +31,16 @@ public class ReservationController {
         return ResponseEntity.ok(reservationsToBeDeleted);
     }
 
+    //ある日の例外スケジュールを変更する場合の確認メッセージを作成するendpoint
+    // WillBeDeletedOrModifiedReservationsを返して、frontで表示するだけ。
+    // 実際のdb操作はしない。(update やinsertは)
+    @PostMapping("/scheduleException/changeOneDay")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> calculateDeletedOrModifiedReservations(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request) {
+        DTO.WillBeDeletedOrModifiedReservations reservations = reservationService.getWillBeDeletedOrModifiedReservations(request);
+        return ResponseEntity.ok(reservations);
+    }
+
     @GetMapping("/getTodays/{studentId}")
     public ResponseEntity<?> getReservationOfToday(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable int studentId) throws IllegalAccessException {
         accessElf.isValidAccess(studentId, userDetails);

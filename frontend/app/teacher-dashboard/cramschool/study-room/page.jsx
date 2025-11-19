@@ -509,9 +509,11 @@ function StudyRoomDetailContent() {
       return;
     }
     let updatedExceptions;
+    let _notificationResult; // this is the result of confirmation email or line to parents for the change of reservations
     try {
       if (exceptionType === "closed") {
         // 閉鎖日として保存
+        //削除される予約をとってくる。
         const reservationsToBeDeleted = await doPost(
           "/api/reservation/confirm/deletedByClosingOneDay",
           {
@@ -521,7 +523,7 @@ function StudyRoomDetailContent() {
         );
 
         let message;
-        if (reservationsToBeDeleted.length > 0) {
+        if (reservationsToBeDeleted.size > 0) {
           message =
             "以下の予約が削除され、生徒に連絡されます\n" +
             reservationsToBeDeleted
@@ -536,7 +538,8 @@ function StudyRoomDetailContent() {
 
         if (confirm(message)) {
           // TODO: update the api endpoint to send notification of the change!!
-          updatedExceptions = await doPost(
+
+          const { scheduleExceptions, notificationResult } = await doPost(
             SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
             {
               studyRoomId: studyRoomId,
@@ -546,25 +549,79 @@ function StudyRoomDetailContent() {
               reason: exceptionReason,
             }
           );
+          _notificationResult = notificationResult;
+          updatedExceptions = scheduleExceptions;
         }
+        // 特別開講予定を保存
       } else {
-        // カスタムスケジュールとして保存
         const ranges = convertExceptionSlotsToRanges();
-        updatedExceptions = await doPost(
-          SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
-          {
-            studyRoomId: studyRoomId,
-            date: selectedDate,
-            isOpen: true,
-            schedules: ranges,
-            reason: exceptionReason,
-          }
-        );
-      }
 
+        const updateRequestData = {
+          studyRoomId: studyRoomId,
+          date: selectedDate,
+          isOpen: true,
+          schedules: ranges,
+          reason: exceptionReason,
+        };
+
+        const { willBeDeleted, willBeModified } = await doPost(
+          "/api/reservation/scheduleException/changeOneDay",
+          updateRequestData
+        );
+        let message;
+        if (willBeDeleted.length === 0 && willBeModified.length === 0) {
+          // 例外スケジュールの変更で削除、変更される予定がない場合は、そのまま保存処理に入る
+          message = "この変更で削除や変更される生徒の予約はありません。";
+        } else {
+          message =
+            willBeDeleted.length > 0
+              ? "以下の予約が削除されます\n" +
+                willBeDeleted
+                  .map(
+                    (res) =>
+                      `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
+                  )
+                  .join("\n")
+              : "";
+
+          message +=
+            willBeModified.length > 0
+              ? "\n以下の予約が変更されます\n" +
+                willBeModified
+                  .map(
+                    (res) =>
+                      `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
+                  )
+                  .join("\n")
+              : "";
+        }
+
+        if (confirm(message)) {
+          const { scheduleExceptions, notificationResult } = await doPost(
+            SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL,
+            updateRequestData
+          );
+          _notificationResult = notificationResult;
+          updatedExceptions = scheduleExceptions;
+        }
+      }
       setShowExceptionModal(false);
       setExceptions(updatedExceptions);
-      alert("例外スケジュールを保存しました");
+      const { successCount, failedStudents } = _notificationResult;
+      let notificationResultMessage = "例外スケジュールを保存しました\n";
+
+      notificationResultMessage +=
+        successCount > 0
+          ? `${successCount}人への変更あるいは削除の通知が成功しました。`
+          : "";
+
+      notificationResultMessage +=
+        failedStudents.length > 0
+          ? "以下の生徒への変更あるいは通知メッセージの送信は失敗しました。\n" +
+            failedStudents.join("\n")
+          : "";
+
+      alert(notificationResultMessage);
     } catch (error) {
       console.error("例外スケジュールの保存に失敗:", error);
       alert("例外スケジュールの保存に失敗しました");

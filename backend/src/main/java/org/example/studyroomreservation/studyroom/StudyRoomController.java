@@ -8,6 +8,7 @@ import org.example.studyroomreservation.cramschool.CramSchoolService;
 import org.example.studyroomreservation.cramschool.CramSchool;
 import org.example.studyroomreservation.elf.AccessElf;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.notification.DTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
@@ -88,12 +89,12 @@ public class StudyRoomController {
     public record StudyRoomRegularScheduleDTO(int studyRoomId, TokyoTimeElf.DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){}
 
     public record StudyRoomScheduleExceptionShowRequest(int studyRoomId, int year, int month){}
-    public record StudyRoomScheduleExceptionShowResponse(int studyRoomId, LocalDate date, boolean isOpen, LocalTime openTime, LocalTime closeTime, String reason){}
+
     @PreAuthorize("hasRole('TEACHER')")
     @GetMapping("/scheduleException/get")
     public ResponseEntity<?> getScheduleExceptionsOfOneStudyRoom(@ModelAttribute StudyRoomScheduleExceptionShowRequest request)
     {
-        List<StudyRoomScheduleExceptionShowResponse> responses = studyRoomService.getScheduleExceptionsOfOneStudyRoom(request);
+        List<DTO.StudyRoomScheduleExceptionShowResponse> responses = studyRoomService.getScheduleExceptionsOfOneStudyRoom(request);
         return ResponseEntity.ok(responses);
     }
 
@@ -120,15 +121,15 @@ public class StudyRoomController {
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> saveStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request)
     {
-        List<StudyRoomScheduleExceptionShowResponse> responses = studyRoomService.saveException(request);
-        return ResponseEntity.ok(responses);
+        DTO.ScheduleExceptionsAndNotificationResult result = studyRoomService.saveException(request);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/scheduleException/delete")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> deleteStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionDeleteRequest deleteRequest)
     {
-        List<StudyRoomScheduleExceptionShowResponse> response = studyRoomService.deleteExceptionOfOneDay(deleteRequest);
+        List<DTO.StudyRoomScheduleExceptionShowResponse> response = studyRoomService.deleteExceptionOfOneDay(deleteRequest);
         return ResponseEntity.ok(response);
     }
 

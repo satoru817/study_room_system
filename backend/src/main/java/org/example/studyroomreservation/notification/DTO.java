@@ -62,8 +62,8 @@ public class DTO {
     }
 
     public static class NotificationResult {
-        private final int successCount;
-        private List<String> failedStudents = new ArrayList<>();
+        public final int successCount;
+        public final List<String> failedStudents;
         public NotificationResult(int successCount, List<String> failedStudents) {
             this.successCount = successCount;
             this. failedStudents = failedStudents;
@@ -74,4 +74,10 @@ public class DTO {
         }
 
     }
+
+
+
+    public record StudyRoomScheduleExceptionShowResponse(int studyRoomId, LocalDate date, boolean isOpen, LocalTime openTime, LocalTime closeTime, String reason){}
+
+    public record ScheduleExceptionsAndNotificationResult(List<StudyRoomScheduleExceptionShowResponse> scheduleExceptions, NotificationResult notificationResult){}
 }
