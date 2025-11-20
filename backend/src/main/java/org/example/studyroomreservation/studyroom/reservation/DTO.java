@@ -1,5 +1,7 @@
 package org.example.studyroomreservation.studyroom.reservation;
 
+import org.example.studyroomreservation.studyroom.StudyRoomController;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;

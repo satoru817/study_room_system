@@ -9,6 +9,7 @@ import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.notification.DTO;
 import org.example.studyroomreservation.notification.NotificationService;
 import org.example.studyroomreservation.studyroom.reservation.RangeService;
+import org.example.studyroomreservation.studyroom.reservation.ReservationService;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,8 @@ public class StudyRoomService {
     private RangeService rangeService;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private ReservationService reservationService;
     private static String INVALID_TIME = "00:00:00";
 
     public List<StudyRoomStatus> findAllByCramSchoolId(int cramSchoolId) {
@@ -71,7 +74,7 @@ public class StudyRoomService {
         jdbcTemplate.update(sql, params);
     }
 
-    public List<StudyRoomController.StudyRoomRegularScheduleDTO> getRegularSchedulesOfOneStudyRoom(int studyRoomId) {
+    public List<dto.StudyRoomRegularScheduleDTO> getRegularSchedulesOfOneStudyRoom(int studyRoomId) {
         return studyRoomRepository.getRegularScheduleOfOneStudyRoom(studyRoomId);
     }
 
@@ -82,9 +85,15 @@ public class StudyRoomService {
             throw new RuntimeException(e);
         }
     }
-    // TODO: add notification feature
+    // ここで何をしたいのか?
+    // 既存のregularScheduleをすべて削除する
+    // requestに基づいて再度regularScheduleを作成する
+    // deleteしないといけない予約はすべてdeleteする。
+    // modifyしないといけない予約はすべてmodifyする。
+    //それらが完了したら、最初と最後の予約を比較して、変更がある場合は生徒保護者に連絡する。
+    // 連絡が終わったら、updateしたregularScheduleとその変更通知の成功状況を返す
     @Transactional
-    public List<StudyRoomController.StudyRoomRegularScheduleDTO> bulkUpdateRegularScheduleOfOneStudyRoom(dto.RegularScheduleBulkSaveRequest request) {
+    public dto.RegularScheduleUpdatedResponse bulkUpdateRegularScheduleOfOneStudyRoom(dto.RegularScheduleBulkSaveRequest request) {
         String deleteSql = """
                 DELETE FROM study_room_regular_schedules
                 WHERE study_room_id = :studyRoomId
@@ -108,8 +117,12 @@ public class StudyRoomService {
                 ).toList();
 
         jdbcTemplate.batchUpdate(insertSql, batchInsertParams.toArray(new MapSqlParameterSource[0]));
-
-        return getRegularSchedulesOfOneStudyRoom(studyRoomId);
+        //ここまでで、regularScheduleのmodifyは終わっている
+        // ここから先で 予約の削除か変更を行う
+        List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule = getRegularSchedulesOfOneStudyRoom(studyRoomId);
+        // この下のmethodでupdateされたregularScheduleに基づいてすべての予約（未来の）をdelete あるいはmodifyあるいはそのままで放置して、その状況を生徒に通知して、その通知の送信結果を返す
+        DTO.NotificationResult notificationResult = reservationService.modifyReservationsAndSendNotifications(studyRoomId);
+        return new dto.RegularScheduleUpdatedResponse(updatedRegularSchedule, notificationResult);
     }
     // TODO: ここで、study_room_reservationsもupdateしないといけない。
     private void deleteStudyRoomScheduleExceptionOfOneStudyRoomIdOfOneDay(int studyRoomId, LocalDate date) {

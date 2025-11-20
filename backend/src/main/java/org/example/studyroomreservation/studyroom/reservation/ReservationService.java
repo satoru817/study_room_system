@@ -2,7 +2,6 @@ package org.example.studyroomreservation.studyroom.reservation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.studyroom.dto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +11,12 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -519,5 +518,70 @@ public class ReservationService {
 
             return new DTO.WillBeDeletedOrModifiedReservations(willBeDeleted, willBeModified);
         }
+    }
+
+    // ここで何をしたいのか。
+    // 明日以降の予約において、この開室スケジュールの変更によって削除される、あるいは変更される予約を取得するだけ。
+    // 注意点は、scheduleExceptionが存在する日は無視していいこと。
+    // まず、削除されるreservationをすべてとってくる。
+    // そのあと、変更されるreservationをすべてとってくる。
+    public DTO.WillBeDeletedOrModifiedReservations calculateWillBeDeletedOrModifiedReservationsByChangingRegularSchedule(dto.RegularScheduleBulkSaveRequest request) throws JsonProcessingException {
+        int studyRoomId = request.studyRoomId();
+        List<dto.SolidRegularSchedule> solidRegularSchedules = request.regularSchedules();
+        LocalDate today = TokyoTimeElf.getTokyoLocalDate();
+        String schedulesString = new ObjectMapper().writeValueAsString(solidRegularSchedules);
+        String  withClause = """
+                WITH tentative_regular_schedules AS (
+                    SELECT jt.dayOfWeek, jt.openTime, jt.closeTime
+                    FROM JSON_TABLE(
+                        CAST(:scheduleString AS JSON),
+                        "$[*]"
+                        COLUMNS(
+                            dayOfWeek VARCHAR(20) PATH "$.dayOfWeek",
+                            openTime TIME PATH "$.openTime",
+                            closeTime TIME PATH "$.closeTime"
+                        )
+                    ) AS jt
+                ), reservation_ids_of_regular_schedules AS (
+                    SELECT srr.study_room_reservation_id
+                    FROM study_room_reservations srr
+                    JOIN study_rooms sr ON sr.study_room_id = :studyRoomId AND srr.study_room_id = :studyRoomId AND srr.date >= :today
+                    LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_id = :studyRoomId AND srr.date = srse.date
+                    WHERE srse.study_room_schedule_exception_id IS NULL
+                )
+                """;
+
+        String getWillBeDeletedSql = withClause + """
+                SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                FROM study_room_reservations srr
+                JOIN reservation_ids_of_regular_schedules reservations_in_concern ON reservations_in_concern.study_room_reservation_id = srr.study_room_reservation_id
+                JOIN study_rooms sr ON sr.study_room_id = :studyRoomId
+                LEFT JOIN tentative_regular_schedules trs ON trs.dayOfWeek = LOWER(DAYNAME(srr.date))
+                    AND NOT (srr.end_hour <= trs.openTime OR srr.start_hour >= trs.closeTime)
+                WHERE trs.dayOfWeek IS NULL
+                """;
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()
+                .addValue("scheduleString", schedulesString)
+                .addValue("studyRoomId", studyRoomId)
+                .addValue("today", today);
+
+        List<DTO.ReservationDtoForConfirmation> willBeDeleted = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeDeletedSql, mapSqlParameterSource);
+
+        String getWillBeModifiedSql = withClause + """
+                SELECT DISTINCT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                FROM study_room_reservations srr
+                JOIN reservation_ids_of_regular_schedules reservations_in_concern ON reservations_in_concern.study_room_reservation_id = srr.study_room_reservation_id
+                JOIN study_rooms sr ON sr.study_room_id = :studyRoomId
+                JOIN tentative_regular_schedules trs ON trs.dayOfWeek = LOWER(DAYNAME(srr.date))
+                    AND ((srr.end_hour > trs.openTime AND srr.end_hour < trs.closeTime) OR
+                        (srr.start_hour > trs.openTime AND srr.start_hour < trs.closeTime)
+                    )
+                """;
+        List<DTO.ReservationDtoForConfirmation> willBeModified = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeModifiedSql, mapSqlParameterSource);
+        return new DTO.WillBeDeletedOrModifiedReservations(willBeDeleted, willBeModified);
+    }
+
+    public org.example.studyroomreservation.notification.DTO.NotificationResult modifyReservationsAndSendNotifications(int studyRoomId) {
+        
     }
 }

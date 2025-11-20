@@ -82,11 +82,11 @@ public class StudyRoomController {
     @GetMapping("/regularSchedule/get")
     public ResponseEntity<?> getRegularScheduleOfOneStudyRoom(@RequestParam int studyRoomId)
     {
-        List<StudyRoomRegularScheduleDTO> regularSchedules = studyRoomService.getRegularSchedulesOfOneStudyRoom(studyRoomId);
+        List<dto.StudyRoomRegularScheduleDTO> regularSchedules = studyRoomService.getRegularSchedulesOfOneStudyRoom(studyRoomId);
         return ResponseEntity.ok(regularSchedules);
     }
 
-    public record StudyRoomRegularScheduleDTO(int studyRoomId, TokyoTimeElf.DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){}
+
 
     public record StudyRoomScheduleExceptionShowRequest(int studyRoomId, int year, int month){}
 
@@ -98,12 +98,15 @@ public class StudyRoomController {
         return ResponseEntity.ok(responses);
     }
 
+    //ここをどう変えないと行けないのか？
+    // List<StudyRoomRegularScheduleDTO>をupdatedSchedulesとして返すことは必要。
+    // また、NotificationResultも返さないといけない。それらをまとめて返す。Map<String,Object>でいいね
     @PostMapping("/regularSchedule/save")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<?> saveRegularScheduleOfOneStudyRoom(@RequestBody dto.RegularScheduleBulkSaveRequest request)
+    public ResponseEntity<dto.RegularScheduleUpdatedResponse> saveRegularScheduleOfOneStudyRoom(@RequestBody dto.RegularScheduleBulkSaveRequest request)
     {
-        List<StudyRoomRegularScheduleDTO> dtos = studyRoomService.bulkUpdateRegularScheduleOfOneStudyRoom(request);
-        return ResponseEntity.ok(dtos);
+        dto.RegularScheduleUpdatedResponse response = studyRoomService.bulkUpdateRegularScheduleOfOneStudyRoom(request);
+        return ResponseEntity.ok(response);
     }
 
     // TODO: add delete function
@@ -135,6 +138,7 @@ public class StudyRoomController {
         DTO.ScheduleExceptionsAndNotificationResult result = studyRoomService.deleteExceptionOfOneDayWithReservationModificationAndNotification(deleteRequest);
         return ResponseEntity.ok(result);
     }
+
 
     @PostMapping("/scheduleException/delete")
     @PreAuthorize("hasRole('TEACHER')")

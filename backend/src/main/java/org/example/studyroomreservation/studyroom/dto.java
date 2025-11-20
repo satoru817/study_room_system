@@ -1,6 +1,7 @@
 package org.example.studyroomreservation.studyroom;
 
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.notification.DTO;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -8,7 +9,8 @@ import java.time.LocalTime;
 import java.util.List;
 
 public class dto {
-    public record SolidRegularSchedule(TokyoTimeElf.DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){}
+    public record SolidRegularSchedule(TokyoTimeElf.DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){
+    }
     public record RegularScheduleBulkSaveRequest(int studyRoomId, List<SolidRegularSchedule> regularSchedules){}
     public record Range(LocalTime openTime, LocalTime closeTime) implements Serializable {
         public Range {
@@ -100,5 +102,6 @@ public class dto {
             int year,
             int month
     ) {}
-
+    public record RegularScheduleUpdatedResponse(List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule, DTO.NotificationResult notificationResult){}
+    public record StudyRoomRegularScheduleDTO(int studyRoomId, TokyoTimeElf.DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){}
 }

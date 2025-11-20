@@ -1,6 +1,6 @@
 package org.example.studyroomreservation.studyroom.reservation;
 
-import org.example.studyroomreservation.config.security.user.StudentUser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
 import org.example.studyroomreservation.elf.AccessElf;
 import org.example.studyroomreservation.studyroom.dto;
@@ -38,6 +38,13 @@ public class ReservationController {
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<DTO.WillBeDeletedOrModifiedReservations> calculateDeletedOrModifiedReservations(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request) {
         DTO.WillBeDeletedOrModifiedReservations reservations = reservationService.getWillBeDeletedOrModifiedReservations(request);
+        return ResponseEntity.ok(reservations);
+    }
+
+    @PostMapping("/regularScheduleChange/confirmBeforeSave")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<DTO.WillBeDeletedOrModifiedReservations> calculateDeletedOrModifiedReservationsByChangeOfRegularSchedule(@RequestBody dto.RegularScheduleBulkSaveRequest request) throws JsonProcessingException {
+        DTO.WillBeDeletedOrModifiedReservations reservations = reservationService.calculateWillBeDeletedOrModifiedReservationsByChangingRegularSchedule(request);
         return ResponseEntity.ok(reservations);
     }
 

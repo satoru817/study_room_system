@@ -210,16 +210,32 @@ function StudyRoomDetailContent() {
   const handleSaveSchedules = async () => {
     try {
       const schedules = convertScheduleToRanges();
-      const _updatedSchedules = await doPost(
-        "/api/studyRoom/regularSchedule/save",
-        {
-          studyRoomId: studyRoomId,
-          regularSchedules: schedules,
-        }
+      const data = {
+        studyRoomId,
+        regularSchedules: schedules,
+      };
+      // 最初に消される、あるいは変更される予約をとってくる。そして確認をとった上で保存する。
+      // 保存するときは予約の変更、削除及びその通知をして、その結果をfrontに返し表示する」
+      const { willBeDeleted, willBeModified } = await doPost(
+        "/api/reservation/regularScheduleChange/confirmBeforeSave",
+        data
       );
-      setHasChanges(false);
-      alert("スケジュールを保存しました");
-      buildWeekSchedule(_updatedSchedules);
+      const message = createMessageFromWillBeDeletedOrModified(
+        willBeDeleted,
+        willBeModified
+      );
+      if (confirm(message)) {
+        const { updatedSchedules, notificationResult } = await doPost(
+          "/api/studyRoom/regularSchedule/save",
+          {
+            studyRoomId: studyRoomId,
+            regularSchedules: schedules,
+          }
+        );
+        setHasChanges(false);
+        alertNotificationResult(notificationResult);
+        buildWeekSchedule(updatedSchedules);
+      }
     } catch (error) {
       console.error("スケジュールの保存に失敗:", error);
       alert("スケジュールの保存に失敗しました");

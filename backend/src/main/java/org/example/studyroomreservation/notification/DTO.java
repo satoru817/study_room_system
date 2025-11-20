@@ -42,7 +42,7 @@ public class DTO {
         }
 
         private record Slot(LocalTime start, LocalTime end) {}
-
+        // TODO: this is not efficient. refactor later!!
         public boolean isUnChanged() {
             if (preReservations.size() != postReservations.size()) {
                 return false;
@@ -74,8 +74,6 @@ public class DTO {
         }
 
     }
-
-
 
     public record StudyRoomScheduleExceptionShowResponse(int studyRoomId, LocalDate date, boolean isOpen, LocalTime openTime, LocalTime closeTime, String reason){}
 
