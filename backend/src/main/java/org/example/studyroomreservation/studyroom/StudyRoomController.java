@@ -129,7 +129,7 @@ public class StudyRoomController {
     // ある日の例外スケジュールを削除する（この削除はisOpenがtrueのもののみである。それがfalseのものはほかで扱っている)
     // その例外スケジュールの削除に伴って、それの関係する予約の削除、修正も必要である。
     // そして修正があった場合のみメールあるいはラインを生徒宛に送信する必要がある。
-    @PostMapping("/scheduleExceptionOfOneDay/delete/withNotification")
+    @PostMapping("/scheduleExceptionOfOneDay/delete/withNotificationNeed")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<DTO.ScheduleExceptionsAndNotificationResult> deleteExceptionOfOneDayWithPossibleNotificationSending(@RequestBody dto.StudyRoomScheduleExceptionDeleteRequest deleteRequest) {
         DTO.ScheduleExceptionsAndNotificationResult result = studyRoomService.deleteExceptionOfOneDayWithReservationModificationAndNotification(deleteRequest);

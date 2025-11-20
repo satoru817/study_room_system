@@ -50,11 +50,9 @@ function Booking() {
           });
         });
         setSelectedSlots(bookedSlots);
-      }
- catch (error) {
+      } catch (error) {
         console.error("週間データの取得に失敗:", error);
-      }
- finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -156,8 +154,7 @@ function Booking() {
       const newSet = new Set(prev);
       if (shouldSelect) {
         newSet.add(key);
-      }
- else {
+      } else {
         newSet.delete(key);
       }
       return newSet;
@@ -244,8 +241,7 @@ function Booking() {
         });
       });
       setSelectedSlots(bookedSlots);
-    }
- catch (error) {
+    } catch (error) {
       console.error("予約の作成に失敗:", error);
 
       // エラーレスポンスから詳細なメッセージを取得
@@ -301,8 +297,7 @@ function Booking() {
         if (prevMinutes === currMinutes) {
           // 連続している
           currentTime = times[i];
-        }
- else {
+        } else {
           // 連続していない → 1つの予約として追加
           const [endHour, endMin] = currentTime.split(":").map(Number);
           const endMinutes = endHour * 60 + endMin + 15;
@@ -545,7 +540,14 @@ function Booking() {
                         const isHourStart = minute === 0;
 
                         return (
-                          <tr key={index}>
+                          <tr
+                            key={index}
+                            style={{
+                              borderTop: isHourStart
+                                ? "3px solid #28a745"
+                                : "none",
+                            }}
+                          >
                             {/* 00分の時だけ時間を表示して4行分を結合 */}
                             {isHourStart && (
                               <td
@@ -563,10 +565,11 @@ function Booking() {
                                 return (
                                   <td
                                     key={day.date}
-                                    className="border border-gray-300 p-0"
+                                    className="p-0"
                                     style={{
                                       backgroundColor: "#e9ecef",
                                       height: "24px",
+                                      border: "1px solid #dee2e6",
                                     }}
                                   />
                                 );
@@ -578,7 +581,7 @@ function Booking() {
                               return (
                                 <td
                                   key={day.date}
-                                  className="border border-gray-300 p-0"
+                                  className="p-0"
                                   data-slot={key}
                                   onMouseDown={() => handleMouseDown(day, slot)}
                                   onMouseEnter={() =>
@@ -594,6 +597,7 @@ function Booking() {
                                       : "not-allowed",
                                     height: "24px",
                                     touchAction: "none",
+                                    border: "1px solid #dee2e6",
                                   }}
                                 >
                                   <div className="flex items-center justify-center h-full text-[10px]">

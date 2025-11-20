@@ -197,7 +197,7 @@ public class StudyRoomService {
 
     private void createNewReservationBasedOnRangesAndPreReservations(List<dto.Range> rangesOfThisDay, List<StudyRoomReservation> preReservations, LocalDate date, int studyRoomId) {
         Map<Integer, Set<dto.Range>> studentIdToUpdatedRanges = new HashMap<>();
-        preReservations.parallelStream()
+        preReservations.stream()
                 .forEach(studyRoomReservation -> {
                     Set<dto.Range> ranges = rangeService.createAdjustedRanges(rangesOfThisDay, studyRoomReservation.getStartHour(), studyRoomReservation.getEndHour());
                     studentIdToUpdatedRanges.computeIfAbsent(studyRoomReservation.getStudent().getStudentId(), k -> new HashSet<>()).addAll(ranges);
@@ -361,9 +361,9 @@ public class StudyRoomService {
                 """;
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("studyRoomId", studyRoomId)
-                .addValue("dayOfWeek", dayOfWeek);
-
-        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(existSql, params, Boolean.class));
+                .addValue("dayOfWeek", dayOfWeek.toString());
+        Integer count = jdbcTemplate.queryForObject(existSql, params, Integer.class);
+        return count != null && count > 0;
     }
 
     public DTO.ScheduleExceptionsAndNotificationResult deleteExceptionOfOneDayWithReservationModificationAndNotification(dto.StudyRoomScheduleExceptionDeleteRequest deleteRequest) {
@@ -402,7 +402,7 @@ public class StudyRoomService {
                 """;
 
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("dayOfWeek", dayOfWeek)
+                .addValue("dayOfWeek", dayOfWeek.toString())
                 .addValue("studyRoomId", studyRoomId);
 
         return jdbcTemplate.query(sql, params, (rs, rowNum) ->

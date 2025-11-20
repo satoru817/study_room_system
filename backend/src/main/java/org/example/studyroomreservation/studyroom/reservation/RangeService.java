@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class RangeService {
-    // TODO: complete this!!
+
     public Set<dto.Range> createAdjustedRanges(List<dto.Range> ranges, LocalTime startHour, LocalTime endHour) {
         return ranges.parallelStream()
                 .map(

@@ -472,6 +472,24 @@ function StudyRoomDetailContent() {
     );
   };
 
+  const alertNotificationResult = (_notificationResult) => {
+    const { successCount, failedStudents } = _notificationResult;
+    let notificationResultMessage = "例外スケジュールを保存しました\n";
+
+    notificationResultMessage +=
+      successCount > 0
+        ? `${successCount}人への変更あるいは削除の通知が成功しました。`
+        : "";
+
+    notificationResultMessage +=
+      failedStudents.length > 0
+        ? "以下の生徒への変更あるいは通知メッセージの送信は失敗しました。\n" +
+          failedStudents.join("\n")
+        : "";
+
+    alert(notificationResultMessage);
+  };
+
   const convertExceptionSlotsToRanges = () => {
     const ranges = [];
     let rangeStart = null;
@@ -598,32 +616,11 @@ function StudyRoomDetailContent() {
           "/api/reservation/scheduleException/changeOneDay",
           updateRequestData
         );
-        let message;
-        if (willBeDeleted.length === 0 && willBeModified.length === 0) {
-          message = "この変更で削除や変更される生徒の予約はありません。";
-        } else {
-          message =
-            willBeDeleted.length > 0
-              ? "以下の予約が削除されます\n" +
-                willBeDeleted
-                  .map(
-                    (res) =>
-                      `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
-                  )
-                  .join("\n")
-              : "";
 
-          message +=
-            willBeModified.length > 0
-              ? "\n以下の予約が変更されます\n" +
-                willBeModified
-                  .map(
-                    (res) =>
-                      `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
-                  )
-                  .join("\n")
-              : "";
-        }
+        const message = createMessageFromWillBeDeletedOrModified(
+          willBeDeleted,
+          willBeModified
+        );
 
         if (confirm(message)) {
           const { scheduleExceptions, notificationResult } = await doPost(
@@ -636,21 +633,7 @@ function StudyRoomDetailContent() {
       }
       setShowExceptionModal(false);
       setExceptions(updatedExceptions);
-      const { successCount, failedStudents } = _notificationResult;
-      let notificationResultMessage = "例外スケジュールを保存しました\n";
-
-      notificationResultMessage +=
-        successCount > 0
-          ? `${successCount}人への変更あるいは削除の通知が成功しました。`
-          : "";
-
-      notificationResultMessage +=
-        failedStudents.length > 0
-          ? "以下の生徒への変更あるいは通知メッセージの送信は失敗しました。\n" +
-            failedStudents.join("\n")
-          : "";
-
-      alert(notificationResultMessage);
+      alertNotificationResult(_notificationResult);
     } catch (error) {
       console.error("例外スケジュールの保存に失敗:", error);
       alert("例外スケジュールの保存に失敗しました");
@@ -684,6 +667,23 @@ function StudyRoomDetailContent() {
           "/api/reservation/scheduleExceptionChange/confirmBeforeDelete",
           { studyRoomId, selectedDate }
         );
+        const message = createMessageFromWillBeDeletedOrModified(
+          willBeDeleted,
+          willBeModified
+        );
+
+        if (confirm(message)) {
+          const { scheduleExceptions, notificationResult } = await doPost(
+            "/api/studyRoom/scheduleExceptionOfOneDay/delete/withNotificationNeed",
+            {
+              studyRoomId,
+              date: selectedDate,
+            }
+          );
+          setShowExceptionModal(false);
+          setExceptions(scheduleExceptions);
+          alertNotificationResult(notificationResult);
+        }
       }
     } catch (error) {
       console.error("例外スケジュールの削除に失敗:", error);
@@ -912,7 +912,7 @@ function StudyRoomDetailContent() {
                                           ? "#d4edda"
                                           : "white",
                                         borderTop: isHourStart
-                                          ? "1px solid #dee2e6"
+                                          ? "3px solid #28a745"
                                           : "1px dashed #e0e0e0",
                                         cursor: "pointer",
                                         transition: "background-color 0.1s",
@@ -1462,7 +1462,7 @@ function StudyRoomDetailContent() {
                                                 ? "#d4edda"
                                                 : "white",
                                               borderTop: isHourStart
-                                                ? "1px solid #dee2e6"
+                                                ? "3px solid #28a745"
                                                 : "1px dashed #e0e0e0",
                                               cursor: "pointer",
                                               transition:

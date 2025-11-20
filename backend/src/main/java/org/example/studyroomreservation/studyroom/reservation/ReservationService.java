@@ -458,9 +458,9 @@ public class ReservationService {
                 """;
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("studyRoomId", studyRoomId)
-                .addValue("dayOfWeek", dayOfWeek);
-
-        boolean hasRegularSchedule = Boolean.TRUE.equals(jdbcTemplate.queryForObject(existSql, params, Boolean.class));
+                .addValue("dayOfWeek", dayOfWeek.toString());
+        Integer count = jdbcTemplate.queryForObject(existSql, params, Integer.class);
+        boolean hasRegularSchedule = count != null && count > 0;
 
         if (!hasRegularSchedule) {
             List<DTO.ReservationDtoForConfirmation> willBeDeleted = checkWillBeDeletedByClosingOneDay(studyRoomId, date);
@@ -479,7 +479,7 @@ public class ReservationService {
                         LEFT JOIN study_room_regular_schedules srrs 
                             ON srrs.study_room_id = srr.study_room_id 
                             AND srrs.day_of_week = :dayOfWeek
-                            AND NOT (srr.start_hour => srrs.close_time OR srr.end_hour <= srrs.open_time)
+                            AND NOT (srr.start_hour >= srrs.close_time OR srr.end_hour <= srrs.open_time)
                         WHERE srrs.study_room_regular_schedule_id IS NULL
                     )
                     SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
@@ -498,7 +498,7 @@ public class ReservationService {
             String getWillBeModifiedSql = """
                     WITH will_be_modified_reservation_ids AS (
                         SELECT DISTINCT srr.study_room_reservation_id
-                        FROM study_room_reservation srr
+                        FROM study_room_reservations srr
                         JOIN study_rooms sr
                             ON sr.study_room_id = :studyRoomId
                             AND srr.study_room_id = :studyRoomId

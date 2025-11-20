@@ -136,6 +136,8 @@ public class NotificationService {
         int successCount = 0;
         List<String> failedStudents = new ArrayList<>();
         for (DTO.ReservationChangeOfOneDay change : changes) {
+            if (change.isUnChanged()) continue;
+
             Student student = change.getStudent();
             try {
                 for (NotificationStrategy strategy : strategies) {
