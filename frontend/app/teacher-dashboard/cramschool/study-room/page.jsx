@@ -502,6 +502,38 @@ function StudyRoomDetailContent() {
 
     return ranges;
   };
+  const createMessageFromWillBeDeletedOrModified = (
+    willBeDeleted,
+    willBeModified
+  ) => {
+    let message;
+    if (willBeDeleted.length === 0 && willBeModified.length === 0) {
+      message = "この変更で削除や変更される生徒の予約はありません。";
+    } else {
+      message =
+        willBeDeleted.length > 0
+          ? "以下の予約が削除されます\n" +
+            willBeDeleted
+              .map(
+                (res) =>
+                  `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
+              )
+              .join("\n")
+          : "";
+
+      message +=
+        willBeModified.length > 0
+          ? "\n以下の予約が変更されます\n" +
+            willBeModified
+              .map(
+                (res) =>
+                  `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
+              )
+              .join("\n")
+          : "";
+    }
+    return message;
+  };
   // TODO: add confirmation of the change!!
   const handleSaveException = async () => {
     if (!exceptionReason.trim()) {
@@ -647,6 +679,11 @@ function StudyRoomDetailContent() {
         setExceptions(updatedExceptions);
         alert("例外スケジュールを削除しました");
       } else {
+        // first check if there's any reservations that will be deleted by this change(deletion of a schedule exception)
+        const { willBeDeleted, willBeModified } = await doPost(
+          "/api/reservation/scheduleExceptionChange/confirmBeforeDelete",
+          { studyRoomId, selectedDate }
+        );
       }
     } catch (error) {
       console.error("例外スケジュールの削除に失敗:", error);

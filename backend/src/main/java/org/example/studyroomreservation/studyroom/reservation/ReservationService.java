@@ -488,6 +488,36 @@ public class ReservationService {
                     JOIN study_rooms sr ON sr.study_room_id = srr.study_room_id
                     JOIN students st ON st.student_id = srr.student_id
                     """;
+
+            params.addValue("date", date);
+
+            List<DTO.ReservationDtoForConfirmation> willBeDeleted = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeDeletedSql, params);
+
+            // dateの特別スケジュールがなくなり、通常のスケジュールになることによって、modifyされる予約をすべて選んでくる。
+            // その予約の時間帯と一部分'のみ'かぶるスケジュールを選択してくる
+            String getWillBeModifiedSql = """
+                    WITH will_be_modified_reservation_ids AS (
+                        SELECT DISTINCT srr.study_room_reservation_id
+                        FROM study_room_reservation srr
+                        JOIN study_rooms sr
+                            ON sr.study_room_id = :studyRoomId
+                            AND srr.study_room_id = :studyRoomId
+                            AND srr.date = :date
+                        JOIN study_room_regular_schedules srrs
+                            ON srrs.study_room_id = :studyRoomId
+                            AND srrs.day_of_week = :dayOfWeek
+                            AND ((srr.start_hour < srrs.close_time AND srrs.close_time < srr.end_hour)
+                                OR (srr.start_hour < srrs.open_time AND srrs.open_time < srr.end_hour))
+                    )
+                    SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                    FROM study_room_reservations srr
+                    JOIN will_be_modified_reservation_ids wbmri ON wbmri.study_room_reservation_id = srr.study_room_reservation_id
+                    JOIN study_rooms sr ON sr.study_room_id = srr.study_room_id
+                    JOIN students st ON st.student_id = srr.student_id
+                    """;
+            List<DTO.ReservationDtoForConfirmation> willBeModified = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeModifiedSql, params);
+
+            return new DTO.WillBeDeletedOrModifiedReservations(willBeDeleted, willBeModified);
         }
     }
 }

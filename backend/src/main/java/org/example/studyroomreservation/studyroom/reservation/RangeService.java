@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,6 @@ public class RangeService {
         return ranges.parallelStream()
                 .map(
                         range -> range.adjust(startHour, endHour)
-                ).filter(range -> range != null).collect(Collectors.toSet());
+                ).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 }

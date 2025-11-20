@@ -119,9 +119,20 @@ public class StudyRoomController {
     // これ、rest controllerの形式を変えて、送信結果も受け取れるようにしないといけない。
     @PostMapping("/scheduleException/save")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<?> saveStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request)
+    public ResponseEntity<DTO.ScheduleExceptionsAndNotificationResult> saveStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request)
     {
         DTO.ScheduleExceptionsAndNotificationResult result = studyRoomService.saveException(request);
+        return ResponseEntity.ok(result);
+    }
+
+    // ここで何をしたいのか？
+    // ある日の例外スケジュールを削除する（この削除はisOpenがtrueのもののみである。それがfalseのものはほかで扱っている)
+    // その例外スケジュールの削除に伴って、それの関係する予約の削除、修正も必要である。
+    // そして修正があった場合のみメールあるいはラインを生徒宛に送信する必要がある。
+    @PostMapping("/scheduleExceptionOfOneDay/delete/withNotification")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<DTO.ScheduleExceptionsAndNotificationResult> deleteExceptionOfOneDayWithPossibleNotificationSending(@RequestBody dto.StudyRoomScheduleExceptionDeleteRequest deleteRequest) {
+        DTO.ScheduleExceptionsAndNotificationResult result = studyRoomService.deleteExceptionOfOneDayWithReservationModificationAndNotification(deleteRequest);
         return ResponseEntity.ok(result);
     }
 

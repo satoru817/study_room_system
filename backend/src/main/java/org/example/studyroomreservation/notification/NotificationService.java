@@ -113,7 +113,8 @@ public class NotificationService {
                 .collect(
                         Collectors.groupingBy(
                                 StudyRoomReservation::getStudent,
-                                Collectors.toSet())
+                                Collectors.toSet()
+                        )
                 );
 
         Map<Student, Set<StudyRoomReservation>> studentToPostReservationsMap = changedReservations.parallelStream()
