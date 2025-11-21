@@ -1,8 +1,8 @@
 package org.example.studyroomreservation.studyroom;
 
 import jakarta.persistence.*;
-import org.example.studyroomreservation.elf.TokyoTimeElf;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 @Entity
@@ -18,7 +18,7 @@ public class StudyRoomRegularSchedule {
     private int studyRoomRegularScheduleId;
 
     @Enumerated(EnumType.STRING)
-    private TokyoTimeElf.DayOfWeek dayOfWeek;
+    private DayOfWeek dayOfWeek;
 
     private LocalTime openTime;
 
@@ -33,7 +33,7 @@ public class StudyRoomRegularSchedule {
         return studyRoomRegularScheduleId;
     }
 
-    public TokyoTimeElf.DayOfWeek getDayOfWeek() {
+    public DayOfWeek getDayOfWeek() {
         return dayOfWeek;
     }
 
@@ -51,12 +51,12 @@ public class StudyRoomRegularSchedule {
 
     // ---- Builder ----
     public static class Builder {
-        private TokyoTimeElf.DayOfWeek dayOfWeek;
+        private DayOfWeek dayOfWeek;
         private LocalTime openTime;
         private LocalTime closeTime;
         private StudyRoom studyRoom;
 
-        public Builder dayOfWeek(TokyoTimeElf.DayOfWeek dayOfWeek) {
+        public Builder dayOfWeek(DayOfWeek dayOfWeek) {
             this.dayOfWeek = dayOfWeek;
             return this;
         }
@@ -90,7 +90,7 @@ public class StudyRoomRegularSchedule {
         }
     }
 
-    public void setDayOfWeek(TokyoTimeElf.DayOfWeek dayOfWeek) {
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
     }
 

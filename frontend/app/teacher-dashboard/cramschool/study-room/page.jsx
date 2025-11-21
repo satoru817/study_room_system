@@ -36,13 +36,13 @@ function StudyRoomDetailContent() {
   const [selectAll, setSelectAll] = useState(false);
 
   const DAYS = [
-    { key: "monday", label: "月" },
-    { key: "tuesday", label: "火" },
-    { key: "wednesday", label: "水" },
-    { key: "thursday", label: "木" },
-    { key: "friday", label: "金" },
-    { key: "saturday", label: "土" },
-    { key: "sunday", label: "日" },
+    { key: "MONDAY", label: "月" },
+    { key: "TUESDAY", label: "火" },
+    { key: "WEDNESDAY", label: "水" },
+    { key: "THURSDAY", label: "木" },
+    { key: "FRIDAY", label: "金" },
+    { key: "SATURDAY", label: "土" },
+    { key: "SUNDAY", label: "日" },
   ];
 
   const fetchStudyRoomRegularSchedules = async () => {
@@ -81,9 +81,7 @@ function StudyRoomDetailContent() {
 
   const buildWeekSchedule = (schedules) => {
     const weekData = DAYS.map((day) => {
-      const daySchedules = schedules.filter(
-        (s) => s.dayOfWeek.toLowerCase() === day.key
-      );
+      const daySchedules = schedules.filter((s) => s.dayOfWeek === day.key);
 
       const slots = [];
       // 7:00から23:30まで = 66スロット
@@ -225,7 +223,7 @@ function StudyRoomDetailContent() {
         willBeModified
       );
       if (confirm(message)) {
-        const { updatedSchedules, notificationResult } = await doPost(
+        const { updatedRegularSchedules, notificationResult } = await doPost(
           "/api/studyRoom/regularSchedule/save",
           {
             studyRoomId: studyRoomId,
@@ -234,7 +232,7 @@ function StudyRoomDetailContent() {
         );
         setHasChanges(false);
         alertNotificationResult(notificationResult);
-        buildWeekSchedule(updatedSchedules);
+        buildWeekSchedule(updatedRegularSchedules);
       }
     } catch (error) {
       console.error("スケジュールの保存に失敗:", error);

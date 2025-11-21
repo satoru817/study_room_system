@@ -38,8 +38,6 @@ public class StudyRoomService {
     private RangeService rangeService;
     @Autowired
     private NotificationService notificationService;
-    @Autowired
-    private ReservationService reservationService;
     private static String INVALID_TIME = "00:00:00";
 
     public List<StudyRoomStatus> findAllByCramSchoolId(int cramSchoolId) {
@@ -121,7 +119,7 @@ public class StudyRoomService {
         // ここから先で 予約の削除か変更を行う
         List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule = getRegularSchedulesOfOneStudyRoom(studyRoomId);
         // この下のmethodでupdateされたregularScheduleに基づいてすべての予約（未来の）をdelete あるいはmodifyあるいはそのままで放置して、その状況を生徒に通知して、その通知の送信結果を返す
-        DTO.NotificationResult notificationResult = reservationService.modifyReservationsAndSendNotifications(studyRoomId);
+        DTO.NotificationResult notificationResult = notificationService.modifyReservationsAndSendNotifications(studyRoomId, updatedRegularSchedule);
         return new dto.RegularScheduleUpdatedResponse(updatedRegularSchedule, notificationResult);
     }
     // TODO: ここで、study_room_reservationsもupdateしないといけない。
@@ -363,7 +361,7 @@ public class StudyRoomService {
     }
 
     private boolean hasRegularScheduleOnTheDayOfTheRoom(int studyRoomId, LocalDate date) {
-        TokyoTimeElf.DayOfWeek dayOfWeek = TokyoTimeElf.convert(date.getDayOfWeek());
+        java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
         String existSql = """
                 SELECT EXISTS (
                     SELECT srrs.study_room_regular_schedule_id
@@ -407,7 +405,7 @@ public class StudyRoomService {
     }
 
     public List<dto.Range> getRangeOfThisDayOfThisRoomOfRegularSchedule(LocalDate date, int studyRoomId) {
-        TokyoTimeElf.DayOfWeek dayOfWeek = TokyoTimeElf.convert(date.getDayOfWeek());
+        java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
         String sql = """
                 SELECT srrs.open_time, srrs.close_time
                 FROM study_room_regular_schedules srrs

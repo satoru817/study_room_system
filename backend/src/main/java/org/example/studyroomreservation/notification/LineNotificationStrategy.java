@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -85,6 +86,45 @@ public class LineNotificationStrategy implements NotificationStrategy{
         sendLine(student.getCramSchool().getLineChannelToken(), student.getLineUserId(), changeReservationMessage);
     }
 
+    @Override
+    public void sendReservationChangeNotificationOfMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChangeOfOneDayList) {
+        if (!canSend(student) || reservationChangeOfOneDayList == null || reservationChangeOfOneDayList.isEmpty()) {
+            return;
+        }
+
+        List<DTO.ReservationChangeOfOneDay> changes = reservationChangeOfOneDayList.stream()
+                .filter(Objects::nonNull)
+                .filter(change -> !change.isUnChanged())
+                .sorted(Comparator.comparing(DTO.ReservationChangeOfOneDay::getDate))
+                .toList();
+
+        if (changes.isEmpty()) {
+            return;
+        }
+
+        if (changes.size() == 1) {
+            try {
+                sendReservationChangeNotification(student, changes.get(0));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("LINE送信エラー", e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException("LINE送信エラー", e);
+            }
+            return;
+        }
+
+        try {
+            FlexMessage message = createChangeReservationMessageForMultipleDays(student, changes);
+            sendLine(student.getCramSchool().getLineChannelToken(), student.getLineUserId(), message);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("LINE送信エラー", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("LINE送信エラー", e);
+        }
+    }
+
     private FlexMessage createChangeReservationMessage(Student student, DTO.ReservationChangeOfOneDay reservationChangeOfOneDay) {
         Text title = getTitle("予約自動変更のお知らせ");
         Text message = getHeadMessage(student.getName(), "様");
@@ -109,6 +149,45 @@ public class LineNotificationStrategy implements NotificationStrategy{
         Box body = getBox(components);
         Bubble bubble = createFromBody(body);
         return new FlexMessage("予約自動変更のお知らせ", bubble);
+    }
+
+    private FlexMessage createChangeReservationMessageForMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChanges) {
+        Text title = getTitle("複数日の予約自動変更のお知らせ");
+        Text message = getHeadMessage(student.getName(), "様");
+        List<FlexComponent> components = new ArrayList<>();
+        components.add(title);
+        components.add(message);
+        components.add(createBodyText("以下の日程で自習室予約の変更がありました。"));
+
+        for (DTO.ReservationChangeOfOneDay change : reservationChanges) {
+            components.add(createDayHeader(change.getDate()));
+            if (change.isDeleted()) {
+                components.add(createBodyText(formatDate(change.getDate()) + "の自習室予約は自動的にキャンセルされました。"));
+            } else {
+                components.add(createBodyText(formatDate(change.getDate()) + "の自習室予約を自動調整いたしました。"));
+            }
+            components.add(createReservationSummary("変更前", change.getPreReservations()));
+            components.add(createReservationSummary("変更後", change.getPostReservations()));
+        }
+
+        components.add(createBodyText("ご不明点がございましたら翔栄学院までお問い合わせください。"));
+
+        Box body = getBox(components);
+        Bubble bubble = createFromBody(body);
+        return new FlexMessage("複数日の予約自動変更のお知らせ", bubble);
+    }
+
+    private Text createDayHeader(LocalDate date) {
+        return Text.builder()
+                .text(formatDate(date))
+                .weight(Text.TextWeight.BOLD)
+                .margin(FlexMarginSize.LG)
+                .size(FlexFontSize.Md)
+                .build();
+    }
+
+    private String formatDate(LocalDate date) {
+        return date.format(DATE_FORMATTER);
     }
 
     private Text createBodyText(String text) {

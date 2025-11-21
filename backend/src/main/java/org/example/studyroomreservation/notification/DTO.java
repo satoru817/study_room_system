@@ -38,7 +38,7 @@ public class DTO {
             return Collections.unmodifiableSet(postReservations);
         }
         public boolean isDeleted() {
-            return this.postReservations.size() == 0;
+            return this.postReservations.isEmpty();
         }
 
         private record Slot(LocalTime start, LocalTime end) {}
@@ -70,7 +70,7 @@ public class DTO {
         }
 
         public boolean isAllSuccess() {
-            return failedStudents.size() == 0;
+            return failedStudents.isEmpty();
         }
 
     }

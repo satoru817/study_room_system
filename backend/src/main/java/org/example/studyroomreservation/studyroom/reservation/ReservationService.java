@@ -11,12 +11,16 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Service
@@ -445,7 +449,7 @@ public class ReservationService {
 
     public DTO.WillBeDeletedOrModifiedReservations calculateWillBeDeletedOrModifiedReservationsByDeletingOneDayScheduleException(DTO.ScheduleExceptionDeleteRequest request) {
         LocalDate date = request.selectedDate();
-        TokyoTimeElf.DayOfWeek dayOfWeek = TokyoTimeElf.convert(date.getDayOfWeek());
+        java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
         int studyRoomId = request.studyRoomId();
         String existSql = """
                 SELECT EXISTS (
@@ -529,7 +533,7 @@ public class ReservationService {
         int studyRoomId = request.studyRoomId();
         List<dto.SolidRegularSchedule> solidRegularSchedules = request.regularSchedules();
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
-        String schedulesString = new ObjectMapper().writeValueAsString(solidRegularSchedules);
+        String schedulesString = objectMapper.writeValueAsString(solidRegularSchedules);
         String  withClause = """
                 WITH tentative_regular_schedules AS (
                     SELECT jt.dayOfWeek, jt.openTime, jt.closeTime
@@ -556,7 +560,8 @@ public class ReservationService {
                 FROM study_room_reservations srr
                 JOIN reservation_ids_of_regular_schedules reservations_in_concern ON reservations_in_concern.study_room_reservation_id = srr.study_room_reservation_id
                 JOIN study_rooms sr ON sr.study_room_id = :studyRoomId
-                LEFT JOIN tentative_regular_schedules trs ON trs.dayOfWeek = LOWER(DAYNAME(srr.date))
+                JOIN students st ON st.student_id = srr.student_id
+                LEFT JOIN tentative_regular_schedules trs ON LOWER(trs.dayOfWeek) = LOWER(DAYNAME(srr.date))
                     AND NOT (srr.end_hour <= trs.openTime OR srr.start_hour >= trs.closeTime)
                 WHERE trs.dayOfWeek IS NULL
                 """;
@@ -572,7 +577,8 @@ public class ReservationService {
                 FROM study_room_reservations srr
                 JOIN reservation_ids_of_regular_schedules reservations_in_concern ON reservations_in_concern.study_room_reservation_id = srr.study_room_reservation_id
                 JOIN study_rooms sr ON sr.study_room_id = :studyRoomId
-                JOIN tentative_regular_schedules trs ON trs.dayOfWeek = LOWER(DAYNAME(srr.date))
+                JOIN students st ON st.student_id = srr.student_id
+                JOIN tentative_regular_schedules trs ON LOWER(trs.dayOfWeek) = LOWER(DAYNAME(srr.date))
                     AND ((srr.end_hour > trs.openTime AND srr.end_hour < trs.closeTime) OR
                         (srr.start_hour > trs.openTime AND srr.start_hour < trs.closeTime)
                     )
@@ -580,8 +586,47 @@ public class ReservationService {
         List<DTO.ReservationDtoForConfirmation> willBeModified = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeModifiedSql, mapSqlParameterSource);
         return new DTO.WillBeDeletedOrModifiedReservations(willBeDeleted, willBeModified);
     }
+    @Transactional
+    public StudyRoomReservation.PrePostReservationsPair complyWithNewRegularSchedule(int studyRoomId, List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule) {
+        LocalDate today = TokyoTimeElf.getTokyoLocalDate();
+        // まず、変更する前のRegularScheduleに関するすべての予約をとってくる？
+        List<StudyRoomReservation> preReservations = reservationRepository.findRegularReservationsByStudyRoomIdAndDateGreaterThan(studyRoomId, today);
+        // 次に、RegularScheduleに関するすべての予約を削除する。
+        reservationRepository.deleteAll(preReservations);
+        // 次に、RegularScheduleに関するすべての予約を新しいRegularScheduleにそうように、削除、変更、維持したListを作成し、それをdbにpersistする。
+        List<StudyRoomReservation> postReservations = complyReservationsWithUpdatedRegularSchedule(updatedRegularSchedule, preReservations);
 
-    public org.example.studyroomreservation.notification.DTO.NotificationResult modifyReservationsAndSendNotifications(int studyRoomId) {
-        
+        return new StudyRoomReservation.PrePostReservationsPair(preReservations, postReservations);
     }
+
+    /**
+     * ここでは、preReservationをupdateされたregularScheduleに合わせて更新して、dbにpersistするだけ。
+     * @param studyRoomRegularSchedules
+     * @param preReservations
+     * @return
+     */
+    private List<StudyRoomReservation> complyReservationsWithUpdatedRegularSchedule(List<dto.StudyRoomRegularScheduleDTO> studyRoomRegularSchedules, List<StudyRoomReservation> preReservations) {
+        Map<DayOfWeek, Set<dto.Range>> rangesOfEachDayOfWeek = studyRoomRegularSchedules.stream()
+                .collect(Collectors.groupingBy(
+                        dto.StudyRoomRegularScheduleDTO::dayOfWeek,
+                        Collectors.mapping(dto.StudyRoomRegularScheduleDTO::getRange, Collectors.toSet())
+                ));
+        Set<StudyRoomReservation> updatedReservations = preReservations.parallelStream()
+                .flatMap(res -> complyWithNewRange.apply(res, rangesOfEachDayOfWeek.get(res.getDate().getDayOfWeek())).stream())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return  reservationRepository.saveAll(updatedReservations);
+    }
+
+    private final BiFunction<StudyRoomReservation, Set<dto.Range>, Set<StudyRoomReservation>> complyWithNewRange = ((studyRoomReservation, ranges) -> {
+        if (ranges == null) return null;
+        LocalTime startHour = studyRoomReservation.getStartHour();
+        LocalTime endHour = studyRoomReservation.getEndHour();
+        return  ranges.parallelStream()
+                    .map( range -> range.adjust(startHour, endHour))
+                    .filter(Objects::nonNull)
+                    .map(range -> StudyRoomReservation.convert(studyRoomReservation, range))
+                    .collect(Collectors.toSet());
+    });
 }

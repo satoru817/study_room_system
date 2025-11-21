@@ -36,7 +36,7 @@ public interface StudyRoomRepository extends JpaRepository<StudyRoom, Integer> {
     List<StudyRoomService.StudyRoomStatus> findAllStatusByCramSchoolId(int cramSchoolId, LocalDate today, LocalTime time);
 
     @Query("""
-            SELECT NEW org.example.studyroomreservation.studyroom.dto.StudyRoomRegularScheduleDTO(
+            SELECT NEW org.example.studyroomreservation.studyroom.dto$StudyRoomRegularScheduleDTO(
                 srrs.studyRoom.studyRoomId,
                 srrs.dayOfWeek,
                 srrs.openTime,

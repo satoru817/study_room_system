@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS study_room_reservations (
 
 CREATE TABLE IF NOT EXISTS study_room_regular_schedules (
     study_room_regular_schedule_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    day_of_week INT NOT NULL,
+    day_of_week VARCHAR(20) NOT NULL,
     open_time TIME NOT NULL,
     close_time TIME NOT NULL,
     study_room_id INT NOT NULL,

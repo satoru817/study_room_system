@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.student.Student;
 import org.example.studyroomreservation.studyroom.StudyRoom;
+import org.example.studyroomreservation.studyroom.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
 
 @Entity
 @Table(name = "study_room_reservations")
@@ -25,6 +27,18 @@ public class StudyRoomReservation {
         this.endHour = builder.endHour;
         this.studyRoom = builder.studyRoom;
         this.student = builder.student;
+    }
+
+    private StudyRoomReservation(LocalDate date, LocalTime startHour, LocalTime endHour, StudyRoom studyRoom, Student student) {
+        this.date = date;
+        this.startHour = startHour;
+        this.endHour = endHour;
+        this.studyRoom = studyRoom;
+        this.student = student;
+    }
+
+    public static StudyRoomReservation convert(StudyRoomReservation prev, dto.Range newRange) {
+        return new StudyRoomReservation(prev.date, newRange.openTime(), newRange.closeTime(), prev.studyRoom, prev.student);
     }
 
     //==============================================================
@@ -130,4 +144,6 @@ public class StudyRoomReservation {
             return new StudyRoomReservation(this);
         }
     }
+
+    public static record PrePostReservationsPair(Collection<StudyRoomReservation> preReservations, Collection<StudyRoomReservation> postReservations){}
 }

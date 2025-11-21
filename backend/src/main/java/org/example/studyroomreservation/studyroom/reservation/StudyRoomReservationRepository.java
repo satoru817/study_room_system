@@ -32,4 +32,13 @@ public interface StudyRoomReservationRepository extends JpaRepository<StudyRoomR
             """)
     List<StudyRoomReservation> getReservationsOfOneRoomOfOneDay(int studyRoomId, LocalDate date);
 
+    @Query("""
+            SELECT srr
+            FROM StudyRoomReservation srr
+            LEFT JOIN StudyRoomScheduleException srse ON srse.date = srr.date AND srse.studyRoom.studyRoomId = :studyRoomId
+            WHERE srr.studyRoom.studyRoomId = :studyRoomId
+                AND srr.date > :today
+                AND srse.studyRoomScheduleExceptionId IS NULL
+            """)
+    List<StudyRoomReservation> findRegularReservationsByStudyRoomIdAndDateGreaterThan(int studyRoomId, LocalDate today);
 }

@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 @Component
 public class EmailNotificationStrategy implements NotificationStrategy{
@@ -122,6 +123,33 @@ public class EmailNotificationStrategy implements NotificationStrategy{
         String subject = "自習室予約変更のお知らせ";
         String htmlContent = createChangeReservationHtml(student, changeDate, reservationChangeOfOneDay);
         String textContent = createChangeReservationText(student, changeDate, reservationChangeOfOneDay);
+        sendEmail(student, htmlContent, textContent, subject);
+    }
+
+    @Override
+    public void sendReservationChangeNotificationOfMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChangeOfOneDayList) {
+        if (!canSend(student) || reservationChangeOfOneDayList == null || reservationChangeOfOneDayList.isEmpty()) {
+            return;
+        }
+
+        List<DTO.ReservationChangeOfOneDay> changes = reservationChangeOfOneDayList.stream()
+                .filter(Objects::nonNull)
+                .filter(change -> !change.isUnChanged())
+                .sorted(Comparator.comparing(DTO.ReservationChangeOfOneDay::getDate))
+                .toList();
+
+        if (changes.isEmpty()) {
+            return;
+        }
+
+        if (changes.size() == 1) {
+            sendReservationChangeNotification(student, changes.get(0));
+            return;
+        }
+
+        String subject = "自習室予約変更のお知らせ（複数日）";
+        String htmlContent = createMultiDayChangeReservationHtml(student, changes);
+        String textContent = createMultiDayChangeReservationText(student, changes);
         sendEmail(student, htmlContent, textContent, subject);
     }
 
@@ -362,6 +390,50 @@ public class EmailNotificationStrategy implements NotificationStrategy{
 
     private String formatDate(LocalDate date) {
         return date.format(DATE_FORMATTER);
+    }
+
+    private String createMultiDayChangeReservationHtml(Student student, List<DTO.ReservationChangeOfOneDay> changes) {
+        StringBuilder html = new StringBuilder();
+        html.append("<html><body>");
+        html.append("<h1>自習室予約変更のお知らせ</h1>");
+        html.append("<p>").append(student.getName()).append("様</p>");
+        html.append("<p>以下の日程で自習室予約の変更がありましたのでお知らせいたします。</p>");
+
+        for (DTO.ReservationChangeOfOneDay change : changes) {
+            html.append("<hr>");
+            html.append("<h2>").append(formatDate(change.getDate())).append("</h2>");
+            html.append("<p>").append(buildChangeMessage(change)).append("</p>");
+            html.append("<h3>変更前</h3>");
+            html.append(buildReservationListHtml(change.getPreReservations()));
+            html.append("<h3>変更後</h3>");
+            html.append(buildReservationListHtml(change.getPostReservations()));
+        }
+
+        html.append("<p>ご不明点がございましたら翔栄学院までお問い合わせください。</p>");
+        html.append("<p>このメールはシステムにより自動送信されています。</p>");
+        html.append("</body></html>");
+        return html.toString();
+    }
+
+    private String createMultiDayChangeReservationText(Student student, List<DTO.ReservationChangeOfOneDay> changes) {
+        StringBuilder text = new StringBuilder();
+        text.append("自習室予約変更のお知らせ").append("\n\n");
+        text.append(student.getName()).append("様").append("\n\n");
+        text.append("以下の日程で自習室予約の変更がありましたのでお知らせいたします。\n\n");
+
+        for (DTO.ReservationChangeOfOneDay change : changes) {
+            text.append("==== ").append(formatDate(change.getDate())).append(" ====\n");
+            text.append(buildChangeMessage(change)).append("\n\n");
+            text.append("【変更前】\n");
+            text.append(buildReservationListText(change.getPreReservations()));
+            text.append("\n【変更後】\n");
+            text.append(buildReservationListText(change.getPostReservations()));
+            text.append("\n");
+        }
+
+        text.append("ご不明点がございましたら翔栄学院までお問い合わせください。\n");
+        text.append("このメールはシステムにより自動送信されています。");
+        return text.toString();
     }
 
     private void sendEmail(Student student, String htmlContent,
