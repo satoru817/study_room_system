@@ -87,9 +87,9 @@ public class LineNotificationStrategy implements NotificationStrategy{
     }
 
     @Override
-    public void sendReservationChangeNotificationOfMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChangeOfOneDayList) {
+    public boolean sendReservationChangeNotificationOfMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChangeOfOneDayList) {
         if (!canSend(student) || reservationChangeOfOneDayList == null || reservationChangeOfOneDayList.isEmpty()) {
-            return;
+            return false;
         }
 
         List<DTO.ReservationChangeOfOneDay> changes = reservationChangeOfOneDayList.stream()
@@ -99,7 +99,7 @@ public class LineNotificationStrategy implements NotificationStrategy{
                 .toList();
 
         if (changes.isEmpty()) {
-            return;
+            return false;
         }
 
         if (changes.size() == 1) {
@@ -111,7 +111,8 @@ public class LineNotificationStrategy implements NotificationStrategy{
             } catch (ExecutionException e) {
                 throw new RuntimeException("LINE送信エラー", e);
             }
-            return;
+
+            return true;
         }
 
         try {
@@ -123,6 +124,8 @@ public class LineNotificationStrategy implements NotificationStrategy{
         } catch (ExecutionException e) {
             throw new RuntimeException("LINE送信エラー", e);
         }
+
+        return true;
     }
 
     private FlexMessage createChangeReservationMessage(Student student, DTO.ReservationChangeOfOneDay reservationChangeOfOneDay) {

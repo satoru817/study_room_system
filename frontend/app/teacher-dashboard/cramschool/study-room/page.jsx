@@ -223,7 +223,7 @@ function StudyRoomDetailContent() {
         willBeModified
       );
       if (confirm(message)) {
-        const { updatedRegularSchedules, notificationResult } = await doPost(
+        const { updatedRegularSchedule, notificationResult } = await doPost(
           "/api/studyRoom/regularSchedule/save",
           {
             studyRoomId: studyRoomId,
@@ -232,7 +232,7 @@ function StudyRoomDetailContent() {
         );
         setHasChanges(false);
         alertNotificationResult(notificationResult);
-        buildWeekSchedule(updatedRegularSchedules);
+        buildWeekSchedule(updatedRegularSchedule);
       }
     } catch (error) {
       console.error("スケジュールの保存に失敗:", error);
@@ -534,6 +534,10 @@ function StudyRoomDetailContent() {
 
     return ranges;
   };
+  const convertDateExpression = (dateFromServer) => {
+    const arr = dateFromServer.split("-");
+    return `${arr[0]}年${arr[1]}月${arr[2]}日`;
+  };
   const createMessageFromWillBeDeletedOrModified = (
     willBeDeleted,
     willBeModified
@@ -548,7 +552,9 @@ function StudyRoomDetailContent() {
             willBeDeleted
               .map(
                 (res) =>
-                  `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
+                  `${res.studentName}の${convertDateExpression(res.date)}:${
+                    res.startHour
+                  }から${res.endHour}までの予約`
               )
               .join("\n")
           : "";
@@ -559,7 +565,9 @@ function StudyRoomDetailContent() {
             willBeModified
               .map(
                 (res) =>
-                  `${res.studentName}の${res.startHour}から${res.endHour}までの予約`
+                  `${res.studentName}の${convertDateExpression(res.date)}:${
+                    res.startHour
+                  }から${res.endHour}までの予約`
               )
               .join("\n")
           : "";

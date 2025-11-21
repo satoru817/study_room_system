@@ -534,6 +534,7 @@ public class ReservationService {
         List<dto.SolidRegularSchedule> solidRegularSchedules = request.regularSchedules();
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
         String schedulesString = objectMapper.writeValueAsString(solidRegularSchedules);
+        System.out.println("scheduleString = " + schedulesString);
         String  withClause = """
                 WITH tentative_regular_schedules AS (
                     SELECT jt.dayOfWeek, jt.openTime, jt.closeTime
@@ -549,7 +550,7 @@ public class ReservationService {
                 ), reservation_ids_of_regular_schedules AS (
                     SELECT srr.study_room_reservation_id
                     FROM study_room_reservations srr
-                    JOIN study_rooms sr ON sr.study_room_id = :studyRoomId AND srr.study_room_id = :studyRoomId AND srr.date >= :today
+                    JOIN study_rooms sr ON sr.study_room_id = :studyRoomId AND srr.study_room_id = :studyRoomId AND srr.date > :today
                     LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_id = :studyRoomId AND srr.date = srse.date
                     WHERE srse.study_room_schedule_exception_id IS NULL
                 )
@@ -578,9 +579,9 @@ public class ReservationService {
                 JOIN reservation_ids_of_regular_schedules reservations_in_concern ON reservations_in_concern.study_room_reservation_id = srr.study_room_reservation_id
                 JOIN study_rooms sr ON sr.study_room_id = :studyRoomId
                 JOIN students st ON st.student_id = srr.student_id
-                JOIN tentative_regular_schedules trs ON LOWER(trs.dayOfWeek) = LOWER(DAYNAME(srr.date))
-                    AND ((srr.end_hour > trs.openTime AND srr.end_hour < trs.closeTime) OR
-                        (srr.start_hour > trs.openTime AND srr.start_hour < trs.closeTime)
+                JOIN tentative_regular_schedules trs ON trs.dayOfWeek = DAYNAME(srr.date)
+                    AND ((trs.openTime > srr.start_hour AND srr.end_hour > trs.openTime) OR
+                        (trs.closeTime > srr.start_hour AND srr.end_hour > trs.closeTime)
                     )
                 """;
         List<DTO.ReservationDtoForConfirmation> willBeModified = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeModifiedSql, mapSqlParameterSource);

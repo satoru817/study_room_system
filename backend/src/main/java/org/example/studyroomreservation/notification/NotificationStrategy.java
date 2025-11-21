@@ -16,5 +16,5 @@ public interface NotificationStrategy {
     void sendExitNotification(StudentUser student);
     void sendRegistrationUrl(StudentLoginDTO student, String url, int validPeriod);
     void sendReservationChangeNotification(Student student, DTO.ReservationChangeOfOneDay reservationChangeOfOneDay) throws ExecutionException, InterruptedException;
-    void sendReservationChangeNotificationOfMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChangeOfOneDayList);
+    boolean sendReservationChangeNotificationOfMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChangeOfOneDayList);
 }

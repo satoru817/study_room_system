@@ -127,9 +127,9 @@ public class EmailNotificationStrategy implements NotificationStrategy{
     }
 
     @Override
-    public void sendReservationChangeNotificationOfMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChangeOfOneDayList) {
+    public boolean sendReservationChangeNotificationOfMultipleDays(Student student, List<DTO.ReservationChangeOfOneDay> reservationChangeOfOneDayList) {
         if (!canSend(student) || reservationChangeOfOneDayList == null || reservationChangeOfOneDayList.isEmpty()) {
-            return;
+            return false;
         }
 
         List<DTO.ReservationChangeOfOneDay> changes = reservationChangeOfOneDayList.stream()
@@ -139,18 +139,19 @@ public class EmailNotificationStrategy implements NotificationStrategy{
                 .toList();
 
         if (changes.isEmpty()) {
-            return;
+            return false;
         }
 
         if (changes.size() == 1) {
             sendReservationChangeNotification(student, changes.get(0));
-            return;
+            return true;
         }
 
         String subject = "自習室予約変更のお知らせ（複数日）";
         String htmlContent = createMultiDayChangeReservationHtml(student, changes);
         String textContent = createMultiDayChangeReservationText(student, changes);
         sendEmail(student, htmlContent, textContent, subject);
+        return true;
     }
 
     private String createRegistrationHTML(StudentLoginDTO student, String url, int validPeriod) {
