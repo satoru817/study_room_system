@@ -367,23 +367,37 @@ function StudyRoomDetailContent() {
       .map((room) => `${room.cramSchoolName} - ${room.studyRoomName}`)
       .join("\n");
 
-    if (
-      !confirm(
-        `以下の${selectedStudyRoomIds.length}件の自習室に${currentYear}年${currentMonth}月の例外スケジュールをコピーしますか？\n\n${roomNames}`
-      )
-    ) {
-      return;
-    }
+    const message = `以下の${selectedStudyRoomIds.length}件の自習室に${currentYear}年${currentMonth}月の例外スケジュールをコピーしますか？\n\n${roomNames}`;
+    if (!confirm(message)) return;
 
     try {
-      await doPost("/api/studyRoom/scheduleException/copy", {
+      //ここで何をすべきか。
+      // まず、willBeDeletedとwillBeModifiedを持ってくる。
+      // それでOKのときだけ、コピー操作を実行し、それにともなった、予約の更新も行う。
+      // その更新作業の結果を受け取って、表示する。
+      // 最終的にすべての表示はmodalできちんと行うようにしたいが、とりあえずはalertで動けばいい。
+      const data = {
         fromStudyRoomId: studyRoomId,
         toStudyRoomIds: selectedStudyRoomIds,
         year: currentYear,
         month: currentMonth,
-      });
+      };
+
+      const { willBeDeleted, willBeModified } = await doPost(
+        "/api/reservation/scheduleExceptionCopy/confrimBeforeSave",
+        data
+      );
+      const message = createMessageFromWillBeDeletedOrModified(
+        willBeDeleted,
+        willBeModified
+      );
+      if (!confirm(message)) return;
+      const notificationResult = await doPost(
+        "/api/studyRoom/scheduleException/copy",
+        data
+      );
+      alertNotificationResult(notificationResult);
       setShowCopyExceptionModal(false);
-      alert("例外スケジュールをコピーしました");
     } catch (error) {
       console.error("例外スケジュールのコピーに失敗:", error);
       alert("例外スケジュールのコピーに失敗しました");

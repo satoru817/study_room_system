@@ -704,4 +704,69 @@ public class ReservationService {
         List<StudyRoomReservation> postReservations = complyReservationsWithUpdatedRegularSchedule(updatedRegularSchedule, preReservations);
         return new StudyRoomReservation.PrePostReservationsPair(preReservations, postReservations);
     }
+
+    //ここで何をしたいのか
+    // ある自習室のある年、ある月の例外スケジュールをすべてコピーするのだ。このときコピーと単純に言うが、その月にもともとあった例外スケジュールを削除してから上書きするので、
+    // これはかなり複雑。
+    // 場合分けが多いのだ。
+    // スケジュールが存在しなかった日 -> どうなろうと無視
+    // 通常スケジュールしか存在しなかった日　-> 例外スケジュールが入った　:　削除、更新、　維持
+    // 通常スケジュールしか存在しなかった日 -> 例外スケジュールがはいらなかった　: 無視
+    // 例外スケジュールで閉じていた日　-> どうなろうと無視
+    // 例外スケジュールで開いていた日 -> 例外スケジュールが取り除かれた　: 削除, 更新、　維持(その自習室の通常スケジュールで)
+    // 例外スケジュールで開いていた日 -> 例外スケジュールが入った : 削除、更新、維持
+    // ということで考えればいいのは、この三通り
+    // 1:通常スケジュールしか存在しなかった日　-> 例外スケジュールが入った　:　削除、更新、維持
+    // 2:例外スケジュールで開いていた日 -> 例外スケジュールが取り除かれた　: 削除, 更新、維持(その自習室の通常スケジュールで)
+    // 3:例外スケジュールで開いていた日 -> 例外スケジュールが入った : 削除、更新、維持
+    public DTO.WillBeDeletedOrModifiedReservations calculateWillBeDeletedOrModifiedReservationsByCopyingScheduleException(dto.CopyScheduleExceptionRequest request) {
+        int fromStudyRoomId = request.fromStudyRoomId();
+        List<Integer> toStudyRoomIds = request.toStudyRoomIds();
+        int year = request.year();
+        int month = request.month();
+        LocalDate today = TokyoTimeElf.getTokyoLocalDate();
+        //willBeDeletedをとるsqlを考えてみようか
+        String sql = """
+                WITH regular_schedule_reservation_ids AS (
+                    SELECT srr.study_room_reservation_id
+                    FROM study_room_reservations srr
+                    JOIN study_rooms sr ON sr.study_room_id IN (:toStudyRoomIds) AND sr.study_room_id = srr.study_room_id AND srr.date > :today
+                    LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_id = srr.study_room_id AND srr.date = srse.date
+                    WHERE srse.study_room_schedule_exception_id IS NULL
+                ), exception_reservation_ids AS (
+                    SELECT DISTINCT srr.study_room_reservation_id
+                    FROM study_room_reservations srr
+                    JOIN study_rooms sr ON sr.study_room_id IN (:toStudyRoomIds) AND sr.study_room_id = srr.study_room_id AND srr.date > :today
+                    JOIN study_room_schedule_exceptions srse ON srse.is_open AND srse.study_room_id = srr.study_room_id AND srr.date = srse.date
+                ), will_be_deleted_regular_schedule_reservation_ids AS (
+                    SELECT DISTINCT srr.study_room_reservation_id
+                    FROM study_room_reservations srr
+                    JOIN regular_schedule_reservation_ids srri ON srri.study_room_reservation_id = srr.study_room_reservation_id
+                    JOIN study_room_schedule_exceptions srse1 ON srse1.study_room_id = :fromStudyRoomId AND srse1.date = srr.date
+                    LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_schedule_exception_id = srse1.study_room_schedule_exception_id
+                        AND ((srse.open_time > srr.start_hour AND srr.end_hour > srse.open_time) OR
+                            (srse.close_time > srr.start_hour AND srr.end_hour > srse.close_time) OR
+                            (srr.start_hour >= srse.open_time AND srr.end_hour <= srse.close_time)
+                        )
+                    WHERE srse.study_room_schedule_exception_id IS NULL
+                ), will_be_deleted_exception_reservation_ids AS (
+                    SELECT DISTINCT srr.study_room_reservation_id
+                    FROM study_room_reservations srr
+                    JOIN exception_reservation_ids eri ON eri.study_room_reservation_id = srr.study_room_reservation_id
+                    LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_id = :fromStudyRoomId AND srse.date = srr.date
+                    LEFT JOIN study_room_regular_schedules srrs ON srrs.date
+                )
+                SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                """;
+        // ああ、sqlを作るのが難しい
+        // えっと、will_be_deleted_exception_reservation_idsを作成するのがナンデこんなに困難なのか？
+        // exception_reservation_idsで、toStudyRoomIdsのscheduleExceptionsに該当する予約idはすべてとってきているのだ。
+        // それらに対して、will_be_deletedのものをとってきたいのだ。
+        // これは場合分けが結構あって、
+        // その日の例外スケジュールはなくなって、その教室の通常スケジュールになった結果、閉じなくてはならなくなる
+        // その日の例外スケジュールは設定されて、それがis_openではないからなくなる
+        // その日の例外スケジュールは設定されて、それの時間が合わないからなくなる
+        //　以上3通りあるのだ。これらを一つのwith 句で取れるのか？
+
+    }
 }
