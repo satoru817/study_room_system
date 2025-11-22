@@ -12,6 +12,8 @@ import org.example.studyroomreservation.studyroom.reservation.RangeService;
 import org.example.studyroomreservation.studyroom.reservation.ReservationService;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class StudyRoomService {
+    private static final Logger log = LoggerFactory.getLogger(StudyRoomService.class);
     @Autowired
     private StudyRoomReservationRepository studyRoomReservationRepository;
     @Autowired
@@ -50,6 +53,7 @@ public class StudyRoomService {
             List<StudyRoomStatus> studyRooms = studyRoomRepository.findAllStatusByCramSchoolId(cramSchoolId, today, time);
             return studyRooms;
         } catch (Exception e) {
+            log.error("Failed to find study rooms by cram school ID: {}, Error: {}", cramSchoolId, e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -82,6 +86,8 @@ public class StudyRoomService {
         try {
             return studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(request.studyRoomId(), request.year(), request.month());
         } catch (Exception e) {
+            log.error("Failed to get schedule exceptions for study room: {}, year: {}, month: {}, Error: {}",
+                request.studyRoomId(), request.year(), request.month(), e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }

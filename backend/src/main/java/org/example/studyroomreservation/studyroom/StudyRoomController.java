@@ -9,6 +9,8 @@ import org.example.studyroomreservation.cramschool.CramSchool;
 import org.example.studyroomreservation.elf.AccessElf;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.notification.DTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/studyRoom")
 public class StudyRoomController {
+    private static final Logger log = LoggerFactory.getLogger(StudyRoomController.class);
     @Autowired
     private StudyRoomService studyRoomService;
     @Autowired
@@ -47,6 +50,7 @@ public class StudyRoomController {
             studyRoomService.save(studyRoom);
             return ResponseEntity.ok(studyRoom);
         } catch (Exception e) {
+            log.error("Failed to create study room for cram school: {}, name: {}, Error: {}", cramSchoolId, request.name(), e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -75,6 +79,7 @@ public class StudyRoomController {
             studyRoomService.update(request);
             return ResponseEntity.ok(new StudyRoomService.StudyRoomStatus(request.studyRoomId, request.name, request.roomLimit, 0));
         } catch (Exception e) {
+            log.error("Failed to edit study room: {}, name: {}, Error: {}", request.studyRoomId, request.name, e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }

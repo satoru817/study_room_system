@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.studyroom.StudyRoomRepository;
 import org.example.studyroomreservation.studyroom.dto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ReservationService {
+    private static final Logger log = LoggerFactory.getLogger(ReservationService.class);
     @Autowired
     private StudyRoomReservationRepository reservationRepository;
     @Autowired
@@ -444,6 +447,8 @@ public class ReservationService {
             String timeSlotsJson = objectMapper.writeValueAsString(timeSlotsForJson);
             params.addValue("timeSlots", timeSlotsJson);
         } catch (JsonProcessingException e) {
+            log.error("Failed to serialize time slots to JSON for study room: {}, date: {}, Error: {}",
+                studyRoomId, date, e.getMessage(), e);
             throw new RuntimeException(e);
         }
 
@@ -644,7 +649,7 @@ public class ReservationService {
 
         String withClause = """
                 WITH tentative_regular_schedules AS (
-                    SELECT srrs.dayOfWeek, srrs.openTime, srrs.closeTime
+                    SELECT srrs.day_of_week AS dayOfWeek, srrs.open_time AS openTime, srrs.close_time AS closeTime
                     FROM study_room_regular_schedules srrs
                     WHERE srrs.study_room_id = :fromStudyRoomId
                 ), reservations_in_concern AS (
@@ -691,10 +696,12 @@ public class ReservationService {
     @Transactional
     public StudyRoomReservation.PrePostReservationsPair updateReservationsDueToRegularScheduleCopy(int fromStudyRoomId, List<Integer> toStudyRoomIds) {
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
+        // 最初に変更前のreservationsをとってきて、dbではdeleteする。
         List<StudyRoomReservation> preReservations = reservationRepository.getReservationsOfRegularScheduleOfRooms(toStudyRoomIds, today);
+        reservationRepository.deleteAll(preReservations);
         List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule = studyRoomRepository.getRegularScheduleOfOneStudyRoom(fromStudyRoomId);
+        // 変更したreservationsをdbにinsertする
         List<StudyRoomReservation> postReservations = complyReservationsWithUpdatedRegularSchedule(updatedRegularSchedule, preReservations);
-        reservationRepository.saveAll(postReservations);
         return new StudyRoomReservation.PrePostReservationsPair(preReservations, postReservations);
     }
 }

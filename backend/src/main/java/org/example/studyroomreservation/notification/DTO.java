@@ -6,6 +6,7 @@ import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservati
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DTO {
     public static record NotificationSuccessStatus(int successCount, List<String> failedStudent) {}
@@ -42,38 +43,56 @@ public class DTO {
         }
 
         private record Slot(LocalTime start, LocalTime end) {}
-        // TODO: this is not efficient. refactor later!!
+
         public boolean isUnChanged() {
-            if (preReservations.size() != postReservations.size()) {
-                return false;
-            }
+            Set<ReservationKey> preSet = preReservations.stream()
+                    .map(ReservationKey::from)
+                    .collect(Collectors.toSet());
 
-            // LocalTimeをそのまま複合キーとして使う
-            Map<Integer, Map<Slot, Integer>> roomToTimeSlots = new HashMap<>();
+            Set<ReservationKey> postSet = postReservations.stream()
+                    .map(ReservationKey::from)
+                    .collect(Collectors.toSet());
 
-            // preReservationsをカウント
-            for (StudyRoomReservation res : preReservations) {
-                int roomId = res.getStudyRoom().getStudyRoomId();
-                Slot slot = new Slot(res.getStartHour(), res.getEndHour());
-                roomToTimeSlots.put(roomId, Map.of(slot, 1));
-            }
-
-            // postReservationsで減算
-            for (StudyRoomReservation res : postReservations) {
-                int roomId = res.getStudyRoom().getStudyRoomId();
-                Slot slot = new Slot(res.getStartHour(), res.getEndHour());
-
-                Map<Slot, Integer> slots = roomToTimeSlots.get(roomId);
-
-                if (slots.remove(slot) == null) {
-                    return false;
-                }
-            }
-
-            return true;
+            return preSet.equals(postSet);
         }
 
     }
+
+    public static class ReservationKey {
+        private final int roomId;
+        private final LocalTime start;
+        private final LocalTime end;
+
+        public ReservationKey(int roomId, LocalTime start, LocalTime end) {
+            this.roomId = roomId;
+            this.start = start;
+            this.end = end;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ReservationKey)) return false;
+            ReservationKey that = (ReservationKey) o;
+            return roomId == that.roomId &&
+                    start.equals(that.start) &&
+                    end.equals(that.end);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(roomId, start, end);
+        }
+
+        public static ReservationKey from(StudyRoomReservation res) {
+            return new ReservationKey(
+                    res.getStudyRoom().getStudyRoomId(),
+                    res.getStartHour(),
+                    res.getEndHour()
+            );
+        }
+    }
+
 
     public static class NotificationResult {
         public final int successCount;

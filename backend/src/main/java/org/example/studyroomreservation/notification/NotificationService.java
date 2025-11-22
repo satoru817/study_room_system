@@ -9,6 +9,8 @@ import org.example.studyroomreservation.student.StudentService;
 import org.example.studyroomreservation.studyroom.dto;
 import org.example.studyroomreservation.studyroom.reservation.ReservationService;
 import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
     private static final int REGISTRATION_LINK_VALID_PERIOD = 7 * 2;
     private final List<NotificationStrategy> strategies;
     @Autowired
@@ -97,6 +100,7 @@ public class NotificationService {
                     failedStudents.add(student.getName());
                 }
             } catch (Exception e) {
+                log.error("Failed to send registration URL to student: {}, Error: {}", student.getName(), e.getMessage(), e);
                 failedStudents.add(student.getName());
             }
         }
@@ -155,6 +159,7 @@ public class NotificationService {
                     }
                 }
             } catch (Exception e) {
+                log.error("Failed to send reservation change notification to student: {}, Error: {}", student.getName(), e.getMessage(), e);
                 failedStudents.add(student.getName());
             }
         }
@@ -235,6 +240,7 @@ public class NotificationService {
                     successCount.incrementAndGet();
                 }
             } catch (Exception e) {
+                log.error("Failed to send notification to student: {}, Error: {}", student.getName(), e.getMessage(), e);
                 failedStudents.add(student.getName());
             }
         });

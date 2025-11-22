@@ -76,6 +76,7 @@ public class LineNotificationStrategy implements NotificationStrategy{
             FlexMessage message = createRegistrationLineFlexMessage(student, url, validPeriod);
             sendLineShared(student, message);
         } catch (Exception e) {
+            log.error("Failed to send registration URL via LINE to student: {}, Error: {}", student.getName(), e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -107,8 +108,10 @@ public class LineNotificationStrategy implements NotificationStrategy{
                 sendReservationChangeNotification(student, changes.get(0));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                log.error("LINE notification interrupted for student: {}, Error: {}", student.getName(), e.getMessage(), e);
                 throw new RuntimeException("LINE送信エラー", e);
             } catch (ExecutionException e) {
+                log.error("LINE notification execution failed for student: {}, Error: {}", student.getName(), e.getMessage(), e);
                 throw new RuntimeException("LINE送信エラー", e);
             }
 
@@ -120,8 +123,10 @@ public class LineNotificationStrategy implements NotificationStrategy{
             sendLine(student.getCramSchool().getLineChannelToken(), student.getLineUserId(), message);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.error("LINE notification interrupted for multiple days for student: {}, Error: {}", student.getName(), e.getMessage(), e);
             throw new RuntimeException("LINE送信エラー", e);
         } catch (ExecutionException e) {
+            log.error("LINE notification execution failed for multiple days for student: {}, Error: {}", student.getName(), e.getMessage(), e);
             throw new RuntimeException("LINE送信エラー", e);
         }
 

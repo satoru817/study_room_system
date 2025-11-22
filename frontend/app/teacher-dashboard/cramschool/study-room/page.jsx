@@ -223,6 +223,7 @@ function StudyRoomDetailContent() {
       );
 
       if (!confirm(message)) return;
+
       const { updatedRegularSchedule, notificationResult } = await doPost(
         "/api/studyRoom/regularSchedule/save",
         {
@@ -339,9 +340,12 @@ function StudyRoomDetailContent() {
 
       if (!confirm(message)) return;
 
-      await doPost("/api/studyRoom/regularSchedule/copy", data);
+      const notificationResult = await doPost(
+        "/api/studyRoom/regularSchedule/copy",
+        data
+      );
+      alertNotificationResult(notificationResult);
       setShowCopyRegularModal(false);
-      alert("通常スケジュールをコピーしました");
     } catch (error) {
       console.error("通常スケジュールのコピーに失敗:", error);
       alert("通常スケジュールのコピーに失敗しました");

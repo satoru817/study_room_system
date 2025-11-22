@@ -5,6 +5,8 @@ import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
 import org.example.studyroomreservation.elf.AccessElf;
 import org.example.studyroomreservation.entity.User;
 import org.example.studyroomreservation.student.StudentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/api/attendance")
 public class AttendanceController {
+    private static final Logger log = LoggerFactory.getLogger(AttendanceController.class);
     @Autowired
     private AttendanceValidator validator;
     @Autowired
@@ -52,6 +55,7 @@ public class AttendanceController {
                     .body(Map.of("error", e.getMessage()));
 
         } catch (Exception e) {
+            log.error("Failed to record attendance for student: {}, Error: {}", studentId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "出席記録に失敗しました。もう一度お試しください。"));
         }
@@ -68,6 +72,7 @@ public class AttendanceController {
             return ResponseEntity.ok()
                     .body(Map.of("message", "退出を記録しました"));
         } catch (Exception e) {
+            log.error("Failed to record checkout for student: {}, Error: {}", studentId, e.getMessage(), e);
             throw new RuntimeException(e);
         }
 
@@ -82,6 +87,7 @@ public class AttendanceController {
             return ResponseEntity.ok()
                     .body(response);
         } catch (Exception e) {
+            log.error("Failed to get attendance histories for student: {}, Error: {}", studentId, e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
