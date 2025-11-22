@@ -165,9 +165,9 @@ public class StudyRoomController {
 
     @PostMapping("/regularSchedule/copy")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<?> copyRegularSchedule(@RequestBody dto.CopyRegularScheduleRequest request) throws JsonProcessingException {
-        studyRoomService.copyRegularSchedule(request);
-        return ResponseEntity.ok().body("copy of regular schedule success");
+    public ResponseEntity<DTO.NotificationResult> copyRegularSchedule(@RequestBody dto.CopyRegularScheduleRequest request) throws JsonProcessingException {
+        DTO.NotificationResult result = studyRoomService.copyRegularSchedule(request);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/scheduleException/copy")

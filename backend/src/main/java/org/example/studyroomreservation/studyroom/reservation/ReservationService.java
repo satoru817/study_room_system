@@ -3,6 +3,7 @@ package org.example.studyroomreservation.studyroom.reservation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
+import org.example.studyroomreservation.studyroom.StudyRoomRepository;
 import org.example.studyroomreservation.studyroom.dto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -31,6 +32,8 @@ public class ReservationService {
     private NamedParameterJdbcTemplate jdbcTemplate;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private StudyRoomRepository studyRoomRepository;
 
 
     public List<DTO.ReservationShowResponse> getReservationsOfOneStudentOfToday(int studentId) {
@@ -534,7 +537,6 @@ public class ReservationService {
         List<dto.SolidRegularSchedule> solidRegularSchedules = request.regularSchedules();
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
         String schedulesString = objectMapper.writeValueAsString(solidRegularSchedules);
-        System.out.println("scheduleString = " + schedulesString);
         String  withClause = """
                 WITH tentative_regular_schedules AS (
                     SELECT jt.dayOfWeek, jt.openTime, jt.closeTime
@@ -630,4 +632,69 @@ public class ReservationService {
                     .map(range -> StudyRoomReservation.convert(studyRoomReservation, range))
                     .collect(Collectors.toSet());
     });
+    // ここで何をしたいのか？
+    // ある自習室のregualrScheduleをほかの自習室にコピーすることによって、
+    // 完全に無効になる予約(willBeDeleted)
+    //　部分的にしか成立しない予約(willBeModified)
+    // をとってくる
+    public DTO.WillBeDeletedOrModifiedReservations calculateWillBeDeletedOrModifiedReservationsByCopyingRegularSchedule(dto.CopyRegularScheduleRequest request) {
+        int fromStudyRoomId = request.fromStudyRoomId();
+        List<Integer> toStudyRoomIds = request.toStudyRoomIds();
+        LocalDate today = TokyoTimeElf.getTokyoLocalDate();
+
+        String withClause = """
+                WITH tentative_regular_schedules AS (
+                    SELECT srrs.dayOfWeek, srrs.openTime, srrs.closeTime
+                    FROM study_room_regular_schedules srrs
+                    WHERE srrs.study_room_id = :fromStudyRoomId
+                ), reservations_in_concern AS (
+                    SELECT srr.study_room_reservation_id
+                    FROM study_room_reservations srr
+                    JOIN study_rooms sr ON sr.study_room_id IN (:toStudyRoomIds) AND sr.study_room_id = srr.study_room_id AND srr.date > :today
+                    LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_id = srr.study_room_id AND srr.date = srse.date
+                    WHERE srse.study_room_schedule_exception_id IS NULL
+                )
+                """;
+
+        String getWillBeDeletedSql = withClause + """
+                SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                FROM study_room_reservations srr
+                JOIN reservations_in_concern ric ON ric.study_room_reservation_id = srr.study_room_reservation_id
+                JOIN study_rooms sr ON sr.study_room_id = srr.study_room_id
+                JOIN students st ON st.student_id = srr.student_id
+                LEFT JOIN tentative_regular_schedules trs ON trs.dayOfWeek = DAYNAME(srr.date)
+                    AND NOT (srr.end_hour <= trs.openTime OR srr.start_hour >= trs.closeTime)
+                WHERE trs.dayOfWeek IS NULL
+                """;
+
+        String getWillBeModifiedSql = withClause + """
+                SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                FROM study_room_reservations srr
+                JOIN reservations_in_concern ric ON ric.study_room_reservation_id = srr.study_room_reservation_id
+                JOIN study_rooms sr ON sr.study_room_id = srr.study_room_id
+                JOIN students st ON st.student_id = srr.student_id
+                JOIN tentative_regular_schedules trs ON trs.dayOfWeek = DAYNAME(srr.date)
+                    AND ((trs.openTime > srr.start_hour AND srr.end_hour > trs.openTime) OR
+                    (trs.closeTime > srr.start_hour AND srr.end_hour > trs.closeTime))
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("today", today)
+                .addValue("fromStudyRoomId", fromStudyRoomId)
+                .addValue("toStudyRoomIds", toStudyRoomIds);
+
+        List<DTO.ReservationDtoForConfirmation> willBeDeleted = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeDeletedSql, params);
+        List<DTO.ReservationDtoForConfirmation> willBeModified = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeModifiedSql, params);
+        return new DTO.WillBeDeletedOrModifiedReservations(willBeDeleted, willBeModified);
+    }
+
+    @Transactional
+    public StudyRoomReservation.PrePostReservationsPair updateReservationsDueToRegularScheduleCopy(int fromStudyRoomId, List<Integer> toStudyRoomIds) {
+        LocalDate today = TokyoTimeElf.getTokyoLocalDate();
+        List<StudyRoomReservation> preReservations = reservationRepository.getReservationsOfRegularScheduleOfRooms(toStudyRoomIds, today);
+        List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule = studyRoomRepository.getRegularScheduleOfOneStudyRoom(fromStudyRoomId);
+        List<StudyRoomReservation> postReservations = complyReservationsWithUpdatedRegularSchedule(updatedRegularSchedule, preReservations);
+        reservationRepository.saveAll(postReservations);
+        return new StudyRoomReservation.PrePostReservationsPair(preReservations, postReservations);
+    }
 }

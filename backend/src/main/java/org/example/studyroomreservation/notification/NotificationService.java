@@ -168,7 +168,7 @@ public class NotificationService {
         return sendNotificationOfChangeOfReservationsDueToUpdateOfRegularSchedules(pair);
     }
 
-    private DTO.NotificationResult sendNotificationOfChangeOfReservationsDueToUpdateOfRegularSchedules(StudyRoomReservation.PrePostReservationsPair pair) {
+    public DTO.NotificationResult sendNotificationOfChangeOfReservationsDueToUpdateOfRegularSchedules(StudyRoomReservation.PrePostReservationsPair pair) {
         Map<Student, Map<LocalDate, Set<StudyRoomReservation>>> preReservation = segmentReservations.apply(pair.preReservations());
         Map<Student, Map<LocalDate, Set<StudyRoomReservation>>> postReservation = segmentReservations.apply(pair.postReservations());
 

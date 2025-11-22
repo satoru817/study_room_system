@@ -204,7 +204,6 @@ function StudyRoomDetailContent() {
       .toString()
       .padStart(2, "0")}`;
   };
-  // TODO: add confirmation of the change!!
   const handleSaveSchedules = async () => {
     try {
       const schedules = convertScheduleToRanges();
@@ -212,7 +211,7 @@ function StudyRoomDetailContent() {
         studyRoomId,
         regularSchedules: schedules,
       };
-      // 最初に消される、あるいは変更される予約をとってくる。そして確認をとった上で保存する。
+      // まず消される、あるいは変更される予約をとってくる。そして確認をとった上で保存する。
       // 保存するときは予約の変更、削除及びその通知をして、その結果をfrontに返し表示する」
       const { willBeDeleted, willBeModified } = await doPost(
         "/api/reservation/regularScheduleChange/confirmBeforeSave",
@@ -222,18 +221,18 @@ function StudyRoomDetailContent() {
         willBeDeleted,
         willBeModified
       );
-      if (confirm(message)) {
-        const { updatedRegularSchedule, notificationResult } = await doPost(
-          "/api/studyRoom/regularSchedule/save",
-          {
-            studyRoomId: studyRoomId,
-            regularSchedules: schedules,
-          }
-        );
-        setHasChanges(false);
-        alertNotificationResult(notificationResult);
-        buildWeekSchedule(updatedRegularSchedule);
-      }
+
+      if (!confirm(message)) return;
+      const { updatedRegularSchedule, notificationResult } = await doPost(
+        "/api/studyRoom/regularSchedule/save",
+        {
+          studyRoomId: studyRoomId,
+          regularSchedules: schedules,
+        }
+      );
+      setHasChanges(false);
+      alertNotificationResult(notificationResult);
+      buildWeekSchedule(updatedRegularSchedule);
     } catch (error) {
       console.error("スケジュールの保存に失敗:", error);
       alert("スケジュールの保存に失敗しました");
@@ -308,6 +307,7 @@ function StudyRoomDetailContent() {
     const selectedRooms = studyRooms.filter((room) =>
       selectedStudyRoomIds.includes(room.studyRoomId.toString())
     );
+
     const roomNames = selectedRooms
       .map((room) => `${room.cramSchoolName} - ${room.studyRoomName}`)
       .join("\n");
@@ -321,10 +321,25 @@ function StudyRoomDetailContent() {
     }
 
     try {
-      await doPost("/api/studyRoom/regularSchedule/copy", {
+      // TODO* まずwillBeDeleted とwillBeModifiedをとってくる。
+      // 気をつけないと行けないのは、表示するとき、自習室名も出さないと行けないことである。
+      // あと、全体的に、通知送信するっていう言葉も書いたほうがいい。
+      const data = {
         fromStudyRoomId: studyRoomId,
         toStudyRoomIds: selectedStudyRoomIds,
-      });
+      };
+      const { willBeDeleted, willBeModified } = await doPost(
+        "/api/reservation/regularScheduleCopy/confirmBeforeSave",
+        data
+      );
+      const message = createMessageFromWillBeDeletedOrModified(
+        willBeDeleted,
+        willBeModified
+      );
+
+      if (!confirm(message)) return;
+
+      await doPost("/api/studyRoom/regularSchedule/copy", data);
       setShowCopyRegularModal(false);
       alert("通常スケジュールをコピーしました");
     } catch (error) {
@@ -554,7 +569,7 @@ function StudyRoomDetailContent() {
                 (res) =>
                   `${res.studentName}の${convertDateExpression(res.date)}:${
                     res.startHour
-                  }から${res.endHour}までの予約`
+                  }から${res.endHour}までの予約(${res.studyRoomName})`
               )
               .join("\n")
           : "";
@@ -567,7 +582,7 @@ function StudyRoomDetailContent() {
                 (res) =>
                   `${res.studentName}の${convertDateExpression(res.date)}:${
                     res.startHour
-                  }から${res.endHour}までの予約`
+                  }から${res.endHour}までの予約(${res.studyRoomName})`
               )
               .join("\n")
           : "";

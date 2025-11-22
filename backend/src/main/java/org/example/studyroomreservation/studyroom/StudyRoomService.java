@@ -38,6 +38,8 @@ public class StudyRoomService {
     private RangeService rangeService;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private ReservationService reservationService;
     private static String INVALID_TIME = "00:00:00";
 
     public List<StudyRoomStatus> findAllByCramSchoolId(int cramSchoolId) {
@@ -285,9 +287,8 @@ public class StudyRoomService {
         );
     }
 
-    // TODO: add reservation delete logic
     @Transactional
-    public void copyRegularSchedule(dto.CopyRegularScheduleRequest request) throws JsonProcessingException {
+    public DTO.NotificationResult copyRegularSchedule(dto.CopyRegularScheduleRequest request) throws JsonProcessingException {
         int fromStudyRoomId = request.fromStudyRoomId();
         List<Integer> toStudyRoomIds = request.toStudyRoomIds();
 
@@ -318,7 +319,14 @@ public class StudyRoomService {
                 .addValue("toIdsJson", toIdsJson)
                         .addValue("fromStudyRoomId", fromStudyRoomId);
         jdbcTemplate.update(insertSql, insertParams);
-
+        //ここまでで、regular_scheduleの更新のみ行っている。
+        //このあとしないといけないことは、
+        // regular_scheduleで予約されている予約の更新(削除、変更、維持)と、
+        // その結果の生徒への通知である。通知の結果を最終的にfrontに返さないと行けない。
+        // 流れとしてはPrePostReservationsPairを作成して、NotificationServiceで送信処理をすればいい。
+        // 一番面倒なのは、PostReservationsの作成だろう。
+        StudyRoomReservation.PrePostReservationsPair pair = reservationService.updateReservationsDueToRegularScheduleCopy(fromStudyRoomId, toStudyRoomIds);
+        return notificationService.sendNotificationOfChangeOfReservationsDueToUpdateOfRegularSchedules(pair);
     }
 
     // TODO: add reservation delete logic or something...
@@ -401,6 +409,7 @@ public class StudyRoomService {
             List<dto.Range> rangesOfThisDay = getRangeOfThisDayOfThisRoomOfRegularSchedule(date, studyRoomId);
             createNewReservationBasedOnRangesAndPreReservations(rangesOfThisDay, preReservations, date, studyRoomId);
         }
+
         return sendNotificationBasedOnChangedAndPreReservations(preReservations, studyRoomId, date);
     }
 

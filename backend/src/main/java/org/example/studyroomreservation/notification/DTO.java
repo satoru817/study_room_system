@@ -48,17 +48,31 @@ public class DTO {
                 return false;
             }
 
-            Set<Slot> slots = new HashSet<>();
+            // LocalTimeをそのまま複合キーとして使う
+            Map<Integer, Map<Slot, Integer>> roomToTimeSlots = new HashMap<>();
+
+            // preReservationsをカウント
             for (StudyRoomReservation res : preReservations) {
-                slots.add(new Slot(res.getStartHour(), res.getEndHour()));
+                int roomId = res.getStudyRoom().getStudyRoomId();
+                Slot slot = new Slot(res.getStartHour(), res.getEndHour());
+                roomToTimeSlots.put(roomId, Map.of(slot, 1));
             }
+
+            // postReservationsで減算
             for (StudyRoomReservation res : postReservations) {
-                if (!slots.remove(new Slot(res.getStartHour(), res.getEndHour()))) {
+                int roomId = res.getStudyRoom().getStudyRoomId();
+                Slot slot = new Slot(res.getStartHour(), res.getEndHour());
+
+                Map<Slot, Integer> slots = roomToTimeSlots.get(roomId);
+
+                if (slots.remove(slot) == null) {
                     return false;
                 }
             }
-            return slots.isEmpty();
+
+            return true;
         }
+
     }
 
     public static class NotificationResult {

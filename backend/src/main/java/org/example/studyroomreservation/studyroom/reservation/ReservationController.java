@@ -48,6 +48,13 @@ public class ReservationController {
         return ResponseEntity.ok(reservations);
     }
 
+    @PostMapping("/regularScheduleCopy/confirmBeforeSave")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<DTO.WillBeDeletedOrModifiedReservations> calculateDeletedOrModifiedReservationsByCopyOfRegularSchedule(@RequestBody dto.CopyRegularScheduleRequest request) {
+        DTO.WillBeDeletedOrModifiedReservations reservations = reservationService.calculateWillBeDeletedOrModifiedReservationsByCopyingRegularSchedule(request);
+        return ResponseEntity.ok(reservations);
+    }
+
     @GetMapping("/getTodays/{studentId}")
     public ResponseEntity<?> getReservationOfToday(@AuthenticationPrincipal UserDetailsImpl userDetails, @PathVariable int studentId) throws IllegalAccessException {
         accessElf.isValidAccess(studentId, userDetails);
