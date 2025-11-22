@@ -756,12 +756,10 @@ public class ReservationService {
                     SELECT DISTINCT srr.study_room_reservation_id
                     FROM study_room_reservations srr
                     JOIN regular_schedule_reservation_ids rsri ON rsri.study_room_reservation_id = srr.study_room_reservation_id
-                    JOIN study_room_schedule_exceptions srse ON srse.study_room_id = :fromStudyRoomId
-                        AND srse.date = srr.date
-                        AND (
-                            NOT srse.is_open
-                            OR (srse.close_time <= srr.start_hour OR srse.open_time >= srr.end_hour)
-                        )
+                    JOIN study_room_schedule_exceptions srse1 ON srse1.study_room_id = :fromStudyRoomId AND srse1.date = srr.date
+                    LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_id = :fromStudyRoomId AND srse.date = srr.date
+                        AND ((NOT (srse.close_time <= srr.start_hour OR srse.open_time >= srr.end_hour)) AND srse.is_open)
+                    WHERE srse.study_room_schedule_exception_id IS NULL
                 ), will_be_deleted_exception_reservation_ids AS (
                     SELECT DISTINCT srr.study_room_reservation_id
                     FROM study_room_reservations srr
@@ -826,33 +824,7 @@ public class ReservationService {
         // その日の例外スケジュールはなくなって、その教室の通常スケジュールになった結果、閉じなくてはならなくなる
         // その日の例外スケジュールは設定されて、それがis_openではないからなくなる
         // その日の例外スケジュールは設定されて、それの時間が合わないからなくなる
-        //　以上3通りあるのだ。これらを一つのwith句で取れるのか？
-
-//        will_be_deleted_exception_reservation_ids AS (
-//                SELECT DISTINCT srr.study_room_reservation_id
-//        FROM study_room_reservations srr
-//        JOIN exception_reservation_ids eri ON eri.study_room_reservation_id = srr.study_room_reservation_id
-//                -- Check what the source room has for this date
-//        LEFT JOIN study_room_schedule_exceptions srse_from ON srse_from.study_room_id = :fromStudyRoomId
-//        AND srse_from.date = srr.date
-//                -- Check regular schedule as fallback if no exception
-//        LEFT JOIN study_room_regular_schedules srrs ON srse_from.study_room_schedule_exception_id IS NULL
-//        AND srrs.study_room_id = srr.study_room_id
-//        AND srrs.day_of_week = DAYNAME(srr.date)
-//        WHERE
-//                -- Case 1: Source room is closed on this date (exception says closed)
-//        srse_from.is_open = FALSE
-//        OR
-//                -- Case 2: Source room has exception but it doesn't cover this reservation time
-//        (srse_from.is_open = TRUE
-//        AND (srse_from.close_time <= srr.start_hour OR srse_from.open_time >= srr.end_hour))
-//        OR
-//                -- Case 3: No source exception, fallback to regular schedule which doesn't cover
-//        (srse_from.study_room_schedule_exception_id IS NULL
-//        AND (srrs.study_room_regular_schedule_id IS NULL
-//                OR srrs.close_time <= srr.start_hour
-//                OR srrs.open_time >= srr.end_hour))
-//  )
+        //　以上3通りあるのだ。これらを一つのwith句で取れるのか？a
 
     }
 }
