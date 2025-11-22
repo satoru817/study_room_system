@@ -726,38 +726,98 @@ public class ReservationService {
         int month = request.month();
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
         //willBeDeletedをとるsqlを考えてみようか
-        String sql = """
+        // regular_schedule_reservation_idsが、todayよりあとのtoStudyRoomIdsに含まれるstudy roomの通常スケジュールにおける予約
+        // exception_reservation_idsが、todayよりあとのtoStudyRoomIdsに含まれるstudy roomの例外スケジュールにおける予約
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("today", today)
+                .addValue("year", year)
+                .addValue("month", month)
+                .addValue("fromStudyRoomId", fromStudyRoomId)
+                .addValue("toStudyRoomIds", toStudyRoomIds);
+
+        String withClause = """
                 WITH regular_schedule_reservation_ids AS (
                     SELECT srr.study_room_reservation_id
                     FROM study_room_reservations srr
                     JOIN study_rooms sr ON sr.study_room_id IN (:toStudyRoomIds) AND sr.study_room_id = srr.study_room_id AND srr.date > :today
+                        AND YEAR(srr.date) = :year AND MONTH(srr.date) = :month
                     LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_id = srr.study_room_id AND srr.date = srse.date
                     WHERE srse.study_room_schedule_exception_id IS NULL
                 ), exception_reservation_ids AS (
                     SELECT DISTINCT srr.study_room_reservation_id
                     FROM study_room_reservations srr
                     JOIN study_rooms sr ON sr.study_room_id IN (:toStudyRoomIds) AND sr.study_room_id = srr.study_room_id AND srr.date > :today
+                        AND YEAR(srr.date) = :year AND MONTH(srr.date) = :month
                     JOIN study_room_schedule_exceptions srse ON srse.is_open AND srse.study_room_id = srr.study_room_id AND srr.date = srse.date
-                ), will_be_deleted_regular_schedule_reservation_ids AS (
+                ),""";
+
+        String getWillBeDeletedSql = withClause + """
+                   will_be_deleted_regular_schedule_reservation_ids AS (
                     SELECT DISTINCT srr.study_room_reservation_id
                     FROM study_room_reservations srr
-                    JOIN regular_schedule_reservation_ids srri ON srri.study_room_reservation_id = srr.study_room_reservation_id
-                    JOIN study_room_schedule_exceptions srse1 ON srse1.study_room_id = :fromStudyRoomId AND srse1.date = srr.date
-                    LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_schedule_exception_id = srse1.study_room_schedule_exception_id
-                        AND ((srse.open_time > srr.start_hour AND srr.end_hour > srse.open_time) OR
-                            (srse.close_time > srr.start_hour AND srr.end_hour > srse.close_time) OR
-                            (srr.start_hour >= srse.open_time AND srr.end_hour <= srse.close_time)
+                    JOIN regular_schedule_reservation_ids rsri ON rsri.study_room_reservation_id = srr.study_room_reservation_id
+                    JOIN study_room_schedule_exceptions srse ON srse.study_room_id = :fromStudyRoomId
+                        AND srse.date = srr.date
+                        AND (
+                            NOT srse.is_open
+                            OR (srse.close_time <= srr.start_hour OR srse.open_time >= srr.end_hour)
                         )
-                    WHERE srse.study_room_schedule_exception_id IS NULL
                 ), will_be_deleted_exception_reservation_ids AS (
                     SELECT DISTINCT srr.study_room_reservation_id
                     FROM study_room_reservations srr
                     JOIN exception_reservation_ids eri ON eri.study_room_reservation_id = srr.study_room_reservation_id
                     LEFT JOIN study_room_schedule_exceptions srse ON srse.study_room_id = :fromStudyRoomId AND srse.date = srr.date
-                    LEFT JOIN study_room_regular_schedules srrs ON srrs.date
+                    LEFT JOIN study_room_schedule_exceptions srse1 ON srse.is_open AND srse.date = srse1.date AND srse1.study_room_id = :fromStudyRoomId
+                        AND NOT (srse1.close_time <= srr.start_hour OR srse1.open_time >= srr.end_hour)
+                    LEFT JOIN study_room_regular_schedules srrs ON srse.study_room_schedule_exception_id IS NULL
+                        AND srrs.study_room_id = srr.study_room_id AND srrs.day_of_week = DAYNAME(srr.date)
+                        AND NOT (srrs.close_time <= srr.start_hour OR srrs.open_time >= srr.end_hour)
+                    WHERE NOT srse.is_open OR (srse1.study_room_schedule_exception_id IS NULL AND srrs.study_room_regular_schedule_id IS NULL) 
                 )
                 SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                FROM study_room_reservations srr
+                JOIN study_rooms sr ON sr.study_room_id = srr.study_room_id
+                    AND (
+                        srr.study_room_reservation_id IN (SELECT study_room_reservation_id FROM will_be_deleted_regular_schedule_reservation_ids)
+                        OR srr.study_room_reservation_id IN (SELECT study_room_reservation_id FROM will_be_deleted_exception_reservation_ids)
+                    )
+                JOIN students st ON st.student_id = srr.student_id
                 """;
+
+        String getWillBeModifiedSql = withClause + """
+                   will_be_modified_regular_schedule_reservation_ids AS (
+                    SELECT DISTINCT srr.study_room_reservation_id
+                    FROM study_room_reservations srr
+                    JOIN regular_schedule_reservation_ids rsri ON rsri.study_room_reservation_id = srr.study_room_reservation_id
+                    JOIN study_room_schedule_exceptions srse ON srse.date = srr.date 
+                        AND srse.study_room_id = :fromStudyRoomId
+                        AND ((srse.open_time > srr.start_hour AND srr.end_hour > srse.open_time) OR
+                            (srse.close_time > srr.start_hour AND srr.end_hour > srse.close_time)
+                        )
+                ), will_be_modified_exception_reservation_ids AS (
+                    SELECT DISTINCT srr.study_room_reservation_id
+                    FROM study_room_reservations srr
+                    JOIN exception_reservation_ids eri ON eri.study_room_reservation_id = srr.study_room_reservation_id
+                    JOIN study_room_schedule_exceptions srse ON srse.study_room_id = :fromStudyRoomId AND srse.date = srr.date 
+                        AND srse.is_open
+                        AND (
+                            (srse.close_time > srr.start_hour AND srse.close_time < srr.end_hour) OR
+                            (srse.open_time > srr.start_hour AND srse.open_time < srr.end_hour)
+                        )
+                )
+                SELECT sr.study_room_id, sr.name AS study_room_name, st.name AS student_name, srr.date, srr.start_hour, srr.end_hour
+                FROM study_room_reservations srr
+                JOIN study_rooms sr ON sr.study_room_id = srr.study_room_id
+                    AND (
+                        srr.study_room_reservation_id IN (SELECT study_room_reservation_id FROM will_be_modified_regular_schedule_reservation_ids)
+                        OR srr.study_room_reservation_id IN (SELECT study_room_reservation_id FROM will_be_modified_exception_reservation_ids)
+                    )
+                JOIN students st ON st.student_id = srr.student_id
+                """;
+        List<DTO.ReservationDtoForConfirmation> willBeDeleted = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeDeletedSql, params);
+        List<DTO.ReservationDtoForConfirmation> willBeModified = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeModifiedSql, params);
+        return new DTO.WillBeDeletedOrModifiedReservations(willBeDeleted, willBeModified);
+
         // ああ、sqlを作るのが難しい
         // えっと、will_be_deleted_exception_reservation_idsを作成するのがナンデこんなに困難なのか？
         // exception_reservation_idsで、toStudyRoomIdsのscheduleExceptionsに該当する予約idはすべてとってきているのだ。
@@ -766,7 +826,33 @@ public class ReservationService {
         // その日の例外スケジュールはなくなって、その教室の通常スケジュールになった結果、閉じなくてはならなくなる
         // その日の例外スケジュールは設定されて、それがis_openではないからなくなる
         // その日の例外スケジュールは設定されて、それの時間が合わないからなくなる
-        //　以上3通りあるのだ。これらを一つのwith 句で取れるのか？
+        //　以上3通りあるのだ。これらを一つのwith句で取れるのか？
+
+//        will_be_deleted_exception_reservation_ids AS (
+//                SELECT DISTINCT srr.study_room_reservation_id
+//        FROM study_room_reservations srr
+//        JOIN exception_reservation_ids eri ON eri.study_room_reservation_id = srr.study_room_reservation_id
+//                -- Check what the source room has for this date
+//        LEFT JOIN study_room_schedule_exceptions srse_from ON srse_from.study_room_id = :fromStudyRoomId
+//        AND srse_from.date = srr.date
+//                -- Check regular schedule as fallback if no exception
+//        LEFT JOIN study_room_regular_schedules srrs ON srse_from.study_room_schedule_exception_id IS NULL
+//        AND srrs.study_room_id = srr.study_room_id
+//        AND srrs.day_of_week = DAYNAME(srr.date)
+//        WHERE
+//                -- Case 1: Source room is closed on this date (exception says closed)
+//        srse_from.is_open = FALSE
+//        OR
+//                -- Case 2: Source room has exception but it doesn't cover this reservation time
+//        (srse_from.is_open = TRUE
+//        AND (srse_from.close_time <= srr.start_hour OR srse_from.open_time >= srr.end_hour))
+//        OR
+//                -- Case 3: No source exception, fallback to regular schedule which doesn't cover
+//        (srse_from.study_room_schedule_exception_id IS NULL
+//        AND (srrs.study_room_regular_schedule_id IS NULL
+//                OR srrs.close_time <= srr.start_hour
+//                OR srrs.open_time >= srr.end_hour))
+//  )
 
     }
 }

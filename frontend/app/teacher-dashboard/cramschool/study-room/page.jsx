@@ -384,7 +384,7 @@ function StudyRoomDetailContent() {
       };
 
       const { willBeDeleted, willBeModified } = await doPost(
-        "/api/reservation/scheduleExceptionCopy/confrimBeforeSave",
+        "/api/reservation/scheduleExceptionCopy/confirmBeforeSave",
         data
       );
       const message = createMessageFromWillBeDeletedOrModified(
