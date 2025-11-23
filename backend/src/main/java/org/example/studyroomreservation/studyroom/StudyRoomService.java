@@ -3,7 +3,6 @@ package org.example.studyroomreservation.studyroom;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.config.security.user.TeacherUser;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.notification.DTO;
@@ -26,7 +25,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class StudyRoomService {
@@ -91,13 +89,9 @@ public class StudyRoomService {
             throw new RuntimeException(e);
         }
     }
-    // ここで何をしたいのか?
-    // 既存のregularScheduleをすべて削除する
-    // requestに基づいて再度regularScheduleを作成する
-    // deleteしないといけない予約はすべてdeleteする。
-    // modifyしないといけない予約はすべてmodifyする。
-    //それらが完了したら、最初と最後の予約を比較して、変更がある場合は生徒保護者に連絡する。
-    // 連絡が終わったら、updateしたregularScheduleとその変更通知の成功状況を返す
+    // We modify existing reservations instead of deleting all to minimize disruption to students.
+    // After updating schedules and reservations, we notify affected students and return notification results
+    // so teachers can follow up with students who weren't successfully notified.
     @Transactional
     public dto.RegularScheduleUpdatedResponse bulkUpdateRegularScheduleOfOneStudyRoom(dto.RegularScheduleBulkSaveRequest request) {
         String deleteSql = """
@@ -123,10 +117,9 @@ public class StudyRoomService {
                 ).toList();
 
         jdbcTemplate.batchUpdate(insertSql, batchInsertParams.toArray(new MapSqlParameterSource[0]));
-        //ここまでで、regularScheduleのmodifyは終わっている
-        // ここから先で 予約の削除か変更を行う
+
         List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule = getRegularSchedulesOfOneStudyRoom(studyRoomId);
-        // この下のmethodでupdateされたregularScheduleに基づいてすべての予約（未来の）をdelete あるいはmodifyあるいはそのままで放置して、その状況を生徒に通知して、その通知の送信結果を返す
+        // Modify reservations to comply with new schedule and notify affected students
         DTO.NotificationResult notificationResult = notificationService.modifyReservationsAndSendNotifications(studyRoomId, updatedRegularSchedule);
         return new dto.RegularScheduleUpdatedResponse(updatedRegularSchedule, notificationResult);
     }
@@ -164,10 +157,10 @@ public class StudyRoomService {
     public DTO.ScheduleExceptionsAndNotificationResult saveException(dto.StudyRoomScheduleExceptionOfOneDate request) {
         int studyRoomId = request.studyRoomId();
         LocalDate date = request.date();
-        // 最初にその日のreservationをとってきてJava側で持っておく
+        // Save pre-state for comparison to determine which students to notify
         List<StudyRoomReservation> preReservations = studyRoomReservationRepository.getReservationsOfOneRoomOfOneDay(studyRoomId, date);
 
-        //　その上でその日のscheduleExceptionとreservationを消す
+        // Clear existing state before applying new schedule
         deleteStudyRoomScheduleExceptionOfOneStudyRoomIdOfOneDay(studyRoomId, date);
         // just delete all the reservations of the day because this day will just be closed... simple right?
         deleteReservationOfOneDayOfOneStudyRoomId(studyRoomId, date);
@@ -200,7 +193,7 @@ public class StudyRoomService {
                     ).toList();
             jdbcTemplate.batchUpdate(insertSql, batchInsertParams.toArray(new MapSqlParameterSource[0]));
 
-            // preReservationsと、requestをつかって、新たに挿入クエリを作成し、挿入する。その後、変更通知のメールを送る。
+            // Recreate reservations adjusted to new schedule to minimize disruption to students
             List<dto.Range> rangesOfThisDay = request.schedules();
             createNewReservationBasedOnRangesAndPreReservations(rangesOfThisDay, preReservations, date, studyRoomId);
         }
@@ -240,7 +233,7 @@ public class StudyRoomService {
                         )
                         .toList();
 
-        // update the reservations to comply with the new exception schedule of the day
+        // Persist adjusted reservations
         jdbcTemplate.batchUpdate(insertReservationsSql, batchInsertReservationParams.toArray(new MapSqlParameterSource[0]));
     }
 
@@ -325,14 +318,11 @@ public class StudyRoomService {
                 .addValue("toIdsJson", toIdsJson)
                         .addValue("fromStudyRoomId", fromStudyRoomId);
         jdbcTemplate.update(insertSql, insertParams);
-        //ここまでで、regular_scheduleの更新のみ行っている。
-        //このあとしないといけないことは、
-        // regular_scheduleで予約されている予約の更新(削除、変更、維持)と、
-        // その結果の生徒への通知である。通知の結果を最終的にfrontに返さないと行けない。
-        // 流れとしてはPrePostReservationsPairを作成して、NotificationServiceで送信処理をすればいい。
-        // 一番面倒なのは、PostReservationsの作成だろう。
+
+        // Update reservations to comply with new schedule, then notify students.
+        // We return notification results so teachers can see which students were successfully notified.
         StudyRoomReservation.PrePostReservationsPair pair = reservationService.updateReservationsDueToRegularScheduleCopy(fromStudyRoomId, toStudyRoomIds);
-        return notificationService.sendNotificationOfChangeOfReservationsDueToUpdateOfRegularSchedules(pair);
+        return notificationService.sendNotificationOfChangeOfReservationsDueToUpdateOfSchedule(pair);
     }
 
     // TODO: add reservation delete logic or something...
@@ -400,18 +390,16 @@ public class StudyRoomService {
 
         deleteReservationOfOneDayOfOneStudyRoomId(studyRoomId, date);
 
-        // この日に通常スケジュールが存在しなかったら、この日は閉じるだけ。すべての予約は削除したままで、削除連絡をその日に予約した全生徒にするだけ。
-        // この日に通常スケジュールが存在する場合は、予約は削除されるか、変更されるか、そのままであるかの3通りある。その連絡を生徒にしないといけない。その日のすべての予約が
-        // そのままの場合は連絡しなくていい
+        // If no regular schedule exists for this day, the room stays closed - all reservations remain deleted.
+        // If regular schedule exists, we can restore/adjust reservations to minimize disruption.
         if (!hasRegularScheduleOnTheDayOfTheRoom(studyRoomId, date)) {
-            // この日に通常スケジュールが存在しなかったら、この日は閉じるだけ。すべての予約は削除したままで、削除連絡をその日に予約した全生徒にするだけ。
+            // No regular schedule means room is closed - notify students of cancellation
             DTO.NotificationResult notificationResult = notificationService.sendNotificationOfReservationChangeOfOneDay(preReservations, List.of());
             List<DTO.StudyRoomScheduleExceptionShowResponse> exceptions = studyRoomRepository.getScheduleExceptionsOfOneStudyRoomOfYearMonth(studyRoomId, date.getYear(), date.getMonthValue());
             return new DTO.ScheduleExceptionsAndNotificationResult(exceptions, notificationResult);
         }
         else {
-            // この日に通常スケジュールが存在する場合は、予約は削除されるか、変更されるか、そのままであるかの3通りある。その連絡を生徒にしないといけない。その日のすべての予約が
-            // そのままの場合は連絡しなくていい
+            // Regular schedule exists, so we can restore reservations adjusted to regular schedule times
             List<dto.Range> rangesOfThisDay = getRangeOfThisDayOfThisRoomOfRegularSchedule(date, studyRoomId);
             createNewReservationBasedOnRangesAndPreReservations(rangesOfThisDay, preReservations, date, studyRoomId);
         }

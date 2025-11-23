@@ -10,9 +10,13 @@ import java.time.LocalTime;
 import java.util.List;
 
 public class dto {
+    public interface IRange {
+        LocalTime openTime();
+        LocalTime closeTime();
+    }
     public record SolidRegularSchedule(DayOfWeek dayOfWeek, LocalTime openTime, LocalTime closeTime){}
     public record RegularScheduleBulkSaveRequest(int studyRoomId, List<SolidRegularSchedule> regularSchedules){}
-    public record Range(LocalTime openTime, LocalTime closeTime) implements Serializable {
+    public record Range(LocalTime openTime, LocalTime closeTime) implements Serializable, IRange {
         public Range {
             if (openTime.isAfter(closeTime)) {
                 throw new IllegalArgumentException();
@@ -84,6 +88,13 @@ public class dto {
             LocalTime startHour,
             LocalTime endHour
     ) {}
+
+    public record ScheduleSlot(
+            LocalDate date,
+            LocalTime openTime,
+            LocalTime closeTime
+    ) implements IRange {
+    }
 
     public record StudyRoomShow(
             int studyRoomId,

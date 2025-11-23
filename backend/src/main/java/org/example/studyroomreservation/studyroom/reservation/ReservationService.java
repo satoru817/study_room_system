@@ -3,8 +3,7 @@ package org.example.studyroomreservation.studyroom.reservation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.studyroomreservation.elf.TokyoTimeElf;
-import org.example.studyroomreservation.studyroom.StudyRoomRepository;
-import org.example.studyroomreservation.studyroom.dto;
+import org.example.studyroomreservation.studyroom.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +17,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -532,11 +528,8 @@ public class ReservationService {
         }
     }
 
-    // ここで何をしたいのか。
-    // 明日以降の予約において、この開室スケジュールの変更によって削除される、あるいは変更される予約を取得するだけ。
-    // 注意点は、scheduleExceptionが存在する日は無視していいこと。
-    // まず、削除されるreservationをすべてとってくる。
-    // そのあと、変更されるreservationをすべてとってくる。
+    // We calculate which future reservations will be affected to show teachers the impact before they confirm the change.
+    // Exception schedule days are excluded because they override regular schedules anyway.
     public DTO.WillBeDeletedOrModifiedReservations calculateWillBeDeletedOrModifiedReservationsByChangingRegularSchedule(dto.RegularScheduleBulkSaveRequest request) throws JsonProcessingException {
         int studyRoomId = request.studyRoomId();
         List<dto.SolidRegularSchedule> solidRegularSchedules = request.regularSchedules();
@@ -597,18 +590,18 @@ public class ReservationService {
     @Transactional
     public StudyRoomReservation.PrePostReservationsPair complyWithNewRegularSchedule(int studyRoomId, List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule) {
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
-        // まず、変更する前のRegularScheduleに関するすべての予約をとってくる？
+        // Save pre-state for notification comparison
         List<StudyRoomReservation> preReservations = reservationRepository.findRegularReservationsByStudyRoomIdAndDateGreaterThan(studyRoomId, today);
-        // 次に、RegularScheduleに関するすべての予約を削除する。
+        // Delete then recreate to ensure data consistency
         reservationRepository.deleteAll(preReservations);
-        // 次に、RegularScheduleに関するすべての予約を新しいRegularScheduleにそうように、削除、変更、維持したListを作成し、それをdbにpersistする。
+        // Adjust reservations to new schedule to minimize student disruption
         List<StudyRoomReservation> postReservations = complyReservationsWithUpdatedRegularSchedule(updatedRegularSchedule, preReservations);
 
         return new StudyRoomReservation.PrePostReservationsPair(preReservations, postReservations);
     }
 
     /**
-     * ここでは、preReservationをupdateされたregularScheduleに合わせて更新して、dbにpersistするだけ。
+     * Adjusts existing reservations to fit within new schedule times to preserve as many reservations as possible.
      * @param studyRoomRegularSchedules
      * @param preReservations
      * @return
@@ -637,11 +630,8 @@ public class ReservationService {
                     .map(range -> StudyRoomReservation.convert(studyRoomReservation, range))
                     .collect(Collectors.toSet());
     });
-    // ここで何をしたいのか？
-    // ある自習室のregualrScheduleをほかの自習室にコピーすることによって、
-    // 完全に無効になる予約(willBeDeleted)
-    //　部分的にしか成立しない予約(willBeModified)
-    // をとってくる
+    // Calculate impact before copying to show teachers which students will be affected.
+    // This allows teachers to review and communicate with affected students before confirming.
     public DTO.WillBeDeletedOrModifiedReservations calculateWillBeDeletedOrModifiedReservationsByCopyingRegularSchedule(dto.CopyRegularScheduleRequest request) {
         int fromStudyRoomId = request.fromStudyRoomId();
         List<Integer> toStudyRoomIds = request.toStudyRoomIds();
@@ -696,38 +686,28 @@ public class ReservationService {
     @Transactional
     public StudyRoomReservation.PrePostReservationsPair updateReservationsDueToRegularScheduleCopy(int fromStudyRoomId, List<Integer> toStudyRoomIds) {
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
-        // 最初に変更前のreservationsをとってきて、dbではdeleteする。
+        // Save pre-state for notification comparison
         List<StudyRoomReservation> preReservations = reservationRepository.getReservationsOfRegularScheduleOfRooms(toStudyRoomIds, today);
         reservationRepository.deleteAll(preReservations);
         List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule = studyRoomRepository.getRegularScheduleOfOneStudyRoom(fromStudyRoomId);
-        // 変更したreservationsをdbにinsertする
+        // Adjust reservations to new schedule to minimize student disruption
         List<StudyRoomReservation> postReservations = complyReservationsWithUpdatedRegularSchedule(updatedRegularSchedule, preReservations);
         return new StudyRoomReservation.PrePostReservationsPair(preReservations, postReservations);
     }
 
-    //ここで何をしたいのか
-    // ある自習室のある年、ある月の例外スケジュールをすべてコピーするのだ。このときコピーと単純に言うが、その月にもともとあった例外スケジュールを削除してから上書きするので、
-    // これはかなり複雑。
-    // 場合分けが多いのだ。
-    // スケジュールが存在しなかった日 -> どうなろうと無視
-    // 通常スケジュールしか存在しなかった日　-> 例外スケジュールが入った　:　削除、更新、　維持
-    // 通常スケジュールしか存在しなかった日 -> 例外スケジュールがはいらなかった　: 無視
-    // 例外スケジュールで閉じていた日　-> どうなろうと無視
-    // 例外スケジュールで開いていた日 -> 例外スケジュールが取り除かれた　: 削除, 更新、　維持(その自習室の通常スケジュールで)
-    // 例外スケジュールで開いていた日 -> 例外スケジュールが入った : 削除、更新、維持
-    // ということで考えればいいのは、この三通り
-    // 1:通常スケジュールしか存在しなかった日　-> 例外スケジュールが入った　:　削除、更新、維持
-    // 2:例外スケジュールで開いていた日 -> 例外スケジュールが取り除かれた　: 削除, 更新、維持(その自習室の通常スケジュールで)
-    // 3:例外スケジュールで開いていた日 -> 例外スケジュールが入った : 削除、更新、維持
+    // Calculate impact to show teachers which students will be affected before confirming.
+    // Three cases require reservation adjustment to minimize disruption:
+    // 1: Regular schedule day -> Exception added: Adjust reservations to new exception times
+    // 2: Exception removed -> Falls back to regular: Adjust to regular schedule times
+    // 3: Exception replaced: Adjust to new exception times
+    // (Days with no schedule or closed days have no reservations to adjust)
     public DTO.WillBeDeletedOrModifiedReservations calculateWillBeDeletedOrModifiedReservationsByCopyingScheduleException(dto.CopyScheduleExceptionRequest request) {
         int fromStudyRoomId = request.fromStudyRoomId();
         List<Integer> toStudyRoomIds = request.toStudyRoomIds();
         int year = request.year();
         int month = request.month();
         LocalDate today = TokyoTimeElf.getTokyoLocalDate();
-        //willBeDeletedをとるsqlを考えてみようか
-        // regular_schedule_reservation_idsが、todayよりあとのtoStudyRoomIdsに含まれるstudy roomの通常スケジュールにおける予約
-        // exception_reservation_idsが、todayよりあとのtoStudyRoomIdsに含まれるstudy roomの例外スケジュールにおける予約
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("today", today)
                 .addValue("year", year)
@@ -815,16 +795,83 @@ public class ReservationService {
         List<DTO.ReservationDtoForConfirmation> willBeDeleted = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeDeletedSql, params);
         List<DTO.ReservationDtoForConfirmation> willBeModified = getConfirmationDTOUsingNamedParameterJdbcTemplate(getWillBeModifiedSql, params);
         return new DTO.WillBeDeletedOrModifiedReservations(willBeDeleted, willBeModified);
-
-        // ああ、sqlを作るのが難しい
-        // えっと、will_be_deleted_exception_reservation_idsを作成するのがナンデこんなに困難なのか？
-        // exception_reservation_idsで、toStudyRoomIdsのscheduleExceptionsに該当する予約idはすべてとってきているのだ。
-        // それらに対して、will_be_deletedのものをとってきたいのだ。
-        // これは場合分けが結構あって、
-        // その日の例外スケジュールはなくなって、その教室の通常スケジュールになった結果、閉じなくてはならなくなる
-        // その日の例外スケジュールは設定されて、それがis_openではないからなくなる
-        // その日の例外スケジュールは設定されて、それの時間が合わないからなくなる
-        //　以上3通りあるのだ。これらを一つのwith句で取れるのか？a
-
     }
+
+    // We adjust existing reservations instead of deleting all to minimize disruption to students.
+    // Three cases all require adjusting reservations to new schedule times:
+    // 1: Regular day -> Exception added: Adjust to exception times
+    // 2: Exception removed -> Falls back to regular: Adjust to regular times
+    // 3: Exception replaced: Adjust to new exception times
+    @Transactional
+    public StudyRoomReservation.PrePostReservationsPair updateReservationsDueToScheduleExceptionCopy(dto.CopyScheduleExceptionRequest request) {
+        List<Integer> toStudyRoomIds = request.toStudyRoomIds();
+        int fromStudyRoomId = request.fromStudyRoomId();
+        int year = request.year();
+        int month = request.month();
+        LocalDate today = TokyoTimeElf.getTokyoLocalDate();
+
+        List<StudyRoomReservation> toBeDeleted = reservationRepository.getToBeDeleted(toStudyRoomIds, year, month, today);
+        List<StudyRoomReservation> toBeModified = reservationRepository.getToBeModified(toStudyRoomIds, year, month, today);
+        List<dto.ScheduleSlot> openExceptionSlots = studyRoomRepository.getOpenScheduleExceptionsOfOneStudyRoomOfYearMonth(fromStudyRoomId, year, month, today);
+        List<StudyRoomRegularSchedule> regularSchedules = studyRoomRepository.getRegularSchedulesOfRooms(toStudyRoomIds);
+
+        List<StudyRoomReservation> preReservations = new ArrayList<>();
+        preReservations.addAll(toBeDeleted);
+        preReservations.addAll(toBeModified);
+        reservationRepository.deleteAll(preReservations);
+
+        List<StudyRoomReservation> postReservations = adjustReservationsToUpdatedScheduleExceptions(toBeModified, openExceptionSlots, regularSchedules);
+        reservationRepository.saveAll(postReservations);
+
+        return new StudyRoomReservation.PrePostReservationsPair(preReservations, postReservations);
+    }
+
+    // For each reservation, we check exception schedule first, then fall back to regular schedule.
+    // This order is critical because exception schedules override regular schedules.
+    // Using parallel streams for performance with large datasets.
+    private List<StudyRoomReservation> adjustReservationsToUpdatedScheduleExceptions(List<StudyRoomReservation> toBeModified, List<dto.ScheduleSlot> openExceptionSlots, List<StudyRoomRegularSchedule> regularSchedules) {
+        Map<StudyRoom, Map<DayOfWeek, Set<dto.Range>>> regularScheduleMap = regularSchedules.parallelStream()
+                .collect(
+                        Collectors.groupingBy(
+                                StudyRoomRegularSchedule::getStudyRoom,
+                                Collectors.groupingBy(
+                                        StudyRoomRegularSchedule::getDayOfWeek,
+                                        Collectors.mapping(
+                                                StudyRoomRegularSchedule::getRange, Collectors.toSet()
+                                        )
+                                )
+                        )
+                );
+
+        Map<LocalDate, Set<dto.ScheduleSlot>> exceptionMap = openExceptionSlots.parallelStream()
+                .collect(
+                        Collectors.groupingBy(
+                                dto.ScheduleSlot::date,
+                                Collectors.toSet()
+                        )
+                );
+
+        return toBeModified.parallelStream()
+                .map(studyRoomReservation -> updateBasedOnRegularScheduleAndNewScheduleException(studyRoomReservation, regularScheduleMap.getOrDefault(studyRoomReservation.getStudyRoom(), Map.of()).getOrDefault(studyRoomReservation.getDate().getDayOfWeek(), Set.of()), exceptionMap.getOrDefault(studyRoomReservation.getDate(), Set.of())))
+                .flatMap(Collection::stream)
+                .toList();
+    }
+
+    private Set<StudyRoomReservation> updateBasedOnRegularScheduleAndNewScheduleException(StudyRoomReservation studyRoomReservation, Set<dto.Range> regularScheduleOfTheDay, Set<dto.ScheduleSlot> exceptionsOfTheDay) {
+        if (!exceptionsOfTheDay.isEmpty()) {
+            return comply.apply(studyRoomReservation, exceptionsOfTheDay);
+        }
+        else if (!regularScheduleOfTheDay.isEmpty()){
+            return comply.apply(studyRoomReservation, regularScheduleOfTheDay);
+        }
+
+        return Set.of();
+    }
+
+    private BiFunction<StudyRoomReservation, Set<? extends dto.IRange> , Set<StudyRoomReservation>> comply = (reservation, ranges) ->
+        ranges.parallelStream()
+                .map(range -> StudyRoomReservation.convert(reservation, range))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
 }

@@ -64,6 +64,7 @@ public interface StudyRoomRepository extends JpaRepository<StudyRoom, Integer> {
             """)
     List<DTO.StudyRoomScheduleExceptionShowResponse> getScheduleExceptionsOfOneStudyRoomOfYearMonth(int studyRoomId, int year, int month);
 
+
     @Query("""
             SELECT NEW org.example.studyroomreservation.studyroom.dto$StudyRoomShowResponseForStudent(
                 sr.studyRoomId,
@@ -74,4 +75,26 @@ public interface StudyRoomRepository extends JpaRepository<StudyRoom, Integer> {
             JOIN Student s ON s.cramSchool = cs AND s.studentId = :studentId
             """)
     List<dto.StudyRoomShowResponseForStudent> getStudyRoomOfThisStudent(int studentId);
+
+    @Query("""
+            SELECT NEW org.example.studyroomreservation.studyroom.dto$ScheduleSlot(
+                srse.date,
+                srse.openTime,
+                srse.closeTime
+            )
+            FROM StudyRoomScheduleException srse
+            WHERE srse.studyRoom.studyRoomId = :fromStudyRoomId
+                AND srse.isOpen
+                AND srse.date > :today
+                AND YEAR(srse.date) = :year
+                AND MONTH(srse.date) = :month
+            """)
+    List<dto.ScheduleSlot> getOpenScheduleExceptionsOfOneStudyRoomOfYearMonth(int fromStudyRoomId, int year, int month, LocalDate today);
+
+    @Query("""
+            SELECT srrs
+            FROM StudyRoomRegularSchedule srrs
+            WHERE srrs.studyRoom.studyRoomId IN :toStudyRoomIds
+            """)
+    List<StudyRoomRegularSchedule> getRegularSchedulesOfRooms(List<Integer> toStudyRoomIds);
 }

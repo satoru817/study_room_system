@@ -37,7 +37,7 @@ public class StudyRoomReservation {
         this.student = student;
     }
 
-    public static StudyRoomReservation convert(StudyRoomReservation prev, dto.Range newRange) {
+    public static StudyRoomReservation convert(StudyRoomReservation prev, dto.IRange newRange) {
         return new StudyRoomReservation(prev.date, newRange.openTime(), newRange.closeTime(), prev.studyRoom, prev.student);
     }
 

@@ -1,26 +1,23 @@
 package org.example.studyroomreservation.studyroom;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.example.studyroomreservation.config.security.user.StudentUser;
 import org.example.studyroomreservation.config.security.user.TeacherUser;
 import org.example.studyroomreservation.config.security.user.UserDetailsImpl;
 import org.example.studyroomreservation.cramschool.CramSchoolService;
 import org.example.studyroomreservation.cramschool.CramSchool;
 import org.example.studyroomreservation.elf.AccessElf;
-import org.example.studyroomreservation.elf.TokyoTimeElf;
 import org.example.studyroomreservation.notification.DTO;
+import org.example.studyroomreservation.notification.NotificationService;
+import org.example.studyroomreservation.studyroom.reservation.ReservationService;
+import org.example.studyroomreservation.studyroom.reservation.StudyRoomReservation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @RestController
@@ -33,6 +30,10 @@ public class StudyRoomController {
     private CramSchoolService cramSchoolService;
     @Autowired
     private AccessElf accessElf;
+    @Autowired
+    private ReservationService reservationService;
+    @Autowired
+    private NotificationService notificationService;
 
     @GetMapping("/get/{cramSchoolId}")
     @PreAuthorize("hasRole('TEACHER')")
@@ -103,9 +104,7 @@ public class StudyRoomController {
         return ResponseEntity.ok(responses);
     }
 
-    //ここをどう変えないと行けないのか？
-    // List<StudyRoomRegularScheduleDTO>をupdatedSchedulesとして返すことは必要。
-    // また、NotificationResultも返さないといけない。それらをまとめて返す。Map<String,Object>でいいね
+    // Frontend needs both updatedSchedules (for UI refresh) and NotificationResult (so teachers can see which students were successfully notified)
     @PostMapping("/regularSchedule/save")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<dto.RegularScheduleUpdatedResponse> saveRegularScheduleOfOneStudyRoom(@RequestBody dto.RegularScheduleBulkSaveRequest request)
@@ -114,17 +113,9 @@ public class StudyRoomController {
         return ResponseEntity.ok(response);
     }
 
-    // TODO: add delete function
-    // ここで何をしたいのか？
-    // 例外スケジュールの変更がある日について生じる。
-    // それによって、その日のすべての予約をキャンセルしてもよいのだが、必ずしもすべてキャンセルするのではなく、
-    // 変更しなくても良い予約はそのままにして、また、変更される予約は変更する。
-    // この変更のロジックがとても本質的に複雑である。
-    // 一つの予約が複数に分割されうるからである。
-    //　予約を変更した上で、その通知を生徒に送らないといけない。
-    // 送るときも、ほんしつてきな変更があった生徒のみに送るのでいい。
-    // まあ、そうするのも面倒だが...
-    // これ、rest controllerの形式を変えて、送信結果も受け取れるようにしないといけない。
+    // We modify existing reservations instead of canceling all and requiring re-booking to minimize disruption to students.
+    // This is complex because one reservation may be split into multiple parts when the schedule changes.
+    // We only notify students whose reservations actually changed to avoid unnecessary notifications.
     @PostMapping("/scheduleException/save")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<DTO.ScheduleExceptionsAndNotificationResult> saveStudyRoomScheduleException(@RequestBody dto.StudyRoomScheduleExceptionOfOneDate request)
@@ -175,11 +166,18 @@ public class StudyRoomController {
         return ResponseEntity.ok(result);
     }
 
+    // When copying schedule exceptions, we must adjust existing reservations to minimize student disruption.
+    // Three cases exist, all require delete/modify/maintain to preserve valid reservations:
+    // 1: Regular schedule day -> Exception added: Reservations adjusted to new exception times
+    // 2: Exception removed -> Falls back to regular schedule: Reservations adjusted to regular times
+    // 3: Exception replaced with different exception: Reservations adjusted to new exception times
     @PostMapping("/scheduleException/copy")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<?> copyScheduleExceptionOfYearMonth(@RequestBody dto.CopyScheduleExceptionRequest request) throws JsonProcessingException {
+    public ResponseEntity<DTO.NotificationResult> copyScheduleExceptionOfYearMonth(@RequestBody dto.CopyScheduleExceptionRequest request) throws JsonProcessingException {
         studyRoomService.copyScheduleException(request);
-        return ResponseEntity.ok().body("copy of schedule exception success");
+        StudyRoomReservation.PrePostReservationsPair pair = reservationService.updateReservationsDueToScheduleExceptionCopy(request);
+        DTO.NotificationResult result = notificationService.sendNotificationOfChangeOfReservationsDueToUpdateOfSchedule(pair);
+        return ResponseEntity.ok(result);
     }
     
 }

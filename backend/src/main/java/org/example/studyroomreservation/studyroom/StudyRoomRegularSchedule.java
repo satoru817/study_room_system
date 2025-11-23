@@ -10,7 +10,7 @@ import java.time.LocalTime;
 public class StudyRoomRegularSchedule {
 
     protected StudyRoomRegularSchedule() {
-        //　jpa default constructor
+        // JPA requires a no-arg constructor for entity instantiation
     }
 
     @Id
@@ -104,6 +104,10 @@ public class StudyRoomRegularSchedule {
 
     public void setStudyRoom(StudyRoom studyRoom) {
         this.studyRoom = studyRoom;
+    }
+
+    public dto.Range getRange() {
+        return new dto.Range(openTime, closeTime);
     }
 
 }

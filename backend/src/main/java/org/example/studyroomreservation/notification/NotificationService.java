@@ -36,6 +36,8 @@ public class NotificationService {
     private StudentService studentService;
     @Autowired
     private UrlElf urlElf;
+
+    // Strategy pattern allows using LINE or Email depending on what's configured for each student
     public NotificationService(
             LineNotificationStrategy lineNotificationStrategy,
             EmailNotificationStrategy emailNotificationStrategy
@@ -71,7 +73,7 @@ public class NotificationService {
                         .addValue("valid_until", validUntil)
                         .addValue("created_at", createdAt))
                 .toList();
-        // save each student's token using batch
+        // Batch insert for performance with multiple students
         namedParameterJdbcTemplate.batchUpdate(
                 """
                 INSERT INTO student_tokens (token, student_id, user_id, valid_until, created_at)
@@ -111,14 +113,9 @@ public class NotificationService {
     private String getRegistrationUrl(String token, String baseUrl) {
         return baseUrl + "/register?token=" + token;
     }
-    /*
-    * とりあえず、ある日のある一つの予約の変更のメールを送りたい。
-    * ある生徒の予約が
-    * １：一切変わっていない
-    * ２：時間帯が変わっている（途中で途切れたり、２つに分解されたり、遅く始まったりしている場合
-    * 3:なくなっている
-    * この三通りで文面を変えたほうがいいだろう。というか1の場合はメールを送らなくていい。
-    * */
+
+    // We only send notifications when reservations actually changed to avoid unnecessary messages to students.
+    // Different message content based on change type helps students understand what happened to their reservation.
     public DTO.NotificationResult sendNotificationOfReservationChangeOfOneDay(List<StudyRoomReservation> preReservations, List<StudyRoomReservation> changedReservations) {
         Map<Student, Set<StudyRoomReservation>> studentToPreReservationsMap = preReservations.parallelStream()
                 .collect(
@@ -170,10 +167,10 @@ public class NotificationService {
     public DTO.NotificationResult modifyReservationsAndSendNotifications(int studyRoomId, List<dto.StudyRoomRegularScheduleDTO> updatedRegularSchedule) {
         StudyRoomReservation.PrePostReservationsPair pair = reservationService.complyWithNewRegularSchedule(studyRoomId, updatedRegularSchedule);
         // pairを利用してメール/LINEの送信を行う
-        return sendNotificationOfChangeOfReservationsDueToUpdateOfRegularSchedules(pair);
+        return sendNotificationOfChangeOfReservationsDueToUpdateOfSchedule(pair);
     }
 
-    public DTO.NotificationResult sendNotificationOfChangeOfReservationsDueToUpdateOfRegularSchedules(StudyRoomReservation.PrePostReservationsPair pair) {
+    public DTO.NotificationResult sendNotificationOfChangeOfReservationsDueToUpdateOfSchedule(StudyRoomReservation.PrePostReservationsPair pair) {
         Map<Student, Map<LocalDate, Set<StudyRoomReservation>>> preReservation = segmentReservations.apply(pair.preReservations());
         Map<Student, Map<LocalDate, Set<StudyRoomReservation>>> postReservation = segmentReservations.apply(pair.postReservations());
 
@@ -248,7 +245,7 @@ public class NotificationService {
         return new DTO.NotificationResult(successCount.get(), failedStudents);
     }
 
-    // メソッド5: 1人の生徒に通知を送信
+    // Try each notification strategy until one succeeds (LINE preferred, then Email fallback)
     private boolean sendToStudent(Student student, List<DTO.ReservationChangeOfOneDay> changes) {
         for (NotificationStrategy strategy : strategies) {
             if (strategy.canSend(student)) {
