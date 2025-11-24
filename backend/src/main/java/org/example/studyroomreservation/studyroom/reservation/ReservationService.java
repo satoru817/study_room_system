@@ -870,7 +870,7 @@ public class ReservationService {
 
     private BiFunction<StudyRoomReservation, Set<? extends dto.IRange> , Set<StudyRoomReservation>> comply = (reservation, ranges) ->
         ranges.parallelStream()
-                .map(range -> StudyRoomReservation.convert(reservation, range))
+                .map(range -> reservation.complyWith(range))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 

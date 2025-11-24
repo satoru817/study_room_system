@@ -1,14 +1,27 @@
 "use client";
 import { SAVE_STUDY_ROOM_SCHEDULE_EXCEPTION_URL } from "@/app/constants/urls";
-import { doGet, doPost, doDelete } from "@/app/elfs/WebserviceElf";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense, use, useCallback, useEffect, useState } from "react";
+import { doGet, doPost } from "@/app/elfs/WebserviceElf";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import RegularScheduleSection from "./RegularScheduleSection";
+import ExceptionScheduleSection from "./ExceptionScheduleSection";
+import CopyScheduleModal from "./CopyScheduleModal";
+import ExceptionEditModal from "./ExceptionEditModal";
+import {
+  DAYS,
+  buildWeekSchedule,
+  convertScheduleToRanges,
+  convertExceptionSlotsToRanges,
+  createMessageFromWillBeDeletedOrModified,
+  alertNotificationResult,
+  initializeExceptionSlots,
+  buildExceptionSlots,
+} from "./scheduleUtils";
 
 function StudyRoomDetailContent() {
   const searchParams = useSearchParams();
   const studyRoomId = searchParams.get("studyRoomId");
   const studyRoomName = searchParams.get("name");
-  const router = useRouter();
 
   // Regular schedule state
   const [weekSchedule, setWeekSchedule] = useState([]);
@@ -35,98 +48,47 @@ function StudyRoomDetailContent() {
   const [selectedStudyRoomIds, setSelectedStudyRoomIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
 
-  const DAYS = [
-    { key: "MONDAY", label: "月" },
-    { key: "TUESDAY", label: "火" },
-    { key: "WEDNESDAY", label: "水" },
-    { key: "THURSDAY", label: "木" },
-    { key: "FRIDAY", label: "金" },
-    { key: "SATURDAY", label: "土" },
-    { key: "SUNDAY", label: "日" },
-  ];
-
-  const fetchStudyRoomRegularSchedules = async () => {
-    try {
-      const url = `/api/studyRoom/regularSchedule/get?studyRoomId=${encodeURIComponent(
-        studyRoomId
-      )}`;
-      const _regularSchedules = await doGet(url);
-      buildWeekSchedule(_regularSchedules);
-    } catch (error) {
-      console.error("自習室の通常スケジュールの取得に失敗", error);
-    }
-  };
-
-  const fetchExceptions = async (year, month) => {
-    try {
-      const url = `/api/studyRoom/scheduleException/get?studyRoomId=${encodeURIComponent(
-        studyRoomId
-      )}&year=${year}&month=${month}`;
-      const _exceptions = await doGet(url);
-      setExceptions(_exceptions);
-    } catch (error) {
-      console.error("例外スケジュールの取得に失敗", error);
-    }
-  };
-
-  const fetchStudyRooms = async () => {
-    try {
-      const url = `/api/studyRoom/get/thisTeachers`;
-      const _studyRooms = await doGet(url);
-      setStudyRooms(_studyRooms);
-    } catch (error) {
-      console.error("自習室リストの取得に失敗", error);
-    }
-  };
-
-  const buildWeekSchedule = (schedules) => {
-    const weekData = DAYS.map((day) => {
-      const daySchedules = schedules.filter((s) => s.dayOfWeek === day.key);
-
-      const slots = [];
-      // 7:00から23:30まで = 66スロット
-      // 7:00-7:15, 7:15-7:30, ..., 23:15-23:30, 23:30-23:45
-      for (let hour = 7; hour <= 23; hour++) {
-        for (const minute of [0, 15, 30, 45]) {
-          // 23:45以降は作らない
-          if (hour === 23 && minute === 45) break;
-
-          const currentMinutes = hour * 60 + minute;
-          const isOpen = daySchedules.some((schedule) => {
-            const [openHour, openMin] = schedule.openTime
-              .split(":")
-              .map(Number);
-            const [closeHour, closeMin] = schedule.closeTime
-              .split(":")
-              .map(Number);
-            const openMinutes = openHour * 60 + openMin;
-            const closeMinutes = closeHour * 60 + closeMin;
-            return (
-              currentMinutes >= openMinutes && currentMinutes < closeMinutes
-            );
-          });
-          slots.push({ hour, minute, isOpen });
-        }
-      }
-
-      return {
-        dayOfWeek: day.key,
-        dayLabel: day.label,
-        slots,
-        schedules: daySchedules, // 元のスケジュール情報を保持
-      };
-    });
-
-    setWeekSchedule(weekData);
-    setHasChanges(false);
-  };
-
   useEffect(() => {
+    const fetchStudyRoomRegularSchedules = async () => {
+      try {
+        const url = `/api/studyRoom/regularSchedule/get?studyRoomId=${encodeURIComponent(
+          studyRoomId
+        )}`;
+        const _regularSchedules = await doGet(url);
+        const weekData = buildWeekSchedule(_regularSchedules, DAYS);
+        setWeekSchedule(weekData);
+        setHasChanges(false);
+      } catch (error) {
+        console.error("自習室の通常スケジュールの取得に失敗", error);
+      }
+    };
+
+    const fetchStudyRooms = async () => {
+      try {
+        const url = `/api/studyRoom/get/thisTeachers`;
+        const _studyRooms = await doGet(url);
+        setStudyRooms(_studyRooms);
+      } catch (error) {
+        console.error("自習室リストの取得に失敗", error);
+      }
+    };
     fetchStudyRoomRegularSchedules();
     fetchStudyRooms();
   }, [studyRoomId]);
 
   useEffect(() => {
+    const fetchExceptions = async (year, month) => {
+      try {
+        const url = `/api/studyRoom/scheduleException/get?studyRoomId=${encodeURIComponent(
+          studyRoomId
+        )}&year=${year}&month=${month}`;
+        const _exceptions = await doGet(url);
+        setExceptions(_exceptions);
+      } catch (error) {
+        console.error("例外スケジュールの取得に失敗", error);
+      }
+    };
+
     fetchExceptions(currentYear, currentMonth);
   }, [studyRoomId, currentYear, currentMonth]);
 
@@ -148,6 +110,36 @@ function StudyRoomDetailContent() {
     setIsDragging(false);
   };
 
+  // Touch event handlers for regular schedule
+  const handleTouchStart = (e, dayIndex, slotIndex) => {
+    e.preventDefault();
+    setIsDragging(true);
+    const currentSlot = weekSchedule[dayIndex].slots[slotIndex];
+    setDragMode(currentSlot.isOpen ? "close" : "open");
+    toggleSlot(dayIndex, slotIndex, !currentSlot.isOpen);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!element) return;
+
+    const cellData = element.closest("[data-slot]");
+    if (!cellData) return;
+
+    const [dayIndex, slotIndex] = cellData.dataset.slot.split("_").map(Number);
+    if (dayIndex !== undefined && slotIndex !== undefined) {
+      toggleSlot(dayIndex, slotIndex, dragMode === "open");
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   const toggleSlot = (dayIndex, slotIndex, isOpen) => {
     setWeekSchedule((prev) => {
       const newSchedule = [...prev];
@@ -162,51 +154,9 @@ function StudyRoomDetailContent() {
     setHasChanges(true);
   };
 
-  const convertScheduleToRanges = () => {
-    const schedules = [];
-
-    weekSchedule.forEach((day) => {
-      let rangeStart = null;
-      day.slots.forEach((slot, index) => {
-        const slotMinutes = slot.hour * 60 + slot.minute;
-        if (slot.isOpen && rangeStart === null) {
-          rangeStart = slotMinutes;
-        } else if (!slot.isOpen && rangeStart !== null) {
-          schedules.push({
-            dayOfWeek: day.dayOfWeek,
-            openTime: minutesToTime(rangeStart),
-            closeTime: minutesToTime(slotMinutes),
-          });
-          rangeStart = null;
-        }
-        // 最後のスロット(23:30)で開いている場合は23:45で閉じる
-        if (
-          index === day.slots.length - 1 &&
-          slot.isOpen &&
-          rangeStart !== null
-        ) {
-          schedules.push({
-            dayOfWeek: day.dayOfWeek,
-            openTime: minutesToTime(rangeStart),
-            closeTime: "23:45",
-          });
-        }
-      });
-    });
-
-    return schedules;
-  };
-
-  const minutesToTime = (minutes) => {
-    const hour = Math.floor(minutes / 60);
-    const min = minutes % 60;
-    return `${hour.toString().padStart(2, "0")}:${min
-      .toString()
-      .padStart(2, "0")}`;
-  };
   const handleSaveSchedules = async () => {
     try {
-      const schedules = convertScheduleToRanges();
+      const schedules = convertScheduleToRanges(weekSchedule);
       const data = {
         studyRoomId,
         regularSchedules: schedules,
@@ -233,7 +183,8 @@ function StudyRoomDetailContent() {
       );
       setHasChanges(false);
       alertNotificationResult(notificationResult);
-      buildWeekSchedule(updatedRegularSchedule);
+      const weekData = buildWeekSchedule(updatedRegularSchedule, DAYS);
+      setWeekSchedule(weekData);
     } catch (error) {
       console.error("スケジュールの保存に失敗:", error);
       alert("スケジュールの保存に失敗しました");
@@ -297,7 +248,7 @@ function StudyRoomDetailContent() {
     } else {
       setSelectAll(false);
     }
-  }, [selectedStudyRoomIds, getAvailableStudyRooms]);
+  }, [selectedStudyRoomIds, getAvailableStudyRooms, setSelectAll]);
   // TODO: update here to add confirmation!!
   const handleCopyRegularSchedule = async () => {
     if (selectedStudyRoomIds.length === 0) {
@@ -404,15 +355,7 @@ function StudyRoomDetailContent() {
     }
   };
 
-  // Calendar functions
-  const getDaysInMonth = (year, month) => {
-    return new Date(year, month, 0).getDate();
-  };
-
-  const getFirstDayOfMonth = (year, month) => {
-    return new Date(year, month - 1, 1).getDay();
-  };
-
+  // Calendar navigation functions
   const handlePrevMonth = () => {
     if (currentMonth === 1) {
       setCurrentMonth(12);
@@ -448,51 +391,15 @@ function StudyRoomDetailContent() {
       // カスタムスケジュール
       setExceptionType("custom");
       setExceptionReason(dayExceptions[0].reason || "");
-      buildExceptionSlots(dayExceptions);
+      setExceptionSlots(buildExceptionSlots(dayExceptions));
     } else {
       // 新規作成
       setExceptionType("closed");
       setExceptionReason("");
-      initializeExceptionSlots();
+      setExceptionSlots(initializeExceptionSlots());
     }
 
     setShowExceptionModal(true);
-  };
-
-  const initializeExceptionSlots = () => {
-    const slots = [];
-    // 7:00から23:30まで = 66スロット
-    for (let hour = 7; hour <= 23; hour++) {
-      for (const minute of [0, 15, 30, 45]) {
-        if (hour === 23 && minute === 45) break;
-        slots.push({ hour, minute, isOpen: false });
-      }
-    }
-    setExceptionSlots(slots);
-  };
-
-  const buildExceptionSlots = (dayExceptions) => {
-    const slots = [];
-    // 7:00から23:30まで = 66スロット
-    for (let hour = 7; hour <= 23; hour++) {
-      for (const minute of [0, 15, 30, 45]) {
-        if (hour === 23 && minute === 45) break;
-
-        const currentMinutes = hour * 60 + minute;
-        const isOpen = dayExceptions.some((exception) => {
-          if (!exception.openTime || !exception.closeTime) return false;
-          const [openHour, openMin] = exception.openTime.split(":").map(Number);
-          const [closeHour, closeMin] = exception.closeTime
-            .split(":")
-            .map(Number);
-          const openMinutes = openHour * 60 + openMin;
-          const closeMinutes = closeHour * 60 + closeMin;
-          return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
-        });
-        slots.push({ hour, minute, isOpen });
-      }
-    }
-    setExceptionSlots(slots);
   };
 
   // Exception drag functions
@@ -513,100 +420,42 @@ function StudyRoomDetailContent() {
     setIsDraggingException(false);
   };
 
+  // Touch event handlers for exception schedule
+  const handleExceptionTouchStart = (e, dayIndex, slotIndex) => {
+    e.preventDefault();
+    setIsDraggingException(true);
+    const currentSlot = exceptionSlots[slotIndex];
+    setDragModeException(currentSlot.isOpen ? "close" : "open");
+    toggleExceptionSlot(slotIndex, !currentSlot.isOpen);
+  };
+
+  const handleExceptionTouchMove = (e) => {
+    if (!isDraggingException) return;
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!element) return;
+
+    const cellData = element.closest("[data-slot]");
+    if (!cellData) return;
+
+    const [, slotIndex] = cellData.dataset.slot.split("_").map(Number);
+    if (slotIndex !== undefined) {
+      toggleExceptionSlot(slotIndex, dragModeException === "open");
+    }
+  };
+
+  const handleExceptionTouchEnd = () => {
+    setIsDraggingException(false);
+  };
+
   const toggleExceptionSlot = (slotIndex, isOpen) => {
     setExceptionSlots((prev) =>
       prev.map((slot, idx) => (idx === slotIndex ? { ...slot, isOpen } : slot))
     );
   };
 
-  const alertNotificationResult = (_notificationResult) => {
-    const { successCount, failedStudents } = _notificationResult;
-    let notificationResultMessage = "例外スケジュールを保存しました\n";
-
-    notificationResultMessage +=
-      successCount > 0
-        ? `${successCount}人への変更あるいは削除の通知が成功しました。`
-        : "";
-
-    notificationResultMessage +=
-      failedStudents.length > 0
-        ? "以下の生徒への変更あるいは通知メッセージの送信は失敗しました。\n" +
-          failedStudents.join("\n")
-        : "";
-
-    alert(notificationResultMessage);
-  };
-
-  const convertExceptionSlotsToRanges = () => {
-    const ranges = [];
-    let rangeStart = null;
-
-    exceptionSlots.forEach((slot, index) => {
-      const slotMinutes = slot.hour * 60 + slot.minute;
-      if (slot.isOpen && rangeStart === null) {
-        rangeStart = slotMinutes;
-      } else if (!slot.isOpen && rangeStart !== null) {
-        ranges.push({
-          openTime: minutesToTime(rangeStart),
-          closeTime: minutesToTime(slotMinutes),
-        });
-        rangeStart = null;
-      }
-      // 最後のスロット(23:30)で開いている場合は23:45で閉じる
-      if (
-        index === exceptionSlots.length - 1 &&
-        slot.isOpen &&
-        rangeStart !== null
-      ) {
-        ranges.push({
-          openTime: minutesToTime(rangeStart),
-          closeTime: "23:45",
-        });
-      }
-    });
-
-    return ranges;
-  };
-  const convertDateExpression = (dateFromServer) => {
-    const arr = dateFromServer.split("-");
-    return `${arr[0]}年${arr[1]}月${arr[2]}日`;
-  };
-  const createMessageFromWillBeDeletedOrModified = (
-    willBeDeleted,
-    willBeModified
-  ) => {
-    let message;
-    if (willBeDeleted.length === 0 && willBeModified.length === 0) {
-      message = "この変更で削除や変更される生徒の予約はありません。";
-    } else {
-      message =
-        willBeDeleted.length > 0
-          ? "以下の予約が削除されます\n" +
-            willBeDeleted
-              .map(
-                (res) =>
-                  `${res.studentName}の${convertDateExpression(res.date)}:${
-                    res.startHour
-                  }から${res.endHour}までの予約(${res.studyRoomName})`
-              )
-              .join("\n")
-          : "";
-
-      message +=
-        willBeModified.length > 0
-          ? "\n以下の予約が変更されます\n" +
-            willBeModified
-              .map(
-                (res) =>
-                  `${res.studentName}の${convertDateExpression(res.date)}:${
-                    res.startHour
-                  }から${res.endHour}までの予約(${res.studyRoomName})`
-              )
-              .join("\n")
-          : "";
-    }
-    return message;
-  };
   // TODO: add confirmation of the change!!
   const handleSaveException = async () => {
     if (!exceptionReason.trim()) {
@@ -657,7 +506,7 @@ function StudyRoomDetailContent() {
         }
         // 特別開講予定を保存
       } else {
-        const ranges = convertExceptionSlotsToRanges();
+        const ranges = convertExceptionSlotsToRanges(exceptionSlots);
 
         const updateRequestData = {
           studyRoomId: studyRoomId,
@@ -746,87 +595,12 @@ function StudyRoomDetailContent() {
     }
   };
 
-  const hasException = (day) => {
-    const dateStr = `${currentYear}-${currentMonth
-      .toString()
-      .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
-    return exceptions.some((e) => e.date === dateStr);
-  };
-
-  const isClosedDay = (day) => {
-    const dateStr = `${currentYear}-${currentMonth
-      .toString()
-      .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
-    const dayExceptions = exceptions.filter((e) => e.date === dateStr);
-    return dayExceptions.length > 0 && !dayExceptions[0].isOpen;
-  };
-
-  const renderCalendar = () => {
-    const daysInMonth = getDaysInMonth(currentYear, currentMonth);
-    const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
-    const days = [];
-
-    // 空白セル
-    for (let i = 0; i < firstDay; i++) {
-      days.push(<td key={`empty-${i}`}></td>);
-    }
-
-    // 日付セル
-    for (let day = 1; day <= daysInMonth; day++) {
-      const hasEx = hasException(day);
-      const isClosed = isClosedDay(day);
-
-      days.push(
-        <td
-          key={day}
-          onClick={() => handleDateClick(day)}
-          style={{
-            cursor: "pointer",
-            padding: "8px",
-            backgroundColor: isClosed ? "#ffcccc" : hasEx ? "#fff3cd" : "white",
-            border: "1px solid #dee2e6",
-            textAlign: "center",
-            minHeight: "50px",
-          }}
-          className="hover-cell"
-        >
-          <div
-            style={{ fontSize: "1rem", fontWeight: hasEx ? "bold" : "normal" }}
-          >
-            {day}
-          </div>
-          {hasEx && (
-            <small
-              style={{
-                color: isClosed ? "#dc3545" : "#856404",
-                fontSize: "0.7rem",
-              }}
-            >
-              {isClosed ? "休室" : "特別"}
-            </small>
-          )}
-        </td>
-      );
-    }
-
-    // 週ごとに分割
-    const weeks = [];
-    let week = [];
-    days.forEach((day, index) => {
-      week.push(day);
-      if ((index + 1) % 7 === 0 || index === days.length - 1) {
-        weeks.push(<tr key={`week-${weeks.length}`}>{week}</tr>);
-        week = [];
-      }
-    });
-
-    return weeks;
-  };
-
   return (
     <div
       className="container-fluid mt-3 mt-md-4 px-2 px-md-3"
       onMouseUp={handleMouseUp}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
     >
       <style jsx>{`
         .hover-cell:hover {
@@ -836,738 +610,81 @@ function StudyRoomDetailContent() {
 
       <div className="row g-3">
         {/* Left: Regular Schedule */}
-        <div className="col-12 col-lg-6">
-          <div className="card">
-            <div className="card-header">
-              <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-2">
-                <div className="d-flex align-items-center w-100 w-sm-auto">
-                  <button
-                    className="btn btn-outline-secondary btn-sm me-2"
-                    onClick={() => router.back()}
-                  >
-                    ← 戻る
-                  </button>
-                  <div>
-                    <h5 className="mb-0 fs-6">デフォルト週間スケジュール</h5>
-                    <small className="text-muted">{studyRoomName}</small>
-                  </div>
-                </div>
-              </div>
-              <div className="d-flex flex-wrap gap-2">
-                <button
-                  className="btn btn-info btn-sm flex-fill flex-sm-grow-0"
-                  onClick={handleOpenCopyRegularModal}
-                >
-                  <span className="d-none d-sm-inline">
-                    📋 他の自習室にコピー
-                  </span>
-                  <span className="d-inline d-sm-none">📋 コピー</span>
-                </button>
-                {hasChanges && (
-                  <>
-                    <button
-                      className="btn btn-warning btn-sm flex-fill flex-sm-grow-0"
-                      onClick={handleReset}
-                    >
-                      リセット
-                    </button>
-                    <button
-                      className="btn btn-success btn-sm flex-fill flex-sm-grow-0"
-                      onClick={handleSaveSchedules}
-                    >
-                      💾 保存
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="card-body p-2 p-sm-3">
-              <div className="alert alert-info mb-2 py-2 px-2">
-                <small>📌 ドラッグして開室時間を設定</small>
-              </div>
-
-              <div className="table-responsive">
-                <table
-                  className="table table-bordered text-center mb-0"
-                  style={{ userSelect: "none", fontSize: "0.75rem" }}
-                >
-                  <thead>
-                    <tr>
-                      <th style={{ width: "60px" }}>時/曜</th>
-                      {weekSchedule.map((day) => (
-                        <th
-                          key={day.dayOfWeek}
-                          style={{
-                            backgroundColor:
-                              day.dayLabel === "土"
-                                ? "#e3f2fd"
-                                : day.dayLabel === "日"
-                                ? "#ffe0e0"
-                                : "white",
-                          }}
-                        >
-                          {day.dayLabel}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* 7:00から23:00まで = 17時間 (23:30までの最後のスロットを含む) */}
-                    {Array.from({ length: 17 }, (_, index) => {
-                      const hour = index + 7;
-                      return (
-                        <tr key={hour}>
-                          <td
-                            className="align-middle fw-bold"
-                            style={{
-                              backgroundColor: "#f8f9fa",
-                              fontSize: "0.7rem",
-                            }}
-                          >
-                            {hour.toString().padStart(2, "0")}:00
-                          </td>
-                          {weekSchedule.map((day, dayIndex) => (
-                            <td key={day.dayOfWeek} style={{ padding: 0 }}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                }}
-                              >
-                                {[0, 15, 30, 45].map((minute) => {
-                                  // 23:45は表示しない
-                                  if (hour === 23 && minute === 45)
-                                    return (
-                                      <div
-                                        key={`${hour}-${minute}`}
-                                        style={{
-                                          height: "8px",
-                                          backgroundColor: "gray",
-                                          borderTop: "1px dashed #e0e0e0",
-                                        }}
-                                      />
-                                    );
-
-                                  const slotIndex =
-                                    (hour - 7) * 4 + minute / 15;
-                                  const slot = day.slots[slotIndex];
-                                  const isHourStart = minute === 0;
-                                  return (
-                                    <div
-                                      key={`${hour}-${minute}`}
-                                      onMouseDown={() =>
-                                        handleMouseDown(dayIndex, slotIndex)
-                                      }
-                                      onMouseEnter={() =>
-                                        handleMouseEnter(dayIndex, slotIndex)
-                                      }
-                                      style={{
-                                        height: "8px",
-                                        backgroundColor: slot?.isOpen
-                                          ? "#d4edda"
-                                          : "white",
-                                        borderTop: isHourStart
-                                          ? "3px solid #28a745"
-                                          : "1px dashed #e0e0e0",
-                                        cursor: "pointer",
-                                        transition: "background-color 0.1s",
-                                      }}
-                                    />
-                                  );
-                                })}
-                              </div>
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* 開室時間の文字表示 */}
-              <div className="mt-2 p-2 p-sm-3 bg-light rounded">
-                <h6 className="mb-2 fs-6">現在の開室時間</h6>
-                {weekSchedule.map((day) => (
-                  <div key={day.dayOfWeek} className="mb-1">
-                    <strong>{day.dayLabel}曜日: </strong>
-                    {day.schedules && day.schedules.length > 0 ? (
-                      day.schedules.map((schedule, index) => (
-                        <span key={index}>
-                          {schedule.openTime} - {schedule.closeTime}
-                          {index < day.schedules.length - 1 && ", "}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-muted">休室</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <RegularScheduleSection
+          studyRoomName={studyRoomName}
+          weekSchedule={weekSchedule}
+          hasChanges={hasChanges}
+          onMouseDown={handleMouseDown}
+          onMouseEnter={handleMouseEnter}
+          onTouchStart={handleTouchStart}
+          onSave={handleSaveSchedules}
+          onReset={handleReset}
+          onOpenCopyModal={handleOpenCopyRegularModal}
+        />
 
         {/* Right: Exception Schedule */}
-        <div className="col-12 col-lg-6">
-          <div className="card">
-            <div className="card-header">
-              <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-2">
-                <div>
-                  <h5 className="mb-0 fs-6">
-                    例外スケジュール（特別営業・休室日）
-                  </h5>
-                  <small className="text-muted">{studyRoomName}</small>
-                </div>
-                <button
-                  className="btn btn-info btn-sm w-100 w-sm-auto"
-                  onClick={handleOpenCopyExceptionModal}
-                >
-                  <span className="d-none d-sm-inline">
-                    📋 他の自習室にコピー
-                  </span>
-                  <span className="d-inline d-sm-none">📋 コピー</span>
-                </button>
-              </div>
-            </div>
-            <div className="card-body p-2 p-sm-3">
-              <div className="d-flex justify-content-between align-items-center mb-2 mb-sm-3">
-                <button
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={handlePrevMonth}
-                >
-                  ← <span className="d-none d-sm-inline">前月</span>
-                </button>
-                <h5 className="mb-0 fs-6">
-                  {currentYear}年 {currentMonth}月
-                </h5>
-                <button
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={handleNextMonth}
-                >
-                  <span className="d-none d-sm-inline">次月</span> →
-                </button>
-              </div>
-
-              <div className="alert alert-warning mb-2 py-2 px-2">
-                <small>
-                  📅{" "}
-                  <span className="d-none d-sm-inline">
-                    カレンダーの日付をクリックして例外を設定
-                  </span>
-                  <span className="d-inline d-sm-none">日付タップで設定</span>
-                  <br />
-                  🟨{" "}
-                  <span className="d-none d-sm-inline">
-                    黄色: 特別営業日 /{" "}
-                  </span>
-                  🟥 <span className="d-none d-sm-inline">赤色: </span>休室日
-                </small>
-              </div>
-
-              <div className="table-responsive">
-                <table
-                  className="table table-bordered mb-0"
-                  style={{ fontSize: "0.85rem" }}
-                >
-                  <thead>
-                    <tr>
-                      <th
-                        style={{
-                          textAlign: "center",
-                          color: "red",
-                          padding: "8px",
-                        }}
-                      >
-                        日
-                      </th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>
-                        月
-                      </th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>
-                        火
-                      </th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>
-                        水
-                      </th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>
-                        木
-                      </th>
-                      <th style={{ textAlign: "center", padding: "8px" }}>
-                        金
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "center",
-                          color: "blue",
-                          padding: "8px",
-                        }}
-                      >
-                        土
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>{renderCalendar()}</tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ExceptionScheduleSection
+          studyRoomName={studyRoomName}
+          currentYear={currentYear}
+          currentMonth={currentMonth}
+          exceptions={exceptions}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+          onDateClick={handleDateClick}
+          onOpenCopyModal={handleOpenCopyExceptionModal}
+        />
       </div>
 
       {/* Copy Regular Schedule Modal */}
-      {showCopyRegularModal && (
-        <>
-          <div
-            className="modal fade show"
-            style={{ display: "block" }}
-            tabIndex={-1}
-          >
-            <div className="modal-dialog modal-lg">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">通常スケジュールをコピー</h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowCopyRegularModal(false)}
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <div className="alert alert-info">
-                    <small>
-                      コピー先の自習室を選択してください。選択した自習室の通常スケジュールが上書きされます。
-                    </small>
-                  </div>
-
-                  <div className="form-check mb-3">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="selectAllRegular"
-                      checked={selectAll}
-                      onChange={handleToggleSelectAll}
-                    />
-                    <label
-                      className="form-check-label fw-bold"
-                      htmlFor="selectAllRegular"
-                    >
-                      すべて選択
-                    </label>
-                  </div>
-
-                  <div
-                    style={{
-                      maxHeight: "400px",
-                      overflowY: "auto",
-                      border: "1px solid #dee2e6",
-                      borderRadius: "4px",
-                      padding: "10px",
-                    }}
-                  >
-                    {getAvailableStudyRooms().length === 0 ? (
-                      <div className="text-muted text-center py-3">
-                        コピー可能な自習室がありません
-                      </div>
-                    ) : (
-                      getAvailableStudyRooms().map((room) => (
-                        <div key={room.studyRoomId} className="form-check mb-2">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`room-regular-${room.studyRoomId}`}
-                            checked={selectedStudyRoomIds.includes(
-                              room.studyRoomId.toString()
-                            )}
-                            onChange={() =>
-                              handleToggleStudyRoom(room.studyRoomId.toString())
-                            }
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor={`room-regular-${room.studyRoomId}`}
-                          >
-                            {room.cramSchoolName} - {room.studyRoomName}
-                          </label>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  <div className="mt-3">
-                    <small className="text-muted">
-                      選択中: {selectedStudyRoomIds.length}件
-                    </small>
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowCopyRegularModal(false)}
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleCopyRegularSchedule}
-                    disabled={selectedStudyRoomIds.length === 0}
-                  >
-                    コピー実行
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="modal-backdrop fade show"></div>
-        </>
-      )}
+      <CopyScheduleModal
+        show={showCopyRegularModal}
+        onClose={() => setShowCopyRegularModal(false)}
+        title="通常スケジュールをコピー"
+        description="コピー先の自習室を選択してください。選択した自習室の通常スケジュールが上書きされます。"
+        studyRooms={getAvailableStudyRooms()}
+        selectedStudyRoomIds={selectedStudyRoomIds}
+        onToggleStudyRoom={handleToggleStudyRoom}
+        selectAll={selectAll}
+        onToggleSelectAll={handleToggleSelectAll}
+        onConfirm={handleCopyRegularSchedule}
+        isException={false}
+      />
 
       {/* Copy Exception Schedule Modal */}
-      {showCopyExceptionModal && (
-        <>
-          <div
-            className="modal fade show"
-            style={{ display: "block" }}
-            tabIndex={-1}
-          >
-            <div className="modal-dialog modal-lg">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
-                    例外スケジュールをコピー ({currentYear}年{currentMonth}月)
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowCopyExceptionModal(false)}
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <div className="alert alert-info">
-                    <small>
-                      コピー先の自習室を選択してください。{currentYear}年
-                      {currentMonth}
-                      月の例外スケジュールが選択した自習室にコピーされます。
-                    </small>
-                  </div>
-
-                  <div className="form-check mb-3">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="selectAllException"
-                      checked={selectAll}
-                      onChange={handleToggleSelectAll}
-                    />
-                    <label
-                      className="form-check-label fw-bold"
-                      htmlFor="selectAllException"
-                    >
-                      すべて選択
-                    </label>
-                  </div>
-
-                  <div
-                    style={{
-                      maxHeight: "400px",
-                      overflowY: "auto",
-                      border: "1px solid #dee2e6",
-                      borderRadius: "4px",
-                      padding: "10px",
-                    }}
-                  >
-                    {getAvailableStudyRooms().length === 0 ? (
-                      <div className="text-muted text-center py-3">
-                        コピー可能な自習室がありません
-                      </div>
-                    ) : (
-                      getAvailableStudyRooms().map((room) => (
-                        <div key={room.studyRoomId} className="form-check mb-2">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`room-exception-${room.studyRoomId}`}
-                            checked={selectedStudyRoomIds.includes(
-                              room.studyRoomId.toString()
-                            )}
-                            onChange={() =>
-                              handleToggleStudyRoom(room.studyRoomId.toString())
-                            }
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor={`room-exception-${room.studyRoomId}`}
-                          >
-                            {room.cramSchoolName} - {room.studyRoomName}
-                          </label>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  <div className="mt-3">
-                    <small className="text-muted">
-                      選択中: {selectedStudyRoomIds.length}件
-                    </small>
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowCopyExceptionModal(false)}
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleCopyExceptionSchedule}
-                    disabled={selectedStudyRoomIds.length === 0}
-                  >
-                    コピー実行
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="modal-backdrop fade show"></div>
-        </>
-      )}
+      <CopyScheduleModal
+        show={showCopyExceptionModal}
+        onClose={() => setShowCopyExceptionModal(false)}
+        title={`例外スケジュールをコピー (${currentYear}年${currentMonth}月)`}
+        description={`コピー先の自習室を選択してください。${currentYear}年${currentMonth}月の例外スケジュールが選択した自習室にコピーされます。`}
+        studyRooms={getAvailableStudyRooms()}
+        selectedStudyRoomIds={selectedStudyRoomIds}
+        onToggleStudyRoom={handleToggleStudyRoom}
+        selectAll={selectAll}
+        onToggleSelectAll={handleToggleSelectAll}
+        onConfirm={handleCopyExceptionSchedule}
+        isException={true}
+      />
 
       {/* Exception Modal */}
-      {showExceptionModal && (
-        <>
-          <div
-            className="modal fade show"
-            style={{ display: "block" }}
-            tabIndex={-1}
-          >
-            <div
-              className="modal-dialog modal-lg"
-              onMouseUp={handleExceptionMouseUp}
-            >
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
-                    {selectedDate} の例外スケジュール
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowExceptionModal(false)}
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <div className="mb-3">
-                    <label className="form-label">例外タイプ</label>
-                    <div>
-                      <div className="form-check form-check-inline">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          id="typeClosed"
-                          checked={exceptionType === "closed"}
-                          onChange={() => setExceptionType("closed")}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor="typeClosed"
-                        >
-                          完全休室
-                        </label>
-                      </div>
-                      <div className="form-check form-check-inline">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          id="typeCustom"
-                          checked={exceptionType === "custom"}
-                          onChange={() => setExceptionType("custom")}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor="typeCustom"
-                        >
-                          特別営業時間
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label htmlFor="exceptionReason" className="form-label">
-                      理由
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="exceptionReason"
-                      value={exceptionReason}
-                      onChange={(e) => setExceptionReason(e.target.value)}
-                      placeholder="例: 年末年始休業、特別開校日"
-                    />
-                  </div>
-
-                  {exceptionType === "custom" && (
-                    <>
-                      <div className="alert alert-info">
-                        <small>📌 ドラッグして開室時間を設定してください</small>
-                      </div>
-
-                      {/* 開室時間の文字表示 */}
-                      <div className="mb-3 p-3 bg-light rounded">
-                        <h6 className="mb-2">設定されている開室時間</h6>
-                        {(() => {
-                          const dayExceptions = exceptions.filter(
-                            (e) => e.date === selectedDate
-                          );
-                          if (
-                            dayExceptions.length > 0 &&
-                            dayExceptions.some(
-                              (ex) => ex.openTime && ex.closeTime
-                            )
-                          ) {
-                            return dayExceptions.map(
-                              (exception, index) =>
-                                exception.openTime &&
-                                exception.closeTime && (
-                                  <div key={index}>
-                                    {exception.openTime} - {exception.closeTime}
-                                    {index < dayExceptions.length - 1 && ", "}
-                                  </div>
-                                )
-                            );
-                          } else {
-                            return (
-                              <span className="text-muted">
-                                開室時間が設定されていません
-                              </span>
-                            );
-                          }
-                        })()}
-                      </div>
-
-                      <div
-                        className="table-responsive"
-                        style={{ maxHeight: "400px", overflowY: "auto" }}
-                      >
-                        <table
-                          className="table table-bordered text-center"
-                          style={{ userSelect: "none" }}
-                        >
-                          <tbody>
-                            {/* 7:00から23:00まで = 17時間 (23:30までの最後のスロットを含む) */}
-                            {Array.from({ length: 17 }, (_, index) => {
-                              const hour = index + 7;
-                              return (
-                                <tr key={hour}>
-                                  <td
-                                    className="align-middle fw-bold"
-                                    style={{
-                                      backgroundColor: "#f8f9fa",
-                                      width: "80px",
-                                    }}
-                                  >
-                                    {hour.toString().padStart(2, "0")}:00
-                                  </td>
-                                  <td style={{ padding: 0 }}>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                      }}
-                                    >
-                                      {[0, 15, 30, 45].map((minute) => {
-                                        // 23:45は表示しない
-                                        if (hour === 23 && minute === 45)
-                                          return (
-                                            <div
-                                              key={`${hour}-${minute}`}
-                                              style={{
-                                                height: "10px",
-                                                backgroundColor: "gray",
-                                                borderTop: "1px dashed #e0e0e0",
-                                              }}
-                                            />
-                                          );
-
-                                        const slotIndex =
-                                          (hour - 7) * 4 + minute / 15;
-                                        const slot = exceptionSlots[slotIndex];
-                                        const isHourStart = minute === 0;
-                                        return (
-                                          <div
-                                            key={`${hour}-${minute}`}
-                                            onMouseDown={() =>
-                                              handleExceptionMouseDown(
-                                                slotIndex
-                                              )
-                                            }
-                                            onMouseEnter={() =>
-                                              handleExceptionMouseEnter(
-                                                slotIndex
-                                              )
-                                            }
-                                            style={{
-                                              height: "10px",
-                                              backgroundColor: slot?.isOpen
-                                                ? "#d4edda"
-                                                : "white",
-                                              borderTop: isHourStart
-                                                ? "3px solid #28a745"
-                                                : "1px dashed #e0e0e0",
-                                              cursor: "pointer",
-                                              transition:
-                                                "background-color 0.1s",
-                                            }}
-                                          />
-                                        );
-                                      })}
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="modal-footer">
-                  {exceptions.some((e) => e.date === selectedDate) && (
-                    <button
-                      type="button"
-                      className="btn btn-danger me-auto"
-                      onClick={handleDeleteException}
-                    >
-                      削除
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowExceptionModal(false)}
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleSaveException}
-                  >
-                    保存
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="modal-backdrop fade show"></div>
-        </>
-      )}
+      <ExceptionEditModal
+        show={showExceptionModal}
+        onClose={() => setShowExceptionModal(false)}
+        selectedDate={selectedDate}
+        exceptionType={exceptionType}
+        setExceptionType={setExceptionType}
+        exceptionReason={exceptionReason}
+        setExceptionReason={setExceptionReason}
+        exceptionSlots={exceptionSlots}
+        onMouseDown={handleExceptionMouseDown}
+        onMouseEnter={handleExceptionMouseEnter}
+        onMouseUp={handleExceptionMouseUp}
+        onTouchStart={handleExceptionTouchStart}
+        onTouchEnd={handleExceptionTouchEnd}
+        onTouchMove={handleExceptionTouchMove}
+        exceptions={exceptions}
+        onSave={handleSaveException}
+        onDelete={handleDeleteException}
+      />
     </div>
   );
 }

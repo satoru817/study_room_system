@@ -2,6 +2,12 @@
 
 echo "🔨 Next.js building..."
 cd frontend
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Node.jsバージョンを使用
+nvm use v22.13.0
+
 npm run build
 
 echo "📦 Copy build files to SpringBoot..."

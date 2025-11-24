@@ -41,6 +41,16 @@ public class StudyRoomReservation {
         return new StudyRoomReservation(prev.date, newRange.openTime(), newRange.closeTime(), prev.studyRoom, prev.student);
     }
 
+    public StudyRoomReservation complyWith(dto.IRange range) {
+        if (range.openTime().compareTo(this.endHour) >= 0 || range.closeTime().compareTo(this.startHour) <= 0) return null;
+
+        LocalTime startHour = range.openTime().compareTo(this.startHour) > 0 ? range.openTime() : this.startHour;
+        LocalTime endHour = range.closeTime().compareTo(this.endHour) > 0 ? this.endHour : range.closeTime();
+        if (startHour.compareTo(endHour) == 0) return null;
+
+        return new StudyRoomReservation(this.date, startHour, endHour, this.studyRoom, this.student);
+    }
+
     //==============================================================
     //             instance fields
     //==============================================================

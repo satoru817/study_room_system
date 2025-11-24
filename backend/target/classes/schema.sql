@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS student_login_infos (
     student_login_info_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     login_name VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    student_id INT NOT NULL,
+    student_id INT NOT NULL UNIQUE,
     FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
 );
 
@@ -47,14 +47,6 @@ CREATE TABLE IF NOT EXISTS study_room_schedule_exceptions (
     study_room_id INT NOT NULL,
     FOREIGN KEY(study_room_id) REFERENCES study_rooms(study_room_id) ON DELETE CASCADE
 --     UNIQUE KEY (date, study_room_id) the same as above. maybe i could add this line...
-);
-
-CREATE TABLE IF NOT EXISTS student_login_infos (
-    student_login_info_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    login_name VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    student_id INT NOT NULL UNIQUE,
-    FOREIGN KEY student_id REFERENCES students(student_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS student_tokens (
