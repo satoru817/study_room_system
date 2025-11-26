@@ -111,7 +111,7 @@ public class NotificationService {
     }
 
     private String getRegistrationUrl(String token, String baseUrl) {
-        return baseUrl + "/register?token=" + token;
+        return baseUrl + "/register.html?token=" + token;
     }
 
     // We only send notifications when reservations actually changed to avoid unnecessary messages to students.
