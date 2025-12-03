@@ -111,4 +111,18 @@ public class StudentService {
     public StudentUser getStudentUserByStudentId(int studentId) {
         return userDetailsService.loadStudentUserByStudentId(studentId);
     }
+
+    public boolean isValidLoginName(String tentativeLoginName) {
+        String sql = """
+                SELECT NOT EXISTS (
+                    SELECT 1
+                    FROM student_login_infos sli
+                    WHERE sli.login_name = :tentativeLoginName
+                )
+                """;
+
+        MapSqlParameterSource param = new MapSqlParameterSource().addValue("tentativeLoginName", tentativeLoginName);
+
+        return Boolean.TRUE.equals(namedParameterJdbcTemplate.queryForObject(sql, param, Boolean.class));
+    }
 }

@@ -61,6 +61,7 @@ public class SecurityConfig {
                         // 認証不要なAPIエンドポイント
                         .requestMatchers(
                                 "/api/student/register",
+                                "/api/student/isValidLoginName",
                                 "/api/csrf-token",
                                 "/api/login",
                                 "/api/me"

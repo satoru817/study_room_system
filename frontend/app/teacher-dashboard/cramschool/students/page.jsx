@@ -35,12 +35,10 @@ const Students = () => {
       const url = `/api/student/getStatuses/${cramSchoolId}?page=${currentPage}&size=${pageSize}&sort=el1&direction=DESC`;
       const data = await doGet(url);
       setPageData(data);
-    }
- catch (e) {
+    } catch (e) {
       console.error("Failed to fetch students:", e);
       setError("生徒情報の取得に失敗しました");
-    }
- finally {
+    } finally {
       setIsLoading(false);
     }
   }, [cramSchoolId, currentPage, pageSize]);
@@ -67,8 +65,7 @@ const Students = () => {
       const newSet = new Set(prev);
       if (newSet.has(studentId)) {
         newSet.delete(studentId);
-      }
- else {
+      } else {
         newSet.add(studentId);
       }
       return newSet;
@@ -81,8 +78,7 @@ const Students = () => {
     );
     if (selectedStudentIds.size === unregisteredStudents.length) {
       setSelectedStudentIds(new Set());
-    }
- else {
+    } else {
       setSelectedStudentIds(
         new Set(unregisteredStudents.map((s) => s.studentId))
       );
@@ -120,15 +116,13 @@ const Students = () => {
 
       // リストを更新
       await fetchStudents();
-    }
- catch (e) {
+    } catch (e) {
       console.error("Failed to send registration emails:", e);
       setEmailResult({
         successCount: 0,
         failedStudent: ["通信エラーが発生しました"],
       });
-    }
- finally {
+    } finally {
       setIsSendingEmail(false);
     }
   };
@@ -182,12 +176,10 @@ const Students = () => {
 
       await fetchStudents();
       handleCloseEditModal();
-    }
- catch (e) {
+    } catch (e) {
       console.error("Failed to register email:", e);
       setModalError("メールアドレスの登録に失敗しました");
-    }
- finally {
+    } finally {
       setIsRegistering(false);
     }
   };
@@ -237,7 +229,10 @@ const Students = () => {
   };
 
   return (
-    <div className="container-fluid py-3 py-md-4 px-3" style={{ maxWidth: "1400px" }}>
+    <div
+      className="container-fluid py-3 py-md-4 px-3"
+      style={{ maxWidth: "1400px" }}
+    >
       {/* ヘッダー */}
       <div className="row mb-3 mb-md-4">
         <div className="col">
@@ -294,7 +289,9 @@ const Students = () => {
                   <div className="col-12 col-md-6">
                     <h6 className="mb-1 fw-bold fs-6">
                       <i className="bi bi-envelope-fill me-2 text-primary"></i>
-                      <span className="d-none d-sm-inline">登録案内メール一括送信</span>
+                      <span className="d-none d-sm-inline">
+                        登録案内メール一括送信
+                      </span>
                       <span className="d-inline d-sm-none">一括メール送信</span>
                     </h6>
                     <small className="text-muted">
@@ -317,7 +314,9 @@ const Students = () => {
                       <button
                         className="btn btn-primary btn-sm flex-fill flex-md-grow-0"
                         onClick={handleSendRegisterLink}
-                        disabled={selectedStudentIds.size === 0 || isSendingEmail}
+                        disabled={
+                          selectedStudentIds.size === 0 || isSendingEmail
+                        }
                       >
                         <i className="bi bi-send-fill me-1"></i>
                         メール送信
@@ -338,7 +337,10 @@ const Students = () => {
             <div className="card-body py-2 py-sm-3 px-2 px-sm-3">
               <div className="row align-items-center g-2 g-sm-3">
                 <div className="col-12 col-lg-8">
-                  <div className="btn-group w-100 d-flex flex-wrap" role="group">
+                  <div
+                    className="btn-group w-100 d-flex flex-wrap"
+                    role="group"
+                  >
                     <input
                       type="radio"
                       className="btn-check"
@@ -453,7 +455,9 @@ const Students = () => {
             <hr className="my-2" />
             <p className="mb-0 small">
               <i className="bi bi-info-circle me-1"></i>
-              <span className="d-none d-sm-inline">行をダブルクリックでメールアドレスを登録できます</span>
+              <span className="d-none d-sm-inline">
+                行をダブルクリックでメールアドレスを登録できます
+              </span>
               <span className="d-inline d-sm-none">タップでメール登録</span>
             </p>
           </div>
@@ -479,7 +483,10 @@ const Students = () => {
             <>
               <div className="card shadow-sm">
                 <div className="table-responsive">
-                  <table className="table table-hover mb-0" style={{ fontSize: "0.9rem" }}>
+                  <table
+                    className="table table-hover mb-0"
+                    style={{ fontSize: "0.9rem" }}
+                  >
                     <thead className="table-light">
                       <tr>
                         <th style={{ width: "40px", minWidth: "40px" }}>
@@ -496,19 +503,41 @@ const Students = () => {
                           )}
                         </th>
                         <th style={{ minWidth: "120px" }}>名前</th>
-                        <th className="d-none d-md-table-cell" style={{ minWidth: "80px" }}>学年</th>
-                        <th className="d-none d-lg-table-cell" style={{ minWidth: "150px" }}>メールアドレス</th>
+                        <th
+                          className="d-none d-md-table-cell"
+                          style={{ minWidth: "80px" }}
+                        >
+                          学年
+                        </th>
+                        <th
+                          className="d-none d-lg-table-cell"
+                          style={{ minWidth: "150px" }}
+                        >
+                          メールアドレス
+                        </th>
                         <th style={{ minWidth: "100px" }}>状態</th>
-                        <th className="text-center d-none d-sm-table-cell" style={{ minWidth: "60px" }}>
+                        <th
+                          className="text-center d-none d-sm-table-cell"
+                          style={{ minWidth: "60px" }}
+                        >
                           登録
                         </th>
-                        <th className="text-center d-none d-sm-table-cell" style={{ minWidth: "60px" }}>
+                        <th
+                          className="text-center d-none d-sm-table-cell"
+                          style={{ minWidth: "60px" }}
+                        >
                           予約
                         </th>
-                        <th className="text-center d-none d-sm-table-cell" style={{ minWidth: "60px" }}>
+                        <th
+                          className="text-center d-none d-sm-table-cell"
+                          style={{ minWidth: "60px" }}
+                        >
                           出席
                         </th>
-                        <th className="text-center" style={{ minWidth: "80px" }}>
+                        <th
+                          className="text-center"
+                          style={{ minWidth: "80px" }}
+                        >
                           操作
                         </th>
                       </tr>
@@ -537,7 +566,9 @@ const Students = () => {
                           </td>
                           <td>
                             <strong className="d-block">{student.name}</strong>
-                            <small className="text-muted d-md-none">{student.gradeStr}</small>
+                            <small className="text-muted d-md-none">
+                              {student.gradeStr}
+                            </small>
                           </td>
                           <td className="d-none d-md-table-cell">
                             <small className="text-muted">
@@ -545,7 +576,13 @@ const Students = () => {
                             </small>
                           </td>
                           <td className="d-none d-lg-table-cell">
-                            <small className="text-muted text-truncate" style={{ maxWidth: "200px", display: "inline-block" }}>
+                            <small
+                              className="text-muted text-truncate"
+                              style={{
+                                maxWidth: "200px",
+                                display: "inline-block",
+                              }}
+                            >
                               {student.mail || (
                                 <span className="text-danger">未設定</span>
                               )}

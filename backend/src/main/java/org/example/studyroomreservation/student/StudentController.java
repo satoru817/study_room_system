@@ -50,6 +50,29 @@ public class StudentController {
             ));
         }
     }
+    
+    @PostMapping("/isValidLoginName")
+    public ResponseEntity<?> isValid(@RequestParam String tentativeLoginName) {
+        try {
+            boolean isValidLoginName = studentService.isValidLoginName(tentativeLoginName);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "isValid", isValidLoginName
+            ));
+        }
+        catch (org.springframework.dao.DataAccessException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Database error occurred while validating login name"
+            ));
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "An unexpected error occurred"
+            ));
+        }
+    }
 
     @GetMapping("/getStatuses/{cramSchoolId}")
     @PreAuthorize("hasRole('TEACHER')")
