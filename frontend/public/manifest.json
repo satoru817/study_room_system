@@ -2,7 +2,7 @@
   "name": "翔栄学院自習室管理アプリ",
   "short_name": "翔栄自習室アプリ",
   "description": "翔栄学院の自習室のアプリです",
-  "start_url": "/user-login.html",
+  "start_url": "/user-login",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",

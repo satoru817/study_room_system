@@ -71,9 +71,9 @@ public class LineNotificationStrategy implements NotificationStrategy{
     }
 
     @Override
-    public void sendRegistrationUrl(StudentLoginDTO student, String url, int validPeriod) {
+    public void sendRegistrationUrl(StudentLoginDTO student, String url, String loginUrl, int validPeriod) {
         try {
-            FlexMessage message = createRegistrationLineFlexMessage(student, url, validPeriod);
+            FlexMessage message = createRegistrationLineFlexMessage(student, url, loginUrl, validPeriod);
             sendLineShared(student, message);
         } catch (Exception e) {
             log.error("Failed to send registration URL via LINE to student: {}, Error: {}", student.getName(), e.getMessage(), e);
@@ -281,12 +281,13 @@ public class LineNotificationStrategy implements NotificationStrategy{
         sendLine(student.getCramSchoolLineChannelToken(), student.getLineUserId(), message);
     }
 
-    private FlexMessage createRegistrationLineFlexMessage(StudentLoginDTO student, String url ,int validPeriod) {
+    private FlexMessage createRegistrationLineFlexMessage(StudentLoginDTO student, String url, String loginUrl, int validPeriod) {
         Text title = getTitle("翔栄学院入退室システム登録のお願い");
         Text message = getHeadMessage(student.getName() , "様");
         Button link = getLinkBtn("以下のリンクをクリックしてシステムに登録してください", url);
+        Text loginInfo = createLoginInfo(loginUrl);
         Text note = createNote(validPeriod);
-        Box body = getBox(Arrays.asList(title, message, link, note));
+        Box body = getBox(Arrays.asList(title, message, link, loginInfo, note));
         Bubble bubble = createFromBody(body);
         return new FlexMessage("翔栄学院入退室システム登録のお願い", bubble);
     }
@@ -331,6 +332,16 @@ public class LineNotificationStrategy implements NotificationStrategy{
                 .wrap(true)
                 .margin(FlexMarginSize.MD)
                 .size(FlexFontSize.Md)
+                .build();
+    }
+
+    private Text createLoginInfo(String loginUrl) {
+        return Text.builder()
+                .text("登録が完了したら、以下のURLからログインできます：\n" + loginUrl)
+                .size(FlexFontSize.SM)
+                .color("#555555")
+                .wrap(true)
+                .margin(FlexMarginSize.MD)
                 .build();
     }
 

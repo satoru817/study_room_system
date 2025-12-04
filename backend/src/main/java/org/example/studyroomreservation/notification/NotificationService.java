@@ -83,6 +83,7 @@ public class NotificationService {
         );
 
         String baseUrl = urlElf.getBaseUrl(request);
+        String loginUrl = getLoginUrl(baseUrl);
 
         List<StudentLoginDTO> students = studentService.getLoginDtosInIds(studentIds);
         int successCount = 0;
@@ -92,7 +93,7 @@ public class NotificationService {
             try {
                 for (NotificationStrategy strategy : strategies) {
                     if (strategy.canSend(student)) {
-                        strategy.sendRegistrationUrl(student, getRegistrationUrl(studentToUUID.get(student.getStudentId()), baseUrl), REGISTRATION_LINK_VALID_PERIOD);
+                        strategy.sendRegistrationUrl(student, getRegistrationUrl(studentToUUID.get(student.getStudentId()), baseUrl), loginUrl, REGISTRATION_LINK_VALID_PERIOD);
                         successCount++;
                         sent = true;
                         break;
@@ -112,6 +113,10 @@ public class NotificationService {
 
     private String getRegistrationUrl(String token, String baseUrl) {
         return baseUrl + "/register.html?token=" + token;
+    }
+
+    private String getLoginUrl(String baseUrl) {
+        return baseUrl + "/user-login.html";
     }
 
     // We only send notifications when reservations actually changed to avoid unnecessary messages to students.

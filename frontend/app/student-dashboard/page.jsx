@@ -47,6 +47,7 @@ function StudentContent() {
 
     const startTimeInMinutes =
       parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+
     const endTimeInMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
 
     if (reservation.hasCheckedIn && !reservation.hasCheckedOut) {

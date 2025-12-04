@@ -50,7 +50,7 @@ public class StudentController {
             ));
         }
     }
-    
+
     @PostMapping("/isValidLoginName")
     public ResponseEntity<?> isValid(@RequestParam String tentativeLoginName) {
         try {

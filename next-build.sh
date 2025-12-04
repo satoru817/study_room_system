@@ -8,6 +8,11 @@ export NVM_DIR="$HOME/.nvm"
 # Node.jsバージョンを使用
 nvm use v22.13.0
 
+# Auto-update service worker cache version
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+sed -i "s/const CACHE_NAME = \".*\";/const CACHE_NAME = \"shoei-study-room-${TIMESTAMP}\";/" public/service-worker.js
+echo "📝 Updated service worker cache version to: shoei-study-room-${TIMESTAMP}"
+
 npm run build
 
 echo "📦 Copy build files to SpringBoot..."

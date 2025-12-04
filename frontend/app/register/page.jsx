@@ -35,6 +35,14 @@ function StudentRegisterPage() {
       return;
     }
 
+    const info = await doPost(
+      `/api/student/isValidLoginName?tentativeLoginName=${encodeURIComponent(
+        name.trim()
+      )}`
+    );
+
+    if (!(info.success && info.isValid)) return;
+
     setIsLoading(true);
     setError("");
 
@@ -47,10 +55,16 @@ function StudentRegisterPage() {
 
       alert("登録が完了しました！");
       //TODO: have to update here to automatically login with the registered loginNam and password!!
-      router.push("/student/login");
+      router.push(
+        `/user-login?loginName=${encodeURIComponent(
+          loginName
+        )}&password=${encodeURIComponent(password)}`
+      );
     } catch (e) {
       console.error("Registration failed:", e);
-      setError("登録に失敗しました。トークンが無効か、既に使用されています。");
+      setError(
+        "登録に失敗しました。トークンが無効か、既に使用されています。塾に連絡してください。"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +73,6 @@ function StudentRegisterPage() {
   const setLoginNameAndValidate = async (name) => {
     setLoginName(name);
 
-    // TODO: this might be wrong.
     if (!name.trim()) {
       setIsValid(null);
       return;
@@ -67,7 +80,6 @@ function StudentRegisterPage() {
 
     // if the function called in another render is doing api call, then queue the name
     if (isCheckingRef.current) {
-      console.log("setting nametocheckafter" + name);
       validateAgain.current = name;
       return;
     }
@@ -92,7 +104,6 @@ function StudentRegisterPage() {
 
     if (validateAgain.current) {
       const nextName = validateAgain.current;
-      console.log("nextname = " + nextName + " name=" + name);
       validateAgain.current = null;
       setLoginNameAndValidate(nextName);
       return;
@@ -202,7 +213,7 @@ function StudentRegisterPage() {
             <button
               type="submit"
               className="btn btn-primary w-100"
-              disabled={isLoading}
+              disabled={isLoading || !isValid}
             >
               {isLoading ? (
                 <>

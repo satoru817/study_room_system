@@ -91,13 +91,13 @@ public class EmailNotificationStrategy implements NotificationStrategy{
     }
 
     @Override
-    public void sendRegistrationUrl(StudentLoginDTO student, String url, int validPeriod) {
+    public void sendRegistrationUrl(StudentLoginDTO student, String url, String loginUrl, int validPeriod) {
         log.info("Sending registration URL email - Student: {}, Email: {}, CramSchool: {}, ValidPeriod: {} days",
                 student.getName(), student.getMail(), student.getCramSchoolName(), validPeriod);
 
         try {
-            sendEmail(student, createRegistrationHTML(student, url, validPeriod),
-                    createRegistrationText(student, url, validPeriod),
+            sendEmail(student, createRegistrationHTML(student, url, loginUrl, validPeriod),
+                    createRegistrationText(student, url, loginUrl, validPeriod),
                     "翔栄学院入退室システム登録のお願い"
             );
             log.info("Registration URL email sent successfully - Student: {}, Email: {}",
@@ -154,7 +154,7 @@ public class EmailNotificationStrategy implements NotificationStrategy{
         return true;
     }
 
-    private String createRegistrationHTML(StudentLoginDTO student, String url, int validPeriod) {
+    private String createRegistrationHTML(StudentLoginDTO student, String url, String loginUrl, int validPeriod) {
         return """
                 <html>
                     <body>
@@ -162,27 +162,34 @@ public class EmailNotificationStrategy implements NotificationStrategy{
                         <p>""" + student.getName() + """
                         様</p>
                         <p>以下のリンクをクリックしてシステムに登録してください。</p>
-                        <p><a href=""" + url + " >登録リンク</a></p> " + """
-                        <p>このリンクは""" + validPeriod + "日有効です。</p> " + """
+                        <p><a href=""" + url + """ ">登録リンク</a></p>
+                        <p>このリンクは""" + validPeriod + """日有効です。</p>
                         <hr>
-                        <p>このメールはシステムにより自動送信されています。</br>
+                        <p><strong>登録が完了したら、以下のURLからログインできます：</strong><br>
+                        <a href=""" + loginUrl + """">""" + loginUrl + """</a></p>
+                        <hr>
+                        <p>このメールはシステムにより自動送信されています。<br>
                         ご質問等は翔栄学院までお問い合わせください。</p>
                     </body>
                 </html>""";
     }
 
-    private String createRegistrationText(StudentLoginDTO student, String url, int validPeriod) {
+    private String createRegistrationText(StudentLoginDTO student, String url, String loginUrl, int validPeriod) {
         return          """
                         翔栄学院入退室システム登録のお願い
-                        
+
                         """ + student.getName() + """
                         様
                        \n
                         以下のリンクをクリックしてシステムに登録してください。
                        \n
-                        登録リンク:\s""" + url +  """ 
-                        
-                        このリンクは""" + validPeriod + "日有効です。" + """
+                        登録リンク:\s""" + url +  """
+
+                        このリンクは""" + validPeriod + """日有効です。
+                        ────────────────────────────
+                        【登録が完了したら、以下のURLからログインできます】
+                        """ + loginUrl + """
+
                         ────────────────────────────
                         このメールはシステムにより自動送信されています。
                         ご質問等は翔栄学院までお問い合わせください。
