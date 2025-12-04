@@ -162,11 +162,11 @@ public class EmailNotificationStrategy implements NotificationStrategy{
                         <p>""" + student.getName() + """
                         様</p>
                         <p>以下のリンクをクリックしてシステムに登録してください。</p>
-                        <p><a href=""" + url + """ ">登録リンク</a></p>
-                        <p>このリンクは""" + validPeriod + """日有効です。</p>
+                        <p><a href=""" + url +  ">登録リンク</a></p>" + """
+                        <p>このリンクは""" + validPeriod + "日有効です。</p>" + """
                         <hr>
                         <p><strong>登録が完了したら、以下のURLからログインできます：</strong><br>
-                        <a href=""" + loginUrl + """">""" + loginUrl + """</a></p>
+                        <a href=""" + loginUrl + ">" + loginUrl + "</a></p>" + """
                         <hr>
                         <p>このメールはシステムにより自動送信されています。<br>
                         ご質問等は翔栄学院までお問い合わせください。</p>
@@ -185,7 +185,7 @@ public class EmailNotificationStrategy implements NotificationStrategy{
                        \n
                         登録リンク:\s""" + url +  """
 
-                        このリンクは""" + validPeriod + """日有効です。
+                        このリンクは""" + validPeriod + "日有効です。" + """
                         ────────────────────────────
                         【登録が完了したら、以下のURLからログインできます】
                         """ + loginUrl + """

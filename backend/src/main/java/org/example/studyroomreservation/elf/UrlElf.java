@@ -15,13 +15,12 @@ public class UrlElf {
             return "http://localhost:3000";
         }
 
-        String scheme = request.getScheme();
         String serverName = request.getServerName();
         int serverPort = request.getServerPort();
         String contextPath = request.getContextPath();
 
         StringBuilder url = new StringBuilder();
-        url.append(scheme).append("://").append(serverName);
+        url.append("https").append("://").append(serverName);
 
         if (serverPort != 80 && serverPort != 443) {
             url.append(":").append(serverPort);
